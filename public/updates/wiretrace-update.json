@@ -1,12 +1,12 @@
 {
   "latest_version": "1.0.0",
-  "release_notes": "Initial public release of WireTrace.\n\n- Multi-device tabbed interface\n- Sustained throughput above 10,000 lines per second\n- Severity-based message classification\n- Live filter bar, search with navigation\n- Two-mode CSV export (auto-detect + raw)\n- Studio Light and Midnight Dark themes\n- Auto-update from GitHub Releases",
+  "release_notes": "Initial public release of WireTrace.\n\n- Multi-device tabbed interface — connect to multiple serial ports simultaneously, isolated per tab\n- Sustained throughput above 10,000 lines per second on commodity hardware\n- Buffered logging with guaranteed disk flush on shutdown\n- Severity-based message classification (CRITICAL, ERROR, WARNING, INFO, DEBUG, COMMAND, DATA)\n- Live filter bar — narrow the on-screen view without affecting the disk log\n- Search with forward and backward navigation\n- Two-mode CSV export — auto-detect (key:value, JSON) and raw\n- Studio Light and Midnight Dark themes\n- Auto-update from GitHub Releases\n- Hex display mode\n- Editable baud rate (50 to 4,000,000)\n- Windows 10 and later (64-bit)",
   "min_version": "1.0.0",
   "platforms": {
     "windows": {
       "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v1.0.0/WireTrace-Setup-v1.0.0.exe",
-      "file_size": 0,
-      "sha256_hash": ""
+      "file_size": 23151251,
+      "sha256_hash": "cbbd37b8998aa1432995ec5fd684762c6515ebd78ef60b6aa53502abbda2a9a1"
     }
   }
 }
