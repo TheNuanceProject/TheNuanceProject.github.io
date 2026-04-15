@@ -22,6 +22,39 @@
       })();
     </script>
 
+    <!--
+      SPA path restoration for GitHub Pages.
+
+      When a user hits a deep link like /projects, GitHub Pages serves
+      404.html (because no file exists at /projects). 404.html's script
+      redirects here with the original path encoded in the query string
+      as `?/projects`. This block unpacks that and rewrites the address
+      bar back to the original URL using history.replaceState — no page
+      reload, no flash, React Router picks up the URL on mount as if
+      the user had typed it directly (and it worked).
+
+      Must run BEFORE the main app script so the URL is correct by the
+      time React Router reads location.pathname.
+    -->
+    <script>
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&');
+            })
+            .join('?');
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      })(window.location);
+    </script>
+
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
