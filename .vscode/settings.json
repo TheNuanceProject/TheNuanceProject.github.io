@@ -1,0 +1,35 @@
+{
+  // ─── CSS language server ──────────────────────────────────────────
+  // Tailwind CSS v4 introduces new at-rules (@theme, @custom-variant,
+  // @layer, @apply, @utility) that the built-in CSS language server
+  // doesn't recognize. These are legitimate Tailwind directives, not
+  // errors — the build pipeline handles them correctly.
+  //
+  // The cleanest fix is to install the official Tailwind CSS
+  // IntelliSense extension (see extensions.json), which replaces
+  // the default CSS validation with Tailwind-aware validation.
+  //
+  // As a fallback for editors without that extension, we explicitly
+  // mark these at-rules as known so the built-in linter stays quiet.
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+
+  // ─── Editor ───────────────────────────────────────────────────────
+  "editor.formatOnSave": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  // ─── TypeScript ───────────────────────────────────────────────────
+  // Prefer the workspace's TypeScript over the one bundled with VS Code.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.importModuleSpecifier": "shortest",
+
+  // ─── Tailwind ─────────────────────────────────────────────────────
+  // Tells the Tailwind extension where to look — redundant with v4 but
+  // harmless, and explicit about the Tailwind version in use.
+  "tailwindCSS.experimental.configFile": "src/styles/globals.css"
+}

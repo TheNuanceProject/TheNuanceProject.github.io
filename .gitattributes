@@ -1,0 +1,40 @@
+# Auto-detect text files and normalize line endings to LF on commit,
+# native line endings on checkout. Prevents cross-platform diff noise.
+* text=auto eol=lf
+
+# Explicit text files — always LF regardless of platform
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+*.json      text eol=lf
+*.css       text eol=lf
+*.html      text eol=lf
+*.md        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.sh        text eol=lf
+.gitignore  text eol=lf
+.gitattributes text eol=lf
+CNAME       text eol=lf
+.nojekyll   text eol=lf
+
+# Binary files — never attempt diff or line-ending normalization
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.icns      binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.eot       binary
+*.pdf       binary
+*.zip       binary
+
+# Lockfile — keep one line per entry, no wrapping
+package-lock.json text eol=lf
+
+# GitHub linguist — exclude generated files from language stats
+dist/** linguist-generated=true

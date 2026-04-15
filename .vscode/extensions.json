@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    // Syntax-aware Tailwind CSS IntelliSense — understands v4's
+    // @theme, @custom-variant, @utility, and @apply directives.
+    // Replaces the built-in CSS validator with a Tailwind-aware one.
+    "bradlc.vscode-tailwindcss",
+
+    // ESLint — matches the project's eslint.config.js and respects
+    // the TypeScript + React rules already configured.
+    "dbaeumer.vscode-eslint",
+
+    // EditorConfig — reads .editorconfig for consistent formatting.
+    "editorconfig.editorconfig"
+  ]
+}

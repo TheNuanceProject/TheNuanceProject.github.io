@@ -1,0 +1,12 @@
+{
+  "latest_version": "1.0.0",
+  "release_notes": "Initial public release of WireTrace.\n\n- Multi-device tabbed interface\n- Sustained throughput above 10,000 lines per second\n- Severity-based message classification\n- Live filter bar, search with navigation\n- Two-mode CSV export (auto-detect + raw)\n- Studio Light and Midnight Dark themes\n- Auto-update from GitHub Releases",
+  "min_version": "1.0.0",
+  "platforms": {
+    "windows": {
+      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v1.0.0/WireTrace-Setup-v1.0.0.exe",
+      "file_size": 0,
+      "sha256_hash": ""
+    }
+  }
+}
