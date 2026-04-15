@@ -373,8 +373,14 @@ export default function ProjectWireTrace() {
         </div>
       </Section>
 
-      {/* ─── Footer with published/updated dates ─────────────────────── */}
+      {/* ─── Footer with disclaimer + dates ──────────────────────────── */}
       <footer className="pb-24 md:pb-32 pt-12 mt-8 border-t border-[var(--color-border)] max-w-[var(--container-narrow)]">
+        <p className="font-body text-sm text-[var(--color-text-mid)] mb-6 leading-relaxed">
+          WireTrace, as used here, is an independent open-source serial
+          data monitor by The Nuance Project. It is not affiliated with,
+          sponsored by, or endorsed by any other product or company that
+          may use a similar name in a different category.
+        </p>
         <p className="font-display text-sm text-[var(--color-text-mid)] mb-6">
           {wt.updatedDate ? (
             <>
