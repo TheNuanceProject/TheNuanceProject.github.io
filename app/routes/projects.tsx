@@ -18,11 +18,11 @@ export const meta = () =>
   pageMeta({
     title: 'Projects',
     description: `The software built and shipped under ${siteConfig.identity.name}.`,
-    path: '/projects',
+    path: '/projects/',
     structuredData: [
       breadcrumbSchema([
         { name: 'Home', url: '/' },
-        { name: 'Projects', url: '/projects' },
+        { name: 'Projects', url: '/projects/' },
       ]),
     ],
   });

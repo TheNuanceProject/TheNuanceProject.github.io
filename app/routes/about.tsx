@@ -25,13 +25,13 @@ export const meta = () =>
   pageMeta({
     title: 'About',
     description: `About ${siteConfig.identity.name} and its author, ${siteConfig.author.shortName}.`,
-    path: '/about',
+    path: '/about/',
     ogType: 'profile',
     structuredData: [
       personSchema(),
       breadcrumbSchema([
         { name: 'Home', url: '/' },
-        { name: 'About', url: '/about' },
+        { name: 'About', url: '/about/' },
       ]),
     ],
   });

@@ -19,11 +19,11 @@ export const meta = () =>
     title: 'Privacy',
     description:
       'A short, plain explanation of what this site records when you visit and what it does not.',
-    path: '/privacy',
+    path: '/privacy/',
     structuredData: [
       breadcrumbSchema([
         { name: 'Home', url: '/' },
-        { name: 'Privacy', url: '/privacy' },
+        { name: 'Privacy', url: '/privacy/' },
       ]),
     ],
   });

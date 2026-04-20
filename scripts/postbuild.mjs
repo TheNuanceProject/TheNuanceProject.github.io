@@ -37,10 +37,10 @@ const OUT_FILE = join(ROOT, 'dist', 'client', 'sitemap.xml');
 
 const STATIC_ROUTES = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
-  { path: '/projects', priority: '0.8', changefreq: 'weekly' },
-  { path: '/writing', priority: '0.8', changefreq: 'weekly' },
-  { path: '/about', priority: '0.7', changefreq: 'monthly' },
-  { path: '/privacy', priority: '0.3', changefreq: 'yearly' },
+  { path: '/projects/', priority: '0.8', changefreq: 'weekly' },
+  { path: '/writing/', priority: '0.8', changefreq: 'weekly' },
+  { path: '/about/', priority: '0.7', changefreq: 'monthly' },
+  { path: '/privacy/', priority: '0.3', changefreq: 'yearly' },
 ];
 
 /** Extract slug and dates from a meta.ts file using regex. */
@@ -103,8 +103,8 @@ function buildSitemap(staticRoutes, dynamicPages) {
   for (const page of dynamicPages) {
     const path =
       page.kind === 'project'
-        ? `/projects/${page.slug}`
-        : `/writing/${page.slug}`;
+        ? `/projects/${page.slug}/`
+        : `/writing/${page.slug}/`;
     const priority = page.kind === 'project' ? '0.9' : '0.7';
     entries.push(
       `  <url>\n` +

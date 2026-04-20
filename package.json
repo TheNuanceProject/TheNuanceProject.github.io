@@ -1,12 +1,13 @@
 {
   "name": "nuance-site",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "scripts": {
     "dev": "react-router dev",
     "build": "react-router build",
     "postbuild": "node scripts/postbuild.mjs",
+    "postinstall": "react-router typegen",
     "typecheck": "react-router typegen && tsc",
     "lint": "eslint .",
     "preview": "npx -y serve dist/client",

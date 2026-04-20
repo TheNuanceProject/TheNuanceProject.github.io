@@ -49,13 +49,24 @@ jobs:
           NODE_ENV: production
           VITE_CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.VITE_CLOUDFLARE_ANALYTICS_TOKEN }}
 
+      # Belt-and-braces: make sure `.nojekyll` exists in the published
+      # output. Without this file, GitHub Pages runs the site through
+      # Jekyll, which rewrites paths and silently breaks requests to
+      # files or folders whose names start with an underscore.
+      - name: Ensure .nojekyll is present
+        run: touch ./dist/client/.nojekyll
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # `include-hidden-files: true` is required so the archive keeps
+      # `.nojekyll` — `actions/upload-pages-artifact@v3` excludes
+      # dotfiles by default.
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist/client
+          include-hidden-files: true
 
   # ─── Deploy ────────────────────────────────────────────────────────────
   # Publishes the artifact from the build job to GitHub Pages.

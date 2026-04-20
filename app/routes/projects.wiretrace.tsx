@@ -45,7 +45,7 @@ export const meta = () =>
   pageMeta({
     title: wt.title,
     description: wt.description,
-    path: `/projects/${wt.slug}`,
+    path: `/projects/${wt.slug}/`,
     structuredData: [
       softwareApplicationSchema({
         name: wt.title,
@@ -57,8 +57,8 @@ export const meta = () =>
       }),
       breadcrumbSchema([
         { name: 'Home', url: '/' },
-        { name: 'Projects', url: '/projects' },
-        { name: wt.title, url: `/projects/${wt.slug}` },
+        { name: 'Projects', url: '/projects/' },
+        { name: wt.title, url: `/projects/${wt.slug}/` },
       ]),
     ],
   });

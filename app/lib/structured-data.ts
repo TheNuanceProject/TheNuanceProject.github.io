@@ -66,7 +66,7 @@ export function organizationSchema(): StructuredData {
     founder: {
       '@type': 'Person',
       name: siteConfig.author.fullName,
-      url: `${siteConfig.identity.url}/about`,
+      url: `${siteConfig.identity.url}/about/`,
     },
     email: siteConfig.author.email,
     sameAs: [siteConfig.links.github],
@@ -125,7 +125,7 @@ export function softwareApplicationSchema(
     author: {
       '@type': 'Person',
       name: siteConfig.author.fullName,
-      url: `${siteConfig.identity.url}/about`,
+      url: `${siteConfig.identity.url}/about/`,
     },
     publisher: {
       '@type': 'Organization',
