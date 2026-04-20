@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import { Link } from 'react-router-dom';
 import { siteConfig } from '@/config/site.config';
 
 /**
@@ -62,6 +63,16 @@ export function Footer() {
           >
             Email
           </a>
+          <Link
+            to="/privacy"
+            className="
+              font-display
+              hover:text-[var(--color-text-primary)]
+              transition-colors duration-150
+            "
+          >
+            Privacy
+          </Link>
         </nav>
       </div>
     </footer>

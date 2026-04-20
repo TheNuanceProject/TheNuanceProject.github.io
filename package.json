@@ -1,11 +1,12 @@
 {
   "name": "nuance-site",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "postbuild": "node scripts/generate-sitemap.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

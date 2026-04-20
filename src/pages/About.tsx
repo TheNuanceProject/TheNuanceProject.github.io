@@ -4,13 +4,19 @@ import { usePageMeta } from '@/lib/use-page-meta';
 import { Container } from '@/components/Container';
 import { Section } from '@/components/Section';
 import { P, A } from '@/components/writing-prose';
+import { SEO } from '@/components/SEO';
+import { personSchema, breadcrumbSchema } from '@/lib/structured-data';
 
 /**
  * About — the studio's "who and why" page.
  *
- * Content is the approved copy from SITE_CONTENT.md (Page 6: About).
- * This is the page where voice matters most — factual, restrained,
- * respects colleagues' dignity and the company's actual identity.
+ * Voice for this page is the page where it matters most — factual,
+ * restrained, respects colleagues' dignity and the company's actual
+ * identity. First-person throughout.
+ *
+ * This page also carries the Person JSON-LD schema (via the SEO
+ * component). The schema's sameAs array consolidates multi-profile
+ * identity for Google's entity resolver.
  *
  * Page structure:
  *   1. Page header     — "About" title
@@ -30,6 +36,16 @@ export default function About() {
 
   return (
     <Container width="default">
+      <SEO
+        structuredData={[
+          personSchema(),
+          breadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'About', url: '/about' },
+          ]),
+        ]}
+      />
+
       {/* ─── Page header ─────────────────────────────────────────────── */}
       <section className="pt-20 md:pt-28 pb-12 md:pb-16">
         <h1
@@ -95,12 +111,12 @@ export default function About() {
           </P>
 
           <P>
-            I&rsquo;m a software engineer in Bangalore. I work in
-            research and development at a company in the electrical
-            safety and reliability space. My team builds Industrial IoT
-            (IIoT) products in that space, and I work on the software
-            side. {siteConfig.identity.name} is what I do with the rest
-            of my time and attention.
+            I&rsquo;m a software engineer in Bangalore. I currently
+            work in research and development at a company in the
+            electrical safety and reliability space. My team builds
+            Industrial IoT (IIoT) products in that space, and I work on
+            the software side. {siteConfig.identity.name} is what I do
+            with the rest of my time and attention.
           </P>
 
           <P>

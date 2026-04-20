@@ -8,6 +8,8 @@ import { Container } from '@/components/Container';
 import { Section } from '@/components/Section';
 import { ProjectCard } from '@/components/ProjectCard';
 import { ArrowIcon } from '@/components/icons/ArrowIcon';
+import { SEO } from '@/components/SEO';
+import { organizationSchema, websiteSchema } from '@/lib/structured-data';
 
 /**
  * Home — the studio's front door.
@@ -39,6 +41,10 @@ export default function Home() {
 
   return (
     <Container width="default">
+      <SEO
+        structuredData={[organizationSchema(), websiteSchema()]}
+      />
+
       {/* ─── Hero ────────────────────────────────────────────────────────── */}
       <section className="pt-20 md:pt-32 pb-20 md:pb-28">
         <h1
@@ -214,11 +220,12 @@ export default function Home() {
           "
         >
           I&rsquo;m {siteConfig.author.shortName}. I&rsquo;m a software
-          engineer in Bangalore. I work in research and development at
-          a company in the electrical safety and reliability space. My
-          team builds Industrial IoT (IIoT) products in that space, and
-          I work on the software side. {siteConfig.identity.name} is
-          what I do with the rest of my time and attention.
+          engineer in Bangalore. I currently work in research and
+          development at a company in the electrical safety and
+          reliability space. My team builds Industrial IoT (IIoT)
+          products in that space, and I work on the software side.
+          {' '}{siteConfig.identity.name} is what I do with the rest of
+          my time and attention.
         </p>
 
         <div className="mt-8">

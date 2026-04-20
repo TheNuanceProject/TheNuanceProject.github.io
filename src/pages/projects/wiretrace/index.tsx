@@ -9,6 +9,11 @@ import { deriveDates } from '@/lib/content/dates';
 import { usePageMeta } from '@/lib/use-page-meta';
 import { features, specs, shortcuts } from './content';
 import { meta } from './meta';
+import { SEO } from '@/components/SEO';
+import {
+  softwareApplicationSchema,
+  breadcrumbSchema,
+} from '@/lib/structured-data';
 
 const wt = { ...meta, ...deriveDates(meta.published, meta.updated) };
 
@@ -42,6 +47,24 @@ export default function ProjectWireTrace() {
 
   return (
     <Container width="default">
+      <SEO
+        structuredData={[
+          softwareApplicationSchema({
+            name: wt.title,
+            description: wt.description,
+            pageUrl: `/projects/${wt.slug}`,
+            version: wt.version,
+            operatingSystems: wt.platforms,
+            downloadUrl: wt.downloadUrl,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Projects', url: '/projects' },
+            { name: wt.title, url: `/projects/${wt.slug}` },
+          ]),
+        ]}
+      />
+
       {/* ─── Article header ──────────────────────────────────────────── */}
       <section className="pt-12 md:pt-16 pb-12 md:pb-16">
         <Link

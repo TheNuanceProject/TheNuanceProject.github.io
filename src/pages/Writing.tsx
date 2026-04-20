@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Container } from '@/components/Container';
 import { allWriting } from '@/lib/content/writing';
 import { usePageMeta } from '@/lib/use-page-meta';
+import { SEO } from '@/components/SEO';
+import { breadcrumbSchema } from '@/lib/structured-data';
 
 /**
  * Writing — index page listing writing pieces.
@@ -32,6 +34,15 @@ export default function Writing() {
 
   return (
     <Container width="default">
+      <SEO
+        structuredData={[
+          breadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Writing', url: '/writing' },
+          ]),
+        ]}
+      />
+
       {/* ─── Page header ─────────────────────────────────────────────── */}
       <section className="pt-20 md:pt-28 pb-12 md:pb-16">
         <h1

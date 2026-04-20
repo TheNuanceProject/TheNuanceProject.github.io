@@ -7,6 +7,7 @@ import Home from '@/pages/Home';
 import Projects from '@/pages/Projects';
 import Writing from '@/pages/Writing';
 import About from '@/pages/About';
+import Privacy from '@/pages/Privacy';
 import NotFound from '@/pages/NotFound';
 
 // ─── Project pages ─────────────────────────────────────────────────────
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/writing" element={<Writing />} />
           <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* Project pages */}
           <Route

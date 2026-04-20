@@ -4,6 +4,8 @@ import { allProjects } from '@/lib/content/projects';
 import { usePageMeta } from '@/lib/use-page-meta';
 import { Container } from '@/components/Container';
 import { ProjectCard } from '@/components/ProjectCard';
+import { SEO } from '@/components/SEO';
+import { breadcrumbSchema } from '@/lib/structured-data';
 
 /**
  * Projects — index page listing every project under the studio.
@@ -30,6 +32,15 @@ export default function Projects() {
 
   return (
     <Container width="default">
+      <SEO
+        structuredData={[
+          breadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Projects', url: '/projects' },
+          ]),
+        ]}
+      />
+
       {/* ─── Page header ─────────────────────────────────────────────── */}
       <section className="pt-20 md:pt-28 pb-12 md:pb-16">
         <h1

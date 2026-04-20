@@ -7,7 +7,8 @@
  *
  * What belongs here:
  *   - Site identity (name, domain)
- *   - Author info (name, email)
+ *   - Author info (name, email, alternate names, sameAs profile URLs,
+ *     areas of practice)
  *   - Social links (GitHub, LinkedIn)
  *   - Navigation menu structure
  *
@@ -15,8 +16,8 @@
  *   - Project-specific data — each project owns its own meta.ts in
  *     src/pages/projects/[slug]/meta.ts. Auto-discovered by the
  *     project loader at build time.
- *   - Essay content — each .md file in src/content/essays/ is
- *     auto-discovered by the essay loader.
+ *   - Essay content — each writing folder in src/pages/writing/ is
+ *     auto-discovered by the writing loader.
  *   - Page-specific prose — lives in the page component file.
  *
  * The pattern: drop a file, it appears on the site. No central list
@@ -41,6 +42,25 @@ export interface SiteConfig {
     readonly fullName: string;
     readonly shortName: string;
     readonly email: string;
+    /**
+     * Other legitimate name renderings this person is known by.
+     * Used in the Person JSON-LD `alternateName` array to help
+     * search engines consolidate the identity.
+     */
+    readonly alternateNames: readonly string[];
+    /**
+     * Every public URL where this person can be found under the
+     * same identity. Used in the Person JSON-LD `sameAs` array.
+     * Order matters less than completeness; Google does not weight
+     * position in this array.
+     */
+    readonly sameAs: readonly string[];
+    /**
+     * Broad areas of practice. Used in the Person JSON-LD
+     * `knowsAbout` field. Deliberately broad rather than narrow —
+     * a too-specific list narrows the entity prematurely.
+     */
+    readonly knowsAbout: readonly string[];
   };
   readonly links: {
     readonly github: string;
@@ -65,6 +85,29 @@ export const siteConfig: SiteConfig = {
     fullName: 'Mohamad Shahin Ambalatha Kandy',
     shortName: 'Shahin',
     email: 'shahin@thenuanceproject.com',
+    alternateNames: ['Shahin Hashim', 'Shahin', 'Mohamad Shahin'],
+    sameAs: [
+      'https://www.linkedin.com/in/mohamad-shahin-ambalatha-kandy',
+      'https://github.com/shahin-hashim',
+      'https://github.com/TheNuanceProject',
+      'https://huggingface.co/shahin-hashim',
+      'https://substack.com/@shahinhashim',
+      'https://x.com/shahin_hashim',
+      'https://www.reddit.com/user/shahin_hashim/',
+      'https://www.instagram.com/shahin_hashim/',
+      'https://www.facebook.com/MohamadShahinHashim',
+      'https://www.threads.com/@shahin_hashim',
+      'https://www.youtube.com/@shahin_hashim',
+    ],
+    knowsAbout: [
+      'Software Engineering',
+      'Web Development',
+      'Python',
+      'React',
+      'TypeScript',
+      'Application Development',
+      'Research and Development',
+    ],
   },
 
   links: {
