@@ -67,20 +67,14 @@ export const links: LinksFunction = () => [
 ];
 
 // ─── Site-wide default meta ────────────────────────────────────────────
+// These defaults may be overridden by individual routes. Anything
+// that MUST be present on every single page regardless of the
+// route — viewport, charset, theme-color — lives in the Layout
+// JSX below, not here. React Router replaces the parent `meta`
+// array with the child's when a route exports its own `meta`, so
+// descriptors declared here would be lost on every non-root page.
 
 export const meta: MetaFunction = () => [
-  { charSet: 'utf-8' },
-  { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
-  {
-    name: 'theme-color',
-    media: '(prefers-color-scheme: light)',
-    content: '#FAF9F5',
-  },
-  {
-    name: 'theme-color',
-    media: '(prefers-color-scheme: dark)',
-    content: '#1A1A18',
-  },
   { name: 'author', content: siteConfig.author.fullName },
   { name: 'robots', content: 'index, follow' },
 ];
@@ -97,8 +91,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/*
+          Static head elements — these are identical on every page and
+          must render on every page. Keeping them here as fixed JSX
+          (rather than inside `meta`) ensures they survive per-route
+          meta overrides.
+        */}
+        <meta charSet="utf-8" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0"
+        />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: light)"
+          content="#FAF9F5"
+        />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: dark)"
+          content="#1A1A18"
+        />
+
+        {/* Per-route meta and link tags injected by React Router. */}
         <Meta />
         <Links />
+
+        {/* Set `data-theme` before hydration to prevent flash. */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
