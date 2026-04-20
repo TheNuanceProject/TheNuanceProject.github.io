@@ -47,6 +47,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          VITE_CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.VITE_CLOUDFLARE_ANALYTICS_TOKEN }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -54,7 +55,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./dist/client
 
   # ─── Deploy ────────────────────────────────────────────────────────────
   # Publishes the artifact from the build job to GitHub Pages.

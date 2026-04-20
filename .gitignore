@@ -9,6 +9,9 @@ dist-ssr/
 build/
 *.local
 
+# React Router Framework Mode generates route types here at build time.
+.react-router/
+
 # ─── Logs ──────────────────────────────────────────────────────────────
 logs/
 *.log
