@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Nuance Project org avatar - path-based slash for reliable cross-platform rendering.
+       Matches Poppins 500 slash proportions: slightly wider stroke than the font fallback,
+       same angle, same paper background, same accent orange. -->
+  <rect width="512" height="512" fill="#FAF9F5"/>
+  <!-- Slash as a parallelogram path. Angled ~72 degrees from horizontal (Poppins slash angle).
+       Width at widest: ~60px. Height spans from roughly 125 to 385 (260px tall).
+       Centred horizontally around x=256. -->
+  <path
+    d="M 302 125 L 362 125 L 210 385 L 150 385 Z"
+    fill="#D97757"
+  />
+</svg>

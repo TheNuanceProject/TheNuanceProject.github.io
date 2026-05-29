@@ -155,6 +155,24 @@ export default function ProjectWireTrace() {
         </div>
       </section>
 
+      {/* Hero screenshot — gives the reader a visual anchor before the
+          long-form prose. v1.1.0 captures the title bar tagged with the
+          current version, the live plotter (the new feature), and the
+          multi-trace legend in one image. */}
+      <figure className="mb-16 md:mb-20">
+        <img
+          src="/images/wiretrace-plot-dark.png"
+          alt="WireTrace v1.1.0 connected to a serial port, showing the console with timestamped data and the live plot panel below with four traces"
+          className="
+            w-full h-auto
+            border border-[var(--color-border)]
+            rounded
+            shadow-sm
+          "
+          loading="eager"
+        />
+      </figure>
+
       <Section label="Why this exists" divided>
         <Prose>
           <p>
@@ -218,6 +236,26 @@ export default function ProjectWireTrace() {
             can be connected simultaneously without one device&rsquo;s
             data interfering with another&rsquo;s.
           </p>
+        </Prose>
+
+        {/* Multi-tab screenshot — shows the per-tab isolation described
+            in the paragraph above: three connected devices, each with
+            its own data stream, severity tags, and timeline. */}
+        <figure className="my-10 max-w-[var(--container-narrow)]">
+          <img
+            src="/images/wiretrace-demo-board-multi-tab-dark.png"
+            alt="WireTrace running three device tabs simultaneously, each receiving live telemetry from a different connected board"
+            className="
+              w-full h-auto
+              border border-[var(--color-border)]
+              rounded
+              shadow-sm
+            "
+            loading="lazy"
+          />
+        </figure>
+
+        <Prose>
           <p>
             Logging uses a buffered write model. Incoming data is
             appended to an in-memory buffer with a hard size cap, and a
@@ -248,6 +286,28 @@ export default function ProjectWireTrace() {
             </p>
           ))}
         </div>
+
+        {/* Configure Plot screenshot — anchored here because the live
+            data plotter is the most visually-novel feature in the list,
+            and the dialog shows what "manual regex with named profiles
+            and capture-from-sample" actually looks like in practice. */}
+        <figure className="mt-10 max-w-[var(--container-narrow)]">
+          <img
+            src="/images/wiretrace-configure-plot-regex.png"
+            alt="The Configure Plot dialog in manual regex mode, with a four-column pattern, a named profile, and a green test result reading Matched 200/200 lines"
+            className="
+              w-full h-auto
+              border border-[var(--color-border)]
+              rounded
+              shadow-sm
+            "
+            loading="lazy"
+          />
+          <figcaption className="mt-3 font-display text-xs text-[var(--color-text-mid)]">
+            The Configure Plot dialog: manual regex mode with named
+            profiles and live pattern testing.
+          </figcaption>
+        </figure>
       </Section>
 
       <Section label="Specifications" divided>

@@ -42,6 +42,11 @@ export const features: readonly FeatureItem[] = [
       'Search captured data with forward and backward navigation. Filter the live view by substring without affecting what is written to disk.',
   },
   {
+    title: 'Live data plotter',
+    description:
+      'Auto-detects numeric structure (JSON objects, key:value pairs, or positional delimited values) from the first fifty data lines and renders them as time-series traces in a docked panel below the console. When auto-detect is not enough, a Configure Plot dialog lets you declare a regex with named groups, save it as a profile, and set a per-tab default — for firmware that emits its own timestamped or log-prefixed format. Theme-aware, colourblind-safe palette, per-trace toggle from the legend.',
+  },
+  {
     title: 'Structured CSV export',
     description:
       'Two modes. Auto-detect identifies common patterns in the data — key:value pairs and JSON-shaped lines — and pivots them into named columns. Raw mode writes a two-column file with timestamps and lines.',
@@ -88,6 +93,7 @@ export const shortcuts: readonly ShortcutRow[] = [
   { action: 'Export', keys: 'Ctrl+E' },
   { action: 'Search', keys: 'Ctrl+F' },
   { action: 'Filter', keys: 'Ctrl+L' },
+  { action: 'Toggle live plot', keys: 'Ctrl+Shift+P' },
   { action: 'Next match', keys: 'F3' },
   { action: 'Previous match', keys: 'Shift+F3' },
   { action: 'Clear search', keys: 'Escape' },

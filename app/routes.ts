@@ -15,6 +15,7 @@ export default [
   route('projects', 'routes/projects.tsx'),
   route('projects/wiretrace', 'routes/projects.wiretrace.tsx'),
   route('writing', 'routes/writing.tsx'),
+  route('writing/:slug', 'routes/writing.$slug.tsx'),
   route('privacy', 'routes/privacy.tsx'),
   route('*', 'routes/$.tsx'),
 ] satisfies RouteConfig;
