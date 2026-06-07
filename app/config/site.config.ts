@@ -39,6 +39,8 @@ export interface SiteConfig {
     readonly fullName: string;
     readonly shortName: string;
     readonly email: string;
+    /** X / Twitter handle, including the leading @. */
+    readonly twitterHandle: string;
     /** Other name renderings the same person is known by. */
     readonly alternateNames: readonly string[];
     /** Public URLs where the same person can be found. */
@@ -49,6 +51,7 @@ export interface SiteConfig {
   readonly links: {
     readonly github: string;
     readonly linkedin: string;
+    readonly instagram: string;
   };
   readonly nav: readonly NavLink[];
 }
@@ -69,6 +72,7 @@ export const siteConfig: SiteConfig = {
     fullName: 'Mohamad Shahin Ambalatha Kandy',
     shortName: 'Shahin',
     email: 'shahin@thenuanceproject.com',
+    twitterHandle: '@shahin_hashim',
     alternateNames: ['Shahin Hashim', 'Shahin', 'Mohamad Shahin'],
     sameAs: [
       'https://www.linkedin.com/in/mohamad-shahin-ambalatha-kandy',
@@ -97,6 +101,7 @@ export const siteConfig: SiteConfig = {
   links: {
     github: 'https://github.com/TheNuanceProject',
     linkedin: 'https://www.linkedin.com/in/mohamad-shahin-ambalatha-kandy',
+    instagram: 'https://www.instagram.com/shahin_hashim/',
   },
 
   nav: [

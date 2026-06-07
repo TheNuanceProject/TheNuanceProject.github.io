@@ -25,10 +25,14 @@ export function Logo() {
     >
       <span
         aria-hidden="true"
+        data-logo-slash=""
         className="
+          inline-block origin-bottom
           text-[var(--color-accent)] font-display font-normal
           text-[17px] leading-none
-          transition-colors duration-150
+          transition-[color,transform] duration-200 ease-[var(--ease-out-quart)]
+          group-hover:-translate-y-px group-hover:-rotate-12
+          motion-reduce:transition-none
         "
       >
         /

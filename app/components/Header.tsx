@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { siteConfig } from '~/config/site.config';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
+import { CommandPalette } from './CommandPalette';
 import { cn } from '~/lib/cn';
 
 /**
@@ -19,6 +20,8 @@ import { cn } from '~/lib/cn';
  */
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const closeSearch = useCallback(() => setIsSearchOpen(false), []);
   const location = useLocation();
   const lastPathRef = useRef(location.pathname);
 
@@ -29,8 +32,21 @@ export function Header() {
     if (lastPathRef.current !== location.pathname) {
       lastPathRef.current = location.pathname;
       setIsMenuOpen(false);
+      setIsSearchOpen(false);
     }
   }, [location.pathname]);
+
+  // Global Cmd/Ctrl-K toggles the command palette.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Close on Escape. Lock body scroll while the panel is open so
   // the page behind doesn't scroll when the user drags on it.
@@ -74,26 +90,32 @@ export function Header() {
               key={item.href}
               to={item.href}
               end={item.href === '/'}
+              viewTransition
               className={({ isActive }) =>
                 cn(
-                  'relative font-display text-sm font-medium',
+                  'link-underline font-display text-sm font-medium',
                   'transition-colors duration-150',
-                  'after:absolute after:left-0 after:-bottom-1 after:h-px',
-                  'after:transition-[width] after:duration-250 after:ease-out',
-                  'after:bg-[var(--color-accent)]',
                   isActive
-                    ? ['text-[var(--color-text-primary)]', 'after:w-full']
-                    : [
-                        'text-[var(--color-text-primary)]',
-                        'hover:text-[var(--color-text-secondary)]',
-                        'after:w-0 hover:after:w-full',
-                      ]
+                    ? 'text-[var(--color-text-primary)]'
+                    : 'text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)]'
                 )
               }
             >
               {item.label}
             </NavLink>
           ))}
+
+          <button
+            type="button"
+            aria-label="Search"
+            onClick={() => setIsSearchOpen(true)}
+            className="flex items-center gap-2 font-display text-sm text-[var(--color-text-mid)] hover:text-[var(--color-text-primary)] transition-colors duration-150"
+          >
+            <SearchIcon />
+            <span className="hidden lg:inline text-xs border border-[var(--color-border)] rounded px-1.5 py-0.5">
+              ⌘K
+            </span>
+          </button>
 
           <div className="ml-2 flex items-center">
             <ThemeToggle />
@@ -102,6 +124,14 @@ export function Header() {
 
         {/* Mobile controls — theme toggle + hamburger, visible below md */}
         <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            aria-label="Search"
+            onClick={() => setIsSearchOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-md text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[var(--color-surface)]"
+          >
+            <SearchIcon />
+          </button>
           <ThemeToggle />
           <button
             type="button"
@@ -148,6 +178,7 @@ export function Header() {
               key={item.href}
               to={item.href}
               end={item.href === '/'}
+              viewTransition
               className={({ isActive }) =>
                 cn(
                   'font-display text-base font-medium',
@@ -164,6 +195,8 @@ export function Header() {
           ))}
         </nav>
       </div>
+
+      {isSearchOpen && <CommandPalette onClose={closeSearch} />}
     </header>
   );
 }
@@ -198,6 +231,26 @@ function MenuIcon({ open }: { readonly open: boolean }) {
           <line x1="3" y1="14" x2="17" y2="14" />
         </>
       )}
+    </svg>
+  );
+}
+
+/** Inline magnifier icon for the search trigger. */
+function SearchIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="9" r="6" />
+      <line x1="17" y1="17" x2="13.5" y2="13.5" />
     </svg>
   );
 }

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import { useEffect } from 'react';
 import {
   Links,
   Meta,
@@ -10,9 +11,12 @@ import {
 import type { LinksFunction, MetaFunction } from 'react-router';
 
 import { Header } from '~/components/Header';
+import { ReadingProgress } from '~/components/ReadingProgress';
+import { AmbientField } from '~/components/AmbientField';
 import { Footer } from '~/components/Footer';
 import { ThemeProvider } from '~/lib/theme';
 import { siteConfig } from '~/config/site.config';
+import { logConsoleSignature } from '~/lib/console-signature';
 
 import './styles/globals.css';
 
@@ -53,6 +57,14 @@ export const links: LinksFunction = () => [
   },
   { rel: 'mask-icon', href: '/favicon.svg', color: '#D97757' },
 
+  // RSS feed (generated at build into dist/client/feed.xml).
+  {
+    rel: 'alternate',
+    type: 'application/rss+xml',
+    title: `${siteConfig.identity.name} \u2014 Writing`,
+    href: '/feed.xml',
+  },
+
   // Fonts — preconnect first, then the stylesheet.
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
@@ -89,7 +101,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const cloudflareToken = import.meta.env.VITE_CLOUDFLARE_ANALYTICS_TOKEN;
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/*
           Static head elements — these are identical on every page and
@@ -139,9 +151,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 // ─── Main app shell ────────────────────────────────────────────────────
 
 export default function App() {
+  useEffect(() => {
+    logConsoleSignature();
+  }, []);
+
   return (
     <ThemeProvider>
       <div className="flex min-h-screen flex-col">
+        <ReadingProgress />
         <a
           href="#main"
           className="
@@ -157,8 +174,11 @@ export default function App() {
           Skip to content
         </a>
         <Header />
-        <main id="main" className="flex-1">
-          <Outlet />
+        <main id="main" className="relative isolate flex-1 overflow-x-clip">
+          <AmbientField />
+          <div className="relative z-[1]">
+            <Outlet />
+          </div>
         </main>
         <Footer />
       </div>
@@ -184,9 +204,11 @@ export function ErrorBoundary({ error }: { error: unknown }) {
   return (
     <ThemeProvider>
       <div className="flex min-h-screen flex-col">
+        <ReadingProgress />
         <Header />
-        <main id="main" className="flex-1">
-          <div className="max-w-[var(--container-default)] mx-auto px-6 md:px-12">
+        <main id="main" className="relative isolate flex-1 overflow-x-clip">
+          <AmbientField />
+          <div className="relative z-[1] max-w-[var(--container-default)] mx-auto px-6 md:px-12">
             <section className="pt-20 md:pt-32 pb-20 md:pb-32">
               <p className="text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-accent)] mb-6">
                 {status}

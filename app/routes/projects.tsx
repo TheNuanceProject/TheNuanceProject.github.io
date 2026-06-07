@@ -3,6 +3,7 @@ import { siteConfig } from '~/config/site.config';
 import { allProjects } from '~/lib/content/projects';
 import { Container } from '~/components/Container';
 import { ProjectCard } from '~/components/ProjectCard';
+import { useReveal } from '~/lib/use-reveal';
 import { pageMeta } from '~/lib/page-meta';
 import { breadcrumbSchema } from '~/lib/structured-data';
 
@@ -30,6 +31,7 @@ export const meta = () =>
 export default function Projects() {
   const projects = allProjects;
   const isEmpty = projects.length === 0;
+  const revealRef = useReveal<HTMLElement>();
 
   return (
     <Container width="default">
@@ -60,7 +62,7 @@ export default function Projects() {
         </p>
       </section>
 
-      <section className="pb-24 md:pb-32">
+      <section ref={revealRef} className="pb-24 md:pb-32">
         {isEmpty ? (
           <p
             className="

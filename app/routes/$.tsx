@@ -53,24 +53,55 @@ export default function NotFound() {
             mb-10
           "
         >
-          The link may be broken, or the page may have moved. Head back
-          to the front of the site to find your way.
+          The link may be broken, or the page may have moved. Here are a
+          few places to pick up from:
         </p>
 
-        <Link
-          to="/"
-          className="
-            inline-flex items-center gap-2
-            font-display text-sm
-            text-[var(--color-text-primary)]
-            no-underline
-            border-b border-transparent hover:border-[var(--color-accent)]
-            transition-colors duration-150
-          "
+        <nav
+          aria-label="Suggested pages"
+          className="flex flex-wrap items-center gap-x-6 gap-y-3"
         >
-          <ArrowIcon className="rotate-180" />
-          <span>Back to home</span>
-        </Link>
+          <Link
+            to="/"
+            className="
+              inline-flex items-center gap-2
+              font-display text-sm
+              text-[var(--color-text-primary)]
+              no-underline
+              border-b border-transparent hover:border-[var(--color-accent)]
+              transition-colors duration-150
+            "
+          >
+            <ArrowIcon className="rotate-180" />
+            <span>Home</span>
+          </Link>
+
+          <Link
+            to="/writing"
+            className="
+              font-display text-sm
+              text-[var(--color-text-secondary)]
+              no-underline hover:text-[var(--color-text-primary)]
+              border-b border-transparent hover:border-[var(--color-accent)]
+              transition-colors duration-150
+            "
+          >
+            Writing
+          </Link>
+
+          <Link
+            to="/projects"
+            className="
+              font-display text-sm
+              text-[var(--color-text-secondary)]
+              no-underline hover:text-[var(--color-text-primary)]
+              border-b border-transparent hover:border-[var(--color-accent)]
+              transition-colors duration-150
+            "
+          >
+            Projects
+          </Link>
+        </nav>
       </section>
     </Container>
   );

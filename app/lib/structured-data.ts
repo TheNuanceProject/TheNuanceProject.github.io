@@ -8,7 +8,10 @@ import { siteConfig } from '~/config/site.config';
  * understand the site's entities and their relationships. The
  * `sameAs` array on Person lets Google's entity resolver
  * consolidate the "Mohamad Shahin Ambalatha Kandy" and "Shahin
- * Hashim" identities into one.
+ * Hashim" identities into one. Stable `@id` values let every other
+ * block (Organization.founder, SoftwareApplication.author,
+ * WebSite.publisher, ProfilePage.mainEntity, Article.author) point
+ * at the same Person/Organization node rather than re-declaring it.
  *
  * Each builder returns a plain object. Serialisation happens where
  * the schema is rendered (in a route's `meta` export) so the JSON
@@ -20,12 +23,21 @@ import { siteConfig } from '~/config/site.config';
 
 export type StructuredData = Record<string, unknown>;
 
+// ─── Stable entity IDs ─────────────────────────────────────────────────
+// Used as both the canonical `@id` on the full node and the reference
+// `{ '@id': … }` from every other block, so the graph resolves to one
+// Person and one Organization.
+
+const PERSON_ID = `${siteConfig.identity.url}/about/#person`;
+const ORG_ID = `${siteConfig.identity.url}/#organization`;
+
 // ─── Person ────────────────────────────────────────────────────────────
 
 export function personSchema(): StructuredData {
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
+    '@id': PERSON_ID,
     name: siteConfig.author.fullName,
     alternateName: siteConfig.author.alternateNames,
     givenName: 'Mohamad Shahin',
@@ -52,22 +64,34 @@ export function personSchema(): StructuredData {
   };
 }
 
+// ─── ProfilePage ───────────────────────────────────────────────────────
+// Marks the About page as the person's profile page (richer creator
+// results in Google). `mainEntity` references the Person by `@id`.
+
+export function profilePageSchema(): StructuredData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    '@id': `${siteConfig.identity.url}/about/#profilepage`,
+    url: `${siteConfig.identity.url}/about/`,
+    name: `About ${siteConfig.author.fullName}`,
+    mainEntity: { '@id': PERSON_ID },
+  };
+}
+
 // ─── Organization ──────────────────────────────────────────────────────
 
 export function organizationSchema(): StructuredData {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': ORG_ID,
     name: siteConfig.identity.name,
     alternateName: siteConfig.identity.shortName,
     url: siteConfig.identity.url,
     logo: `${siteConfig.identity.url}/apple-touch-icon.png`,
     description: siteConfig.identity.description,
-    founder: {
-      '@type': 'Person',
-      name: siteConfig.author.fullName,
-      url: `${siteConfig.identity.url}/about/`,
-    },
+    founder: { '@id': PERSON_ID },
     email: siteConfig.author.email,
     sameAs: [siteConfig.links.github],
   };
@@ -79,14 +103,18 @@ export function websiteSchema(): StructuredData {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: siteConfig.identity.name,
     url: siteConfig.identity.url,
+    name: siteConfig.identity.name,
     description: siteConfig.identity.tagline,
     inLanguage: 'en',
-    publisher: {
-      '@type': 'Organization',
-      name: siteConfig.identity.name,
-      url: siteConfig.identity.url,
+    publisher: { '@id': ORG_ID },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${siteConfig.identity.url}/search?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
     },
   };
 }
@@ -122,16 +150,36 @@ export function softwareApplicationSchema(
       price: '0',
       priceCurrency: 'USD',
     },
-    author: {
-      '@type': 'Person',
-      name: siteConfig.author.fullName,
-      url: `${siteConfig.identity.url}/about/`,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: siteConfig.identity.name,
-      url: siteConfig.identity.url,
-    },
+    author: { '@id': PERSON_ID },
+    publisher: { '@id': ORG_ID },
+  };
+}
+
+// ─── Article (BlogPosting) ─────────────────────────────────────────────
+
+interface ArticleInput {
+  readonly title: string;
+  readonly description: string;
+  readonly pagePath: string;
+  readonly datePublished: string;
+  readonly dateModified: string;
+  readonly image?: string;
+}
+
+export function articleSchema(input: ArticleInput): StructuredData {
+  const fullUrl = `${siteConfig.identity.url}${input.pagePath}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: input.title,
+    description: input.description,
+    url: fullUrl,
+    mainEntityOfPage: fullUrl,
+    datePublished: input.datePublished,
+    dateModified: input.dateModified,
+    image: input.image ?? `${siteConfig.identity.url}/og-image.png`,
+    author: { '@id': PERSON_ID },
+    publisher: { '@id': ORG_ID },
   };
 }
 

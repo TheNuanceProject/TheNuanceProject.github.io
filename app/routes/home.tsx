@@ -5,6 +5,7 @@ import { latestActiveProjects } from '~/lib/content/projects';
 import { latestWriting } from '~/lib/content/writing';
 import { Container } from '~/components/Container';
 import { Section } from '~/components/Section';
+import { RevealHeading } from '~/components/RevealHeading';
 import { ProjectCard } from '~/components/ProjectCard';
 import { ArrowIcon } from '~/components/icons/ArrowIcon';
 import { pageMeta } from '~/lib/page-meta';
@@ -45,7 +46,7 @@ export default function Home() {
     <Container width="default">
       {/* Hero */}
       <section className="pt-20 md:pt-32 pb-20 md:pb-28">
-        <h1
+        <RevealHeading
           className="
             font-display font-normal
             text-[2.5rem] md:text-[3.75rem] lg:text-[4.5rem]
@@ -53,10 +54,8 @@ export default function Home() {
             text-[var(--color-text-primary)]
             max-w-[18ch]
           "
-        >
-          A small studio for software, writing, and the work that lives
-          outside of working hours.
-        </h1>
+          text="A small studio for software, writing, and the work that lives outside of working hours."
+        />
 
         <p
           className="
@@ -92,6 +91,7 @@ export default function Home() {
               <ProjectCard
                 key={project.slug}
                 name={project.title}
+                meta={`v${project.version} · ${project.status}`}
                 availability={`Available for ${project.platforms.join(', ')}`}
                 description={project.tagline}
                 href={`/projects/${project.slug}`}

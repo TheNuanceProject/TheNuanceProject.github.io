@@ -59,6 +59,14 @@ function validateWriting(filePath: string, mod: MetaModule): ResolvedWriting {
   if (m.updated !== undefined && !isValidIsoDate(m.updated)) {
     errors.push('`updated` must be YYYY-MM-DD if provided');
   }
+  if (
+    m.readingTime !== undefined &&
+    (typeof m.readingTime !== 'number' ||
+      !Number.isFinite(m.readingTime) ||
+      m.readingTime <= 0)
+  ) {
+    errors.push('`readingTime` must be a positive number of minutes if provided');
+  }
 
   if (errors.length > 0) {
     throw new Error(
@@ -92,4 +100,41 @@ export function findWritingBySlug(
 /** Latest N writing pieces, for the Home page. */
 export function latestWriting(n: number): readonly ResolvedWriting[] {
   return allWriting.slice(0, n);
+}
+
+/** Neighbours of a piece within the newest-first list. */
+export interface AdjacentWriting {
+  /** The piece published just after this one (newer). */
+  readonly newer?: ResolvedWriting;
+  /** The piece published just before this one (older). */
+  readonly older?: ResolvedWriting;
+}
+
+/**
+ * Given the full newest-first list and a slug, return the newer and
+ * older neighbouring pieces. Pure (takes the list as an argument) so
+ * it is unit-testable without the build-time glob.
+ */
+export function adjacentWriting(
+  all: readonly ResolvedWriting[],
+  slug: string
+): AdjacentWriting {
+  const index = all.findIndex((w) => w.slug === slug);
+  if (index === -1) return {};
+  return {
+    newer: index > 0 ? all[index - 1] : undefined,
+    older: index < all.length - 1 ? all[index + 1] : undefined,
+  };
+}
+
+/**
+ * The most recent other pieces (excluding `slug`), up to `n`. Pure, for
+ * the same testability reason as `adjacentWriting`.
+ */
+export function relatedWriting(
+  all: readonly ResolvedWriting[],
+  slug: string,
+  n: number
+): readonly ResolvedWriting[] {
+  return all.filter((w) => w.slug !== slug).slice(0, n);
 }

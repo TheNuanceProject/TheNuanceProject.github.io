@@ -44,6 +44,8 @@ export interface BaseMeta {
 /** Metadata for a writing piece (essay, note, article). */
 export interface WritingMeta extends BaseMeta {
   readonly kind: 'writing';
+  /** Estimated reading time in minutes (optional, set per piece). */
+  readonly readingTime?: number;
 }
 
 /** Metadata for a project (software, tool, library). */

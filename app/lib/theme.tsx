@@ -8,12 +8,14 @@ import { createContext, useCallback, useState, type ReactNode } from 'react';
  * tree can read the current theme or toggle it via `useTheme()`.
  *
  * During prerendering (build time) there is no `document` or
- * `localStorage`, so the provider starts in a safe default state and
- * the no-flash script in `root.tsx` sets the actual theme attribute
- * on `<html>` before hydration. Once the client mounts, the effect
- * below syncs React state to match the DOM attribute — this keeps
- * hydration free of mismatch warnings and guarantees no flash of
- * wrong theme.
+ * `localStorage`, so the provider starts in a safe default ('light') and
+ * the no-flash script in `root.tsx` sets the real theme attribute on
+ * `<html>` before hydration. On the client, the initial state is read
+ * directly from that attribute (`readDOMTheme`), so React state matches the
+ * DOM from the first render. The `<html>` element carries
+ * `suppressHydrationWarning`, which is what keeps React from stripping the
+ * script-set `data-theme` during hydration. The visible theme is driven
+ * entirely by that attribute and the CSS tokens keyed on it.
  */
 
 export type Theme = 'light' | 'dark';

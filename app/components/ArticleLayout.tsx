@@ -3,6 +3,12 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Container } from '~/components/Container';
 import { ArrowIcon } from '~/components/icons/ArrowIcon';
+import { Breadcrumbs } from '~/components/Breadcrumbs';
+import {
+  allWriting,
+  adjacentWriting,
+  relatedWriting,
+} from '~/lib/content/writing';
 import type { ResolvedWriting } from '~/lib/content/types';
 
 interface ArticleLayoutProps {
@@ -30,25 +36,22 @@ interface ArticleLayoutProps {
  * components in its body.
  */
 export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
+  const { newer, older } = adjacentWriting(allWriting, meta.slug);
+  const related = relatedWriting(allWriting, meta.slug, 3).filter(
+    (r) => r.slug !== newer?.slug && r.slug !== older?.slug
+  );
+
   return (
     <Container width="default">
       <article className="pt-12 md:pt-16 pb-16 md:pb-20">
-        {/* ─── Top back link ──────────────────────────────────────── */}
-        <Link
-          to="/writing"
-          className="
-            inline-flex items-center gap-2
-            font-display text-sm
-            text-[var(--color-text-mid)]
-            hover:text-[var(--color-text-primary)]
-            transition-colors duration-150
-            no-underline
-            mb-10
-          "
-        >
-          <ArrowIcon className="rotate-180" />
-          <span>Back to writing</span>
-        </Link>
+        {/* ─── Breadcrumb trail ───────────────────────────────────── */}
+        <Breadcrumbs
+          crumbs={[
+            { name: 'Home', href: '/' },
+            { name: 'Writing', href: '/writing/' },
+            { name: meta.title, href: `/writing/${meta.slug}/` },
+          ]}
+        />
 
         {/* ─── Date label ──────────────────────────────────────────── */}
         <p
@@ -60,6 +63,11 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
           "
         >
           {meta.displayDate}
+          {meta.readingTime != null && (
+            <span className="text-[var(--color-text-mid)]">
+              {' '}· {meta.readingTime} min read
+            </span>
+          )}
         </p>
 
         {/* ─── Title ───────────────────────────────────────────────── */}
@@ -89,9 +97,74 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
         </p>
 
         {/* ─── Body ────────────────────────────────────────────────── */}
-        <div className="mt-12 md:mt-16 max-w-[var(--container-narrow)]">
+        <div className="article-body mt-12 md:mt-16 max-w-[var(--container-narrow)]">
           {children}
         </div>
+
+        {/* ─── Prev / next + related ───────────────────────────────── */}
+        {(older || newer || related.length > 0) && (
+          <nav
+            aria-label="More writing"
+            className="mt-20 pt-8 border-t border-[var(--color-border)] max-w-[var(--container-narrow)]"
+          >
+            {(older || newer) && (
+              <div className="grid gap-8 sm:grid-cols-2">
+                <div>
+                  {older && (
+                    <Link
+                      to={`/writing/${older.slug}`}
+                      viewTransition
+                      className="group block no-underline"
+                    >
+                      <span className="block text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-text-mid)] mb-2">
+                        Older
+                      </span>
+                      <span className="block font-display text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors duration-150">
+                        {older.title}
+                      </span>
+                    </Link>
+                  )}
+                </div>
+                <div className="sm:text-right">
+                  {newer && (
+                    <Link
+                      to={`/writing/${newer.slug}`}
+                      viewTransition
+                      className="group block no-underline"
+                    >
+                      <span className="block text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-text-mid)] mb-2">
+                        Newer
+                      </span>
+                      <span className="block font-display text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors duration-150">
+                        {newer.title}
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+            {related.length > 0 && (
+              <div className="mt-10">
+                <span className="block text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-text-mid)] mb-4">
+                  Related reading
+                </span>
+                <ul className="space-y-3 list-none p-0 m-0">
+                  {related.map((r) => (
+                    <li key={r.slug}>
+                      <Link
+                        to={`/writing/${r.slug}`}
+                        viewTransition
+                        className="font-display text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-150 no-underline"
+                      >
+                        {r.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </nav>
+        )}
 
         {/* ─── Footer ──────────────────────────────────────────────── */}
         <footer className="mt-20 pt-8 border-t border-[var(--color-border)] max-w-[var(--container-narrow)]">
@@ -108,6 +181,7 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
           </p>
           <Link
             to="/writing"
+            viewTransition
             className="
               inline-flex items-center gap-2
               font-display text-sm

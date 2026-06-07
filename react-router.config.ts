@@ -14,13 +14,15 @@ import { fileURLToPath } from 'node:url';
  * server required.
  *
  * Why a function instead of `prerender: true`:
- *   The site has a dynamic `writing/:slug` route. React Router's
- *   auto-discovery only emits HTML for *static* routes; dynamic
- *   routes need their concrete paths enumerated. We discover the
- *   slugs by scanning `content/writing/` for folders that contain a
- *   `meta.ts` (and skip underscore-prefixed drafts). This keeps the
- *   config data-driven: adding a new essay folder is enough, no
- *   config edit needed.
+ *   The site has dynamic `writing/:slug` (and per-slug project)
+ *   routes. React Router's auto-discovery only emits HTML for
+ *   *static* routes; dynamic routes need their concrete paths
+ *   enumerated. We discover the slugs by scanning `content/writing/`
+ *   and `content/projects/` for folders that contain a `meta.ts`
+ *   (and skip underscore-prefixed drafts). This keeps the config
+ *   data-driven: adding a new essay or project folder is enough, no
+ *   config edit needed — and guarantees every content page is
+ *   prerendered, never left to the SPA fallback.
  *
  * `buildDirectory: 'dist'` matches the existing deploy workflow,
  * which uploads `./dist` as the Pages artifact.
@@ -35,14 +37,19 @@ const STATIC_PATHS = [
   '/',
   '/about',
   '/projects',
-  '/projects/wiretrace',
   '/writing',
   '/privacy',
+  '/search',
 ];
 
-/** Discover slugs under content/writing that have a meta.ts and are not drafts. */
-function discoverWritingSlugs(): string[] {
-  const dir = join(CONTENT_DIR, 'writing');
+/**
+ * Discover slugs under `content/<kind>` that have a `meta.ts` whose
+ * declared slug matches the folder name, skipping underscore-prefixed
+ * drafts. Mirrors the auto-discovery in the content loaders so the
+ * prerender list and the rendered routes never diverge.
+ */
+function discoverSlugs(kind: 'writing' | 'projects'): string[] {
+  const dir = join(CONTENT_DIR, kind);
   if (!existsSync(dir)) return [];
   const entries = readdirSync(dir, { withFileTypes: true });
   const slugs: string[] = [];
@@ -51,8 +58,6 @@ function discoverWritingSlugs(): string[] {
     if (entry.name.startsWith('_')) continue;
     const metaPath = join(dir, entry.name, 'meta.ts');
     if (!existsSync(metaPath)) continue;
-    // Confirm the meta declares a slug equal to the folder name —
-    // protects against a stray file accidentally matching the pattern.
     const text = readFileSync(metaPath, 'utf8');
     const match = text.match(/slug:\s*['"]([^'"]+)['"]/);
     if (match && match[1] === entry.name) {
@@ -65,9 +70,11 @@ function discoverWritingSlugs(): string[] {
 export default {
   ssr: false,
   async prerender() {
-    const writingSlugs = discoverWritingSlugs();
+    const writingSlugs = discoverSlugs('writing');
+    const projectSlugs = discoverSlugs('projects');
     return [
       ...STATIC_PATHS,
+      ...projectSlugs.map((slug) => `/projects/${slug}`),
       ...writingSlugs.map((slug) => `/writing/${slug}`),
     ];
   },

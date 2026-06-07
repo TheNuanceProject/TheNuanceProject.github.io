@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
+import { useEffect, useState } from 'react';
 import type { ReactNode, AnchorHTMLAttributes } from 'react';
+import { highlightCode } from '~/lib/highlight';
+import { CopyButton } from '~/components/CopyButton';
 
 /**
  * Prose components — pre-styled typographic building blocks.
@@ -202,24 +205,76 @@ export function Code({ children }: { children: ReactNode }) {
 }
 
 /** Code block — multi-line code, scrolls horizontally if needed. */
-export function CodeBlock({ children }: { children: ReactNode }) {
+const PLAIN_PRE =
+  'font-mono text-[14px] leading-[1.6] bg-[var(--color-surface)] ' +
+  'text-[var(--color-text-primary)] p-6 rounded overflow-x-auto';
+
+export function CodeBlock({
+  children,
+  lang,
+}: {
+  children: ReactNode;
+  /** Language hint enabling syntax highlighting, e.g. "typescript". */
+  lang?: string;
+}) {
+  const code = typeof children === 'string' ? children : null;
+  const [html, setHtml] = useState<string | null>(null);
+
+  // Progressive enhancement: ships plain, upgrades to highlighted HTML
+  // after mount once the lazy Shiki chunk loads. No hydration mismatch
+  // because the first client render matches the server (plain).
+  useEffect(() => {
+    if (!code || !lang) return;
+    let alive = true;
+    void highlightCode(code, lang).then((result) => {
+      if (alive && result) setHtml(result);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [code, lang]);
+
+  if (code) {
+    return (
+      <div className="relative group my-8">
+        <CopyButton value={code} />
+        {html ? (
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <pre className={PLAIN_PRE}>
+            <code>{code}</code>
+          </pre>
+        )}
+      </div>
+    );
+  }
+
+  // Non-string children: render plainly.
   return (
-    <pre
-      className="
-        font-mono text-[14px] leading-[1.6]
-        bg-[var(--color-surface)]
-        text-[var(--color-text-primary)]
-        p-6 rounded
-        my-8
-        overflow-x-auto
-      "
-    >
+    <pre className={`${PLAIN_PRE} my-8`}>
       <code>{children}</code>
     </pre>
   );
 }
 
 /** Horizontal rule — marks a shift in the piece. */
+/**
+ * Sidenote — an auto-numbered note. On wide screens (>= xl) it floats
+ * into the right margin beside its marker; below xl it renders inline as
+ * a small numbered aside. Numbering is automatic via a CSS counter
+ * scoped to the article body (see `.article-body` in globals.css), so
+ * notes number themselves in document order. The note text is always in
+ * the DOM, so it stays accessible to screen readers at every width.
+ */
+export function Sidenote({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <sup className="sidenote-marker" aria-hidden="true" />
+      <small className="sidenote">{children}</small>
+    </>
+  );
+}
+
 export function Divider() {
   return (
     <hr

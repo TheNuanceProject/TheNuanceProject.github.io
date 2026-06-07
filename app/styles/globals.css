@@ -86,6 +86,12 @@
   --color-text-mid: #7a7872;
   --color-accent: #e5895e;
   --color-accent-hover: #ed9670;
+
+  /* Ambient layer (see SITE_DYNAMISM_REQUIREMENTS.md) */
+  --dot-color: rgba(250, 249, 245, 0.09);
+  --dot-glow: rgba(229, 137, 94, 0.82);
+  --wave-dot: rgba(229, 137, 94, 0.85);
+  --wave-wash: rgba(229, 137, 94, 0.14);
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -136,5 +142,303 @@
     font-family: var(--font-display);
     font-weight: 400;
     color: var(--color-text-primary);
+  }
+}
+
+/* ─── Syntax highlighting (Shiki, dual-theme via CSS variables) ───────── */
+.shiki {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 1.5rem;
+  border-radius: 0.25rem;
+  overflow-x: auto;
+  background-color: var(--color-surface) !important;
+}
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+}
+[data-theme='dark'] .shiki,
+[data-theme='dark'] .shiki span {
+  color: var(--shiki-dark);
+}
+
+/* ─── Sidenotes / footnotes (auto-numbered; margin note at >= xl) ─────── */
+.article-body {
+  counter-reset: sidenote;
+}
+.sidenote-marker {
+  counter-increment: sidenote;
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 0.7em;
+  line-height: 0;
+}
+.sidenote-marker::after {
+  content: counter(sidenote);
+}
+.sidenote {
+  display: block;
+  margin: 0.75rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-border);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.sidenote::before {
+  content: counter(sidenote) '. ';
+  color: var(--color-accent);
+  font-weight: 600;
+}
+@media (min-width: 1280px) {
+  .sidenote {
+    float: right;
+    clear: right;
+    width: 190px;
+    margin: 0.2rem 0 1rem -222px;
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Ambient field — the dynamism layer (D-1…D-5).
+ * One centralised module (app/components/AmbientField.tsx) renders these
+ * layers once inside <main>. All motion is CSS-variable driven. See
+ * SITE_DYNAMISM_REQUIREMENTS.md. Light tokens here; dark in the override
+ * block above.
+ * ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --dot-color: rgba(20, 20, 19, 0.14);
+  --dot-glow: rgba(217, 119, 87, 0.7);
+  --wave-dot: rgba(217, 119, 87, 0.95);
+  --wave-wash: rgba(217, 119, 87, 0.18);
+  --grid-size: 32px;
+  --grid-dot: 1px;
+  --glow-radius: 200px;
+  --mx: -1000px;
+  --my: -1000px;
+  --by: 50%;
+}
+
+.af-base,
+.af-wash,
+.af-glow,
+.af-band,
+.af-wave {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* D-1 — base dot grid (static, SSR-safe) */
+.af-base {
+  background-image: radial-gradient(
+    circle,
+    var(--dot-color) var(--grid-dot),
+    transparent var(--grid-dot)
+  );
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: center;
+}
+
+/* D-2 — cursor flow: warm wash + lit dots revealed near the pointer */
+.af-wash {
+  background: radial-gradient(
+    circle var(--glow-radius) at var(--mx) var(--my),
+    color-mix(in srgb, var(--color-accent) 6%, transparent) 0%,
+    transparent 70%
+  );
+}
+.af-glow {
+  background-image: radial-gradient(
+    circle,
+    var(--dot-glow) var(--grid-dot),
+    transparent var(--grid-dot)
+  );
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: center;
+  -webkit-mask-image: radial-gradient(
+    circle var(--glow-radius) at var(--mx) var(--my),
+    #000 0%,
+    rgba(0, 0, 0, 0.35) 45%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle var(--glow-radius) at var(--mx) var(--my),
+    #000 0%,
+    rgba(0, 0, 0, 0.35) 45%,
+    transparent 72%
+  );
+}
+
+/* D-5 — scroll-reactive band: faint persistent brightening at reading position */
+.af-band {
+  background-image: radial-gradient(
+    circle,
+    var(--dot-glow) var(--grid-dot),
+    transparent var(--grid-dot)
+  );
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: center;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 130px at 50% var(--by),
+    #000 0%,
+    transparent 75%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 130px at 50% var(--by),
+    #000 0%,
+    transparent 75%
+  );
+}
+
+/* D-3/D-4 — the wave: warm light + lit dots in a slow expanding ring */
+.af-wave {
+  --r: 0px;
+  --band: 120px;
+  --ox: 50%;
+  --oy: 50%;
+  background-image:
+    radial-gradient(circle, var(--wave-wash), var(--wave-wash)),
+    radial-gradient(
+      circle,
+      var(--wave-dot) var(--grid-dot),
+      transparent var(--grid-dot)
+    );
+  background-size:
+    100% 100%,
+    var(--grid-size) var(--grid-size);
+  background-position: center, center;
+  background-repeat: no-repeat, repeat;
+  -webkit-mask-image: radial-gradient(
+    circle at var(--ox) var(--oy),
+    transparent calc(var(--r) - var(--band)),
+    #000 calc(var(--r) - (var(--band) / 2)),
+    transparent var(--r)
+  );
+  mask-image: radial-gradient(
+    circle at var(--ox) var(--oy),
+    transparent calc(var(--r) - var(--band)),
+    #000 calc(var(--r) - (var(--band) / 2)),
+    transparent var(--r)
+  );
+}
+
+/* Cursor flow and the scroll band are desktop-only. */
+@media (pointer: coarse) {
+  .af-wash,
+  .af-glow,
+  .af-band {
+    display: none;
+  }
+}
+
+/* Under reduced motion, only the static base grid remains. */
+@media (prefers-reduced-motion: reduce) {
+  .af-wash,
+  .af-glow,
+  .af-band,
+  .af-wave {
+    display: none !important;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Scroll reveals (D-6). Armed by useReveal on mount; elements are visible by
+ * default (no class) so prerendered HTML and no-JS visitors see full content.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.reveal-armed {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.reveal-armed.reveal-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s var(--ease-out-quart),
+    transform 0.6s var(--ease-out-quart);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-armed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Heading character reveal (D-7). Spans exist only after the client splits the
+ * heading; the server renders plain text, so no-JS visitors are unaffected.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.rh-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+.rh-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.5s var(--ease-out-quart),
+    transform 0.5s var(--ease-out-quart);
+}
+.rh-char.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rh-char {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Link underline draw-in (D-8). Shared signature underline: an accent line
+ * that grows from the left on hover/focus, and stays full under the active
+ * route (NavLink sets aria-current="page").
+ * ─────────────────────────────────────────────────────────────────────────── */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 1.5px;
+  width: 0;
+  background-color: var(--color-accent);
+  transition: width 0.25s var(--ease-out-quart);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after,
+.link-underline[aria-current='page']::after {
+  width: 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .link-underline::after {
+    transition: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Route cross-fade (D-9). Native View Transitions: internal Links opt in with
+ * the `viewTransition` prop; this tunes the root cross-fade and disables it
+ * under reduced motion (navigation then swaps instantly).
+ * ─────────────────────────────────────────────────────────────────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+  animation-timing-function: var(--ease-out-quart);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }

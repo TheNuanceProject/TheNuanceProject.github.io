@@ -14,7 +14,6 @@ export function Footer() {
   return (
     <footer
       className="
-        mt-24
         border-t border-[var(--color-border)]
         transition-colors duration-250
       "

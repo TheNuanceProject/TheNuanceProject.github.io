@@ -5,7 +5,7 @@ import { ArticleLayout } from '~/components/ArticleLayout';
 import { ArrowIcon } from '~/components/icons/ArrowIcon';
 import { findWritingBySlug } from '~/lib/content/writing';
 import { pageMeta } from '~/lib/page-meta';
-import { breadcrumbSchema } from '~/lib/structured-data';
+import { articleSchema, breadcrumbSchema } from '~/lib/structured-data';
 import type { ComponentType, ReactNode } from 'react';
 import type { Route } from './+types/writing.$slug';
 
@@ -80,7 +80,17 @@ export const meta = ({ params }: Route.MetaArgs) => {
     title: piece.title,
     description: piece.description,
     path: `/writing/${piece.slug}/`,
+    ogType: 'article',
+    articlePublishedTime: piece.published,
+    articleModifiedTime: piece.updated ?? piece.published,
     structuredData: [
+      articleSchema({
+        title: piece.title,
+        description: piece.description,
+        pagePath: `/writing/${piece.slug}/`,
+        datePublished: piece.published,
+        dateModified: piece.updated ?? piece.published,
+      }),
       breadcrumbSchema([
         { name: 'Home', url: '/' },
         { name: 'Writing', url: '/writing/' },

@@ -8,4 +8,5 @@ export const meta: WritingMeta = {
   description:
     'How a comment on the r/embedded launch thread reshaped the v1.1.0 plotter — what shipped, and which part of it was somebody else\u2019s idea.',
   published: '2026-05-29',
+  readingTime: 5,
 };

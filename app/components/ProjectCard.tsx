@@ -38,6 +38,7 @@ export function ProjectCard({
   return (
     <Link
       to={href}
+      viewTransition
       className="
         group block
         border-t border-[var(--color-border)]

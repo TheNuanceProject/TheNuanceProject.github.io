@@ -5,6 +5,9 @@ import { Section } from '~/components/Section';
 import { Prose } from '~/components/Prose';
 import { Button } from '~/components/Button';
 import { ArrowIcon } from '~/components/icons/ArrowIcon';
+import { Breadcrumbs } from '~/components/Breadcrumbs';
+import { ReleaseCard } from '~/components/ReleaseCard';
+import { ReleasesTimeline } from '~/components/ReleasesTimeline';
 import { deriveDates } from '~/lib/content/dates';
 import { pageMeta } from '~/lib/page-meta';
 import {
@@ -67,21 +70,13 @@ export default function ProjectWireTrace() {
   return (
     <Container width="default">
       <section className="pt-12 md:pt-16 pb-12 md:pb-16">
-        <Link
-          to="/projects"
-          className="
-            inline-flex items-center gap-2
-            font-display text-sm
-            text-[var(--color-text-mid)]
-            hover:text-[var(--color-text-primary)]
-            transition-colors duration-150
-            no-underline
-            mb-10
-          "
-        >
-          <ArrowIcon className="rotate-180" />
-          <span>Projects</span>
-        </Link>
+        <Breadcrumbs
+          crumbs={[
+            { name: 'Home', href: '/' },
+            { name: 'Projects', href: '/projects/' },
+            { name: wt.title, href: `/projects/${wt.slug}/` },
+          ]}
+        />
 
         <h1
           className="
@@ -421,28 +416,41 @@ export default function ProjectWireTrace() {
           </p>
         </Prose>
 
-        <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-          <Button href={wt.releasesUrl} external>
-            Download from GitHub Releases
-            <ArrowIcon />
-          </Button>
+        <div className="mt-10">
+          <ReleaseCard
+            name={wt.title}
+            version={wt.version}
+            downloadUrl={wt.downloadUrl}
+            releasesUrl={wt.releasesUrl}
+            githubUrl={wt.githubUrl}
+          />
 
-          <a
-            href={wt.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              font-display text-sm
-              text-[var(--color-text-secondary)]
-              hover:text-[var(--color-text-primary)]
-              transition-colors duration-150
-              no-underline
-              border-b border-transparent hover:border-[var(--color-accent)]
-            "
-          >
-            Build from source on GitHub
-          </a>
+          <div className="mt-6">
+            <a
+              href={wt.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                font-display text-sm
+                text-[var(--color-text-secondary)]
+                hover:text-[var(--color-text-primary)]
+                transition-colors duration-150
+                no-underline
+                border-b border-transparent hover:border-[var(--color-accent)]
+              "
+            >
+              Build from source on GitHub
+            </a>
+          </div>
         </div>
+      </Section>
+
+      <Section label="Releases" divided>
+        <ReleasesTimeline
+          version={wt.version}
+          githubUrl={wt.githubUrl}
+          releasesUrl={wt.releasesUrl}
+        />
       </Section>
 
       <footer className="pb-24 md:pb-32 pt-12 mt-8 border-t border-[var(--color-border)] max-w-[var(--container-narrow)]">

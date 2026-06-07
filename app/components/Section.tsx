@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 import type { ReactNode } from 'react';
 import { cn } from '~/lib/cn';
+import { useReveal } from '~/lib/use-reveal';
 
 interface SectionProps {
   /** Small uppercase label shown above the section (e.g., "WORK", "WRITING") */
@@ -37,9 +38,11 @@ export function Section({
   className,
   id,
 }: SectionProps) {
+  const revealRef = useReveal<HTMLElement>();
   return (
     <section
       id={id}
+      ref={revealRef}
       className={cn(
         'py-16 md:py-20',
         divided && 'border-t border-[var(--color-border)]',

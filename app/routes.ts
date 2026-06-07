@@ -17,5 +17,6 @@ export default [
   route('writing', 'routes/writing.tsx'),
   route('writing/:slug', 'routes/writing.$slug.tsx'),
   route('privacy', 'routes/privacy.tsx'),
+  route('search', 'routes/search.tsx'),
   route('*', 'routes/$.tsx'),
 ] satisfies RouteConfig;

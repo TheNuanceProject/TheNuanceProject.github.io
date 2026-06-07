@@ -4,7 +4,11 @@ import { Container } from '~/components/Container';
 import { Section } from '~/components/Section';
 import { P, A } from '~/components/writing-prose';
 import { pageMeta } from '~/lib/page-meta';
-import { personSchema, breadcrumbSchema } from '~/lib/structured-data';
+import {
+  personSchema,
+  profilePageSchema,
+  breadcrumbSchema,
+} from '~/lib/structured-data';
 
 /**
  * About — the studio's "who and why" page.
@@ -29,6 +33,7 @@ export const meta = () =>
     ogType: 'profile',
     structuredData: [
       personSchema(),
+      profilePageSchema(),
       breadcrumbSchema([
         { name: 'Home', url: '/' },
         { name: 'About', url: '/about/' },
@@ -97,7 +102,7 @@ export default function About() {
         <div className="max-w-[var(--container-narrow)]">
           <P>
             I&rsquo;m {siteConfig.author.fullName}. Most people call me{' '}
-            {siteConfig.author.shortName}.
+            {siteConfig.author.shortName}, and online I go by Shahin Hashim.
           </P>
 
           <P>
@@ -143,7 +148,19 @@ export default function About() {
 
           <P>
             I&rsquo;m also on{' '}
-            <A href={siteConfig.links.linkedin}>LinkedIn</A>.
+            <A
+              href={siteConfig.links.linkedin}
+              rel="me noopener noreferrer"
+            >
+              LinkedIn
+            </A>{' '}
+            and{' '}
+            <A
+              href={siteConfig.links.instagram}
+              rel="me noopener noreferrer"
+            >
+              Instagram
+            </A>.
           </P>
         </div>
       </Section>

@@ -2,6 +2,7 @@
 import { Link } from 'react-router';
 import { Container } from '~/components/Container';
 import { allWriting } from '~/lib/content/writing';
+import { useReveal } from '~/lib/use-reveal';
 import { pageMeta } from '~/lib/page-meta';
 import { breadcrumbSchema } from '~/lib/structured-data';
 
@@ -34,6 +35,7 @@ export default function Writing() {
   const pieces = allWriting.slice(0, PAGE_SIZE);
   const hasMore = allWriting.length > PAGE_SIZE;
   const isEmpty = pieces.length === 0;
+  const revealRef = useReveal<HTMLElement>();
 
   return (
     <Container width="default">
@@ -64,7 +66,7 @@ export default function Writing() {
         </p>
       </section>
 
-      <section className="pb-24 md:pb-32">
+      <section ref={revealRef} className="pb-24 md:pb-32">
         {isEmpty ? (
           <p
             className="
@@ -85,6 +87,7 @@ export default function Writing() {
                 <li key={piece.slug}>
                   <Link
                     to={`/writing/${piece.slug}`}
+                    viewTransition
                     className="
                       group block
                       border-b border-[var(--color-border)]
@@ -108,6 +111,11 @@ export default function Writing() {
                       {piece.updatedDate && (
                         <span className="ml-3 text-[var(--color-text-mid)]">
                           · Updated
+                        </span>
+                      )}
+                      {piece.readingTime != null && (
+                        <span className="ml-3 text-[var(--color-text-mid)]">
+                          · {piece.readingTime} min read
                         </span>
                       )}
                     </p>
