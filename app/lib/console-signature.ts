@@ -18,7 +18,7 @@ export function logConsoleSignature() {
 
   console.log('%c/ the nuance project', accent);
   console.log(
-    '%cBuilt by Shahin. The site is open source \u2014 github.com/TheNuanceProject',
+    '%cBuilt by Shahin. The site is open source — github.com/TheNuanceProject',
     muted,
   );
 }

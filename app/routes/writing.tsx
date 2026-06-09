@@ -21,7 +21,7 @@ export const meta = () =>
   pageMeta({
     title: 'Writing',
     description:
-      'Notes on what I\u2019m working on, what I\u2019ve learned, and the occasional thought that wouldn\u2019t fit anywhere else.',
+      'Notes on what I’m working on, what I’ve learned, and the occasional thought that wouldn’t fit anywhere else.',
     path: '/writing/',
     structuredData: [
       breadcrumbSchema([

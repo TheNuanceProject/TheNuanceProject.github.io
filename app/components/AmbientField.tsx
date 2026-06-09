@@ -9,7 +9,8 @@ import { useEffect, useRef } from 'react';
  *   D-1  the static dot grid (renders on the server; SSR-safe)
  *   D-2  cursor flow — warm light following the pointer (desktop only)
  *   D-3  the unified wave — click/tap anywhere, theme toggle, logo slash
- *   D-4  the idle heartbeat — a double pulse from the logo slash after 15s
+ *   D-4  the idle heartbeat — a double pulse from the logo slash once the
+ *        page has sat idle, on a slow ~2.5 min cadence
  *   D-5  the scroll-reactive band — faint brightening at reading position
  *
  * Everything is driven by CSS custom properties and a single
@@ -17,7 +18,8 @@ import { useEffect, useRef } from 'react';
  * interactive wiring is client-only (useEffect), so prerendered HTML and
  * no-JS visitors still get the static grid. Honours prefers-reduced-motion
  * (static grid only) and coarse pointers (cursor flow and band off; wave
- * and heartbeat remain, so touch taps still ripple).
+ * and heartbeat remain, so a deliberate touch tap still ripples while a
+ * scroll does not).
  */
 export function AmbientField() {
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,16 @@ export function AmbientField() {
     let my = 0;
     let idleTimer = 0;
     let beatTimer = 0;
+
+    // Tap vs scroll/drag tracking: a pointer gesture only ripples if it ends
+    // close to where it started. A touch-scroll or a mouse-drag moves beyond
+    // the slop and is suppressed. Pointer-type agnostic, so it is correct on
+    // mouse, touch, and pen at every screen size.
+    let tapX = 0;
+    let tapY = 0;
+    let tapTracking = false;
+    let tapMoved = false;
+    const TAP_SLOP = 10; // px of movement allowed before it counts as a scroll/drag
 
     // D-3 — emit one slow warm wave from a viewport point.
     const emitWave = (
@@ -91,8 +103,9 @@ export function AmbientField() {
 
     const startBeating = () => {
       if (beatTimer !== 0) return;
-      heartbeat();
-      beatTimer = window.setInterval(heartbeat, 4200);
+      // Slow ~2.5 min cadence. The first pulse waits one interval, so going
+      // idle does not trigger an immediate beat.
+      beatTimer = window.setInterval(heartbeat, 150000);
     };
     const stopBeating = () => {
       if (beatTimer !== 0) {
@@ -115,6 +128,12 @@ export function AmbientField() {
     };
 
     const onMove = (e: PointerEvent) => {
+      if (
+        tapTracking &&
+        Math.hypot(e.clientX - tapX, e.clientY - tapY) > TAP_SLOP
+      ) {
+        tapMoved = true; // moved too far — this is a scroll or drag, not a tap
+      }
       if (fine && e.pointerType !== 'touch') {
         mx = e.clientX;
         my = e.clientY;
@@ -122,9 +141,23 @@ export function AmbientField() {
       }
       resetIdle();
     };
+    // D-3 — a gesture begins; we ripple only if it ends as a tap (below).
     const onDown = (e: PointerEvent) => {
-      emitWave(e.clientX, e.clientY);
+      tapTracking = true;
+      tapMoved = false;
+      tapX = e.clientX;
+      tapY = e.clientY;
       resetIdle();
+    };
+    // Ripple only on a deliberate tap/click, never on a scroll or drag.
+    const onUp = (e: PointerEvent) => {
+      if (tapTracking && !tapMoved) {
+        emitWave(e.clientX, e.clientY);
+      }
+      tapTracking = false;
+    };
+    const onCancel = () => {
+      tapTracking = false;
     };
     // D-5 — scroll band tracks the reading position.
     const onScroll = () => {
@@ -137,6 +170,8 @@ export function AmbientField() {
 
     window.addEventListener('pointermove', onMove, { passive: true });
     window.addEventListener('pointerdown', onDown, { passive: true });
+    window.addEventListener('pointerup', onUp, { passive: true });
+    window.addEventListener('pointercancel', onCancel, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
     window.addEventListener('keydown', resetIdle);
@@ -146,6 +181,8 @@ export function AmbientField() {
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       window.removeEventListener('keydown', resetIdle);

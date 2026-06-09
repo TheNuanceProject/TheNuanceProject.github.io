@@ -61,7 +61,7 @@ export const links: LinksFunction = () => [
   {
     rel: 'alternate',
     type: 'application/rss+xml',
-    title: `${siteConfig.identity.name} \u2014 Writing`,
+    title: `${siteConfig.identity.name} — Writing`,
     href: '/feed.xml',
   },
 

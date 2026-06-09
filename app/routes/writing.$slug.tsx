@@ -71,7 +71,7 @@ export const meta = ({ params }: Route.MetaArgs) => {
   if (!piece) {
     return pageMeta({
       title: 'Page not found',
-      description: 'This page doesn\u2019t exist.',
+      description: 'This page doesn’t exist.',
       path: `/writing/${slug ?? ''}/`,
     });
   }

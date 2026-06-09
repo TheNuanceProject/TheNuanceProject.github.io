@@ -14,7 +14,7 @@ import { pageMeta } from '~/lib/page-meta';
 export const meta = () =>
   pageMeta({
     title: 'Page not found',
-    description: 'This page doesn\u2019t exist.',
+    description: 'This page doesn’t exist.',
     path: '/404',
   });
 

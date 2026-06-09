@@ -104,8 +104,8 @@ export default function Search() {
           ) : results.length === 0 ? (
             <p className="font-body text-[17px] text-[var(--color-text-secondary)]">
               {loaded
-                ? `No results for \u201C${trimmed}\u201D.`
-                : 'Searching\u2026'}
+                ? `No results for “${trimmed}”.`
+                : 'Searching…'}
             </p>
           ) : (
             <ul className="border-t border-[var(--color-border)] list-none p-0 m-0">
