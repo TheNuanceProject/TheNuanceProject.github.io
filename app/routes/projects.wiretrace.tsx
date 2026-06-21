@@ -113,7 +113,7 @@ export default function ProjectWireTrace() {
 
         <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
           <Button href={wt.downloadUrl} external>
-            Download for {wt.platforms[0]}
+            Download latest release
           </Button>
 
           <div className="flex items-center gap-6 font-display text-sm">
@@ -151,13 +151,12 @@ export default function ProjectWireTrace() {
       </section>
 
       {/* Hero screenshot — gives the reader a visual anchor before the
-          long-form prose. v1.1.0 captures the title bar tagged with the
-          current version, the live plotter (the new feature), and the
+          long-form prose: the title bar, the live plotter, and the
           multi-trace legend in one image. */}
       <figure className="mb-16 md:mb-20">
         <img
           src="/images/wiretrace-plot-dark.png"
-          alt="WireTrace v1.1.0 connected to a serial port, showing the console with timestamped data and the live plot panel below with four traces"
+          alt="WireTrace connected to a serial port, showing the console with timestamped data and the live plot panel below with four traces"
           className="
             w-full h-auto
             border border-[var(--color-border)]
@@ -349,14 +348,10 @@ export default function ProjectWireTrace() {
             produces native binaries for all three operating systems.
           </p>
           <p>
-            Pre-built binaries are currently published for Windows
-            only. This is a practical limitation of who maintains the
-            project, not a design limitation of the software. If you
-            want {wt.title} on macOS or Linux, you can build it from
-            source using the included build scripts — the build guide
-            in the repository covers all three platforms. If there is
-            enough interest, pre-built macOS and Linux binaries become
-            a realistic priority.
+            Pre-built binaries are published for Windows and Linux — a
+            Windows installer, a Linux AppImage, and a Debian package.
+            macOS is supported from source: the build guide in the
+            repository covers all three operating systems.
           </p>
           <p>
             {wt.title} uses CPU-only software rendering, which means
@@ -403,16 +398,17 @@ export default function ProjectWireTrace() {
       <Section label="Download and install" divided>
         <Prose>
           <p>
-            Download the Windows installer from the GitHub Releases
-            page. Run the installer and follow the prompts. The
-            application launches from the Start menu. On first launch,
-            the welcome screen prompts for a device connection — the
-            rest of the interface appears once a device is connected.
+            Download the build for your platform from the GitHub
+            Releases page. On Windows, run the installer and follow the
+            prompts; the application launches from the Start menu. On
+            Linux, run the AppImage (mark it executable first) or
+            install the Debian package. On first launch, the welcome
+            screen prompts for a device connection — the rest of the
+            interface appears once a device is connected.
           </p>
           <p>
-            For macOS or Linux, clone the repository and build from
-            source. Instructions are in the repository&rsquo;s build
-            guide.
+            For macOS, clone the repository and build from source.
+            Instructions are in the repository&rsquo;s build guide.
           </p>
         </Prose>
 

@@ -82,7 +82,7 @@ export const specs: readonly SpecRow[] = [
     value: 'Plain text, CSV (auto-detect or raw)',
   },
   { property: 'Themes', value: 'Studio Light, Midnight Dark' },
-  { property: 'Platforms', value: 'Windows 10+ (64-bit)' },
+  { property: 'Platforms', value: 'Windows 10+, Linux (64-bit)' },
 ];
 
 export const shortcuts: readonly ShortcutRow[] = [

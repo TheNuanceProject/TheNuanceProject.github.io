@@ -1,12 +1,17 @@
 {
-  "latest_version": "1.1.0",
-  "release_notes": "WireTrace v1.1.0\n\nNew\n- Live data plotter with auto-detected JSON, key:value, and delimited formats\n- Configure Plot dialog with manual regex, named profiles, and capture-from-sample\n- 'plt:' prefix protocol for selective plotting in mixed-traffic streams\n\nImproved\n- 30-second periodic fsync bounds worst-case data loss on hard kill\n- fsync ordering on log stop closes the post-finalize window\n- Tag detector word-boundary fix\n- Status bar metrics reset on disconnect\n\nUser Guide rewritten for v1.1.0. Fully backwards-compatible.",
+  "latest_version": "1.2.0",
+  "release_notes": "WireTrace v1.2.0\n\nMaintenance release. Linux binaries (AppImage and .deb) are now published, with working in-app updates.\n\nFixed\n- Data durability: atomic preferences save, concurrent log-write protection, fsync ordering\n- ANSI/VT100 escape codes stripped from console, log, CSV, and plot\n- CSV exports hardened against spreadsheet formula injection\n- Linux: serial port released immediately on disconnect; AppImage bundles its dependencies\n- The tab now resets when a device drops on its own\n- Custom plot patterns can no longer freeze the app\n- Window no longer opens off-screen after a monitor change\n\nFully backwards-compatible; no user action required to upgrade.",
   "min_version": "1.0.0",
   "platforms": {
     "windows": {
-      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v1.1.0/WireTrace-Setup-v1.1.0.exe",
-      "file_size": 50171432,
-      "sha256_hash": "97d7ea53b9170ed321177967d9f4c2c186011889f2d37796c107f1c2fd2fdead"
+      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v1.2.0/WireTrace-Setup-v1.2.0.exe",
+      "file_size": 50592547,
+      "sha256_hash": "469b0ccbe8f74c20f4349af5d0214bc12934834a195ab0141cb965bfd5f73dce"
+    },
+    "linux": {
+      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v1.2.0/WireTrace-v1.2.0-x86_64.AppImage",
+      "file_size": 104375488,
+      "sha256_hash": "3e1dcaf5ab88006af7902045b0a491f3822b803f18b9fbcd4a13eb11c5e442fc"
     }
   }
 }

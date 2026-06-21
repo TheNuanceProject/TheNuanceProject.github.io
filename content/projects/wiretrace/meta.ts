@@ -29,11 +29,11 @@ export const meta: ProjectMeta = {
   title: 'WireTrace',
   description: 'A serial data monitor for hardware and embedded engineers.',
   published: '2026-02-25',
-  updated: '2026-05-29',
+  updated: '2026-06-21',
 
-  version: '1.1.0',
+  version: '1.2.0',
   status: 'Active',
-  platforms: ['Windows'],
+  platforms: ['Windows', 'Linux'],
   tagline: 'A serial data monitor for hardware and embedded engineers.',
   productTagline:
     'Multi-device, built for the throughput real hardware bring-up demands.',
