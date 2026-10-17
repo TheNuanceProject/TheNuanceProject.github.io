@@ -6,7 +6,7 @@ import { filterIndex, type SearchItem } from '~/lib/search';
 import { cn } from '~/lib/cn';
 
 /**
- * CommandPalette — a search-and-jump dialog over writing and projects.
+ * CommandPalette: a search-and-jump dialog over writing and projects.
  *
  * Mounted by the Header only while open, so each open starts with fresh
  * state (no reset effects). The Header owns the global Cmd/Ctrl-K
@@ -39,7 +39,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
     };
   }, []);
 
-  // Focus the input, lock scroll, close on Escape — all on mount.
+  // Focus the input, lock scroll, close on Escape, all on mount.
   useEffect(() => {
     const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 0);
     const originalOverflow = document.body.style.overflow;
@@ -78,7 +78,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-start justify-center p-4 sm:pt-[14vh]"
+      className="fixed inset-0 z-70 flex items-start justify-center p-4 sm:pt-[14vh]"
       role="dialog"
       aria-modal="true"
       aria-label="Search"
@@ -87,9 +87,9 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
         type="button"
         aria-label="Close search"
         onClick={onClose}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-scrim backdrop-blur-sm"
       />
-      <div className="relative w-full max-w-xl rounded-lg border border-[var(--color-border)] bg-[var(--color-paper)] shadow-xl overflow-hidden">
+      <div className="relative w-full max-w-144 rounded-md border border-divider bg-paper shadow-float overflow-hidden">
         <input
           ref={inputRef}
           value={query}
@@ -101,16 +101,16 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
           placeholder="Search writing and projects…"
           aria-label="Search query"
           className="
-            w-full px-4 py-3.5 bg-transparent
-            font-display text-[var(--color-text-primary)]
-            placeholder:text-[var(--color-text-mid)]
-            border-b border-[var(--color-border)]
-            focus:outline-none
+            w-full h-12 px-4 bg-transparent
+            font-sans text-body text-text
+            placeholder:text-text-tertiary
+            border-b border-divider
+            focus-visible:-outline-offset-(--size-focus-ring)
           "
         />
-        <ul className="max-h-[50vh] overflow-y-auto p-2 list-none m-0">
+        <ul className="max-h-[50vh] overflow-y-auto p-1 list-none m-0">
           {results.length === 0 ? (
-            <li className="px-3 py-6 text-center font-display text-sm text-[var(--color-text-mid)]">
+            <li className="px-3 py-6 text-center font-sans text-ui-lg text-text-tertiary">
               No results
             </li>
           ) : (
@@ -121,18 +121,18 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
                   onClick={() => go(item)}
                   onMouseEnter={() => setSelected(i)}
                   className={cn(
-                    'w-full text-left rounded-md px-3 py-2.5',
-                    'flex flex-col gap-0.5 transition-colors duration-100',
+                    'w-full text-left rounded-sm px-3 py-2',
+                    'flex flex-col gap-0.5 transition-colors duration-(--duration-fast)',
                     i === selected
-                      ? 'bg-[var(--color-surface)]'
-                      : 'hover:bg-[var(--color-surface)]'
+                      ? 'bg-surface'
+                      : 'hover:bg-surface'
                   )}
                 >
-                  <span className="font-display text-sm text-[var(--color-text-primary)]">
+                  <span className="font-sans text-ui-lg text-text">
                     {item.title}
                   </span>
                   {item.description && (
-                    <span className="font-body text-xs text-[var(--color-text-mid)] line-clamp-1">
+                    <span className="font-serif text-ui text-text-tertiary line-clamp-1">
                       {item.description}
                     </span>
                   )}

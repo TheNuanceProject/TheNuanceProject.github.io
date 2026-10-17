@@ -9,18 +9,18 @@ interface RevealHeadingProps {
 }
 
 /**
- * RevealHeading — the home hero headline that settles in on load (D-7).
+ * RevealHeading: the home hero headline that settles in on load (D-7).
  *
  * Progressive enhancement and SSR-safe: the server and the first client render
  * emit a plain <h1>{text}</h1>, so prerendered HTML and no-JS visitors get the
  * full heading with no hydration mismatch. After mount, on the client only and
- * unless `prefers-reduced-motion` is set, the heading is split — imperatively,
- * with no React re-render — into words and characters that rise and fade in
+ * unless `prefers-reduced-motion` is set, the heading is split (imperatively,
+ * with no React re-render) into words and characters that rise and fade in
  * with a small stagger, once.
  *
  * Word integrity: each WORD is wrapped in an inline-block span with
  * `white-space: nowrap`, so a line can only break at the real spaces between
- * words — never mid-word. Characters animate inside their word.
+ * words, never mid-word. Characters animate inside their word.
  *
  * The forced reflow before revealing commits the hidden start state to the
  * layout, so the transition actually plays rather than being coalesced away.
@@ -52,6 +52,8 @@ export function RevealHeading({ text, className }: RevealHeadingProps) {
       for (const ch of Array.from(word)) {
         const charEl = document.createElement('span');
         charEl.className = 'rh-char';
+        // The stagger between letters is the choreography of this reveal
+        // (SITE_DYNAMISM_REQUIREMENTS D-7); its duration is a token.
         charEl.style.transitionDelay = `${index * 16}ms`;
         charEl.textContent = ch;
         wordEl.appendChild(charEl);

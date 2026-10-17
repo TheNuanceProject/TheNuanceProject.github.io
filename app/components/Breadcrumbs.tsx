@@ -7,7 +7,7 @@ export interface Crumb {
 }
 
 /**
- * Breadcrumbs — a visible trail for inner pages, mirroring the
+ * Breadcrumbs: a visible trail for inner pages, mirroring the
  * BreadcrumbList JSON-LD emitted in each page's meta so the on-page
  * trail and the structured data agree. The final crumb is the current
  * page (not a link). Wraps on narrow screens and truncates the current
@@ -19,7 +19,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
       <ol
         className="
           flex flex-wrap items-center gap-x-2 gap-y-1
-          font-display text-sm text-[var(--color-text-mid)]
+          font-sans text-ui-lg text-text-tertiary
           list-none p-0 m-0
         "
       >
@@ -31,7 +31,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                 <span
                   aria-current="page"
                   className="
-                    text-[var(--color-text-secondary)]
+                    text-text-secondary
                     truncate max-w-[60vw] sm:max-w-none
                   "
                 >
@@ -43,13 +43,13 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                     to={crumb.href}
                     viewTransition
                     className="
-                      hover:text-[var(--color-text-primary)]
-                      transition-colors duration-150 no-underline
+                      hover:text-text
+                      transition-colors duration-(--duration-fast) no-underline
                     "
                   >
                     {crumb.name}
                   </Link>
-                  <span aria-hidden="true" className="text-[var(--color-border)]">
+                  <span aria-hidden="true" className="text-muted">
                     /
                   </span>
                 </>

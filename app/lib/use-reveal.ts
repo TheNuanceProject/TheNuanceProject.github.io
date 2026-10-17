@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * useReveal — fade-and-rise a block in once, as it enters the viewport (D-6).
+ * useReveal: fade-and-rise a block in once, as it enters the viewport (D-6).
  *
  * Progressive enhancement: the element is fully visible by default, including
  * in prerendered HTML and with JavaScript disabled. On mount (client only)

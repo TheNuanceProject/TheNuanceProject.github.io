@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { cn } from './cn';
 
-describe('cn — conditional class name composer', () => {
+describe('cn: conditional class name composer', () => {
   it('joins two strings with a space', () => {
     expect(cn('a', 'b')).toBe('a b');
   });

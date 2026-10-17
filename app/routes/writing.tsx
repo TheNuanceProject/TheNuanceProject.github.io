@@ -7,7 +7,7 @@ import { pageMeta } from '~/lib/page-meta';
 import { breadcrumbSchema } from '~/lib/structured-data';
 
 /**
- * Writing — index page listing writing pieces.
+ * Writing: index page listing writing pieces.
  *
  * Shows the most recent pieces (capped at `PAGE_SIZE`). If more
  * than that exist, a small note appears at the bottom. Sort order:
@@ -42,10 +42,9 @@ export default function Writing() {
       <section className="pt-20 md:pt-28 pb-12 md:pb-16">
         <h1
           className="
-            font-display font-normal
-            text-3xl md:text-[2.75rem]
-            leading-[1.15] tracking-[-0.02em]
-            text-[var(--color-text-primary)]
+            font-sans font-regular
+            text-display-sm
+            text-text
           "
         >
           Writing
@@ -54,10 +53,9 @@ export default function Writing() {
         <p
           className="
             mt-6 md:mt-8
-            font-body text-[19px] md:text-xl
-            leading-[1.55]
-            text-[var(--color-text-secondary)]
-            max-w-[var(--container-narrow)]
+            font-serif text-lead
+            text-text-secondary
+            max-w-narrow
           "
         >
           A place for things I want to share. Notes on what I&rsquo;m
@@ -70,11 +68,11 @@ export default function Writing() {
         {isEmpty ? (
           <p
             className="
-              border-t border-[var(--color-border)]
+              border-t border-divider
               pt-12
-              font-body text-[17px] leading-[1.75]
-              text-[var(--color-text-secondary)]
-              max-w-[var(--container-narrow)]
+              font-serif text-reading
+              text-text-secondary
+              max-w-narrow
             "
           >
             Nothing here yet. When I write something, it will appear
@@ -82,7 +80,7 @@ export default function Writing() {
           </p>
         ) : (
           <>
-            <ul className="border-t border-[var(--color-border)]">
+            <ul className="border-t border-divider">
               {pieces.map((piece) => (
                 <li key={piece.slug}>
                   <Link
@@ -90,31 +88,31 @@ export default function Writing() {
                     viewTransition
                     className="
                       group block
-                      border-b border-[var(--color-border)]
+                      border-b border-divider
                       py-8 md:py-10
-                      transition-colors duration-150
-                      hover:bg-[var(--color-surface)]
+                      transition-colors duration-(--duration-fast)
+                      hover:bg-surface
                       no-underline
-                      -mx-6 md:-mx-12 lg:-mx-16
-                      px-6 md:px-12 lg:px-16
+                      -mx-(--web-gutter-phone) md:-mx-(--web-gutter-tablet) lg:-mx-(--web-gutter-desktop)
+                      px-(--web-gutter-phone) md:px-(--web-gutter-tablet) lg:px-(--web-gutter-desktop)
                     "
                   >
                     <p
                       className="
-                        text-xs font-display font-medium
-                        uppercase tracking-[0.08em]
-                        text-[var(--color-text-mid)]
+                        text-label font-sans font-medium
+                        uppercase
+                        text-text-tertiary
                         mb-3
                       "
                     >
                       {piece.displayDate}
                       {piece.updatedDate && (
-                        <span className="ml-3 text-[var(--color-text-mid)]">
+                        <span className="ml-3 text-text-tertiary">
                           · Updated
                         </span>
                       )}
                       {piece.readingTime != null && (
-                        <span className="ml-3 text-[var(--color-text-mid)]">
+                        <span className="ml-3 text-text-tertiary">
                           · {piece.readingTime} min read
                         </span>
                       )}
@@ -122,9 +120,9 @@ export default function Writing() {
 
                     <h2
                       className="
-                        font-display text-xl md:text-2xl
-                        text-[var(--color-text-primary)]
-                        font-normal tracking-[-0.01em]
+                        font-sans text-title-sm md:text-title
+                        text-text
+                        font-regular
                         mb-3
                       "
                     >
@@ -133,9 +131,9 @@ export default function Writing() {
 
                     <p
                       className="
-                        font-body text-[17px] leading-[1.6]
-                        text-[var(--color-text-secondary)]
-                        max-w-[var(--container-narrow)]
+                        font-serif text-reading
+                        text-text-secondary
+                        max-w-narrow
                       "
                     >
                       {piece.description}
@@ -147,9 +145,9 @@ export default function Writing() {
 
             {hasMore && (
               <div className="pt-8 text-center">
-                <p className="font-display text-sm text-[var(--color-text-mid)]">
+                <p className="font-sans text-ui-lg text-text-tertiary">
                   Showing the most recent {PAGE_SIZE} pieces.{' '}
-                  <span className="text-[var(--color-text-secondary)]">
+                  <span className="text-text-secondary">
                     An archive of older pieces will live here.
                   </span>
                 </p>

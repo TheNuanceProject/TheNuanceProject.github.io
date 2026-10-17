@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MIT
 
 /**
  * Add or verify SPDX license identifiers on every source file.
@@ -26,7 +27,10 @@ const REPO_ROOT = join(__dirname, '..');
 
 const SPDX_LINE = '// SPDX-License-Identifier: MIT';
 
-const INCLUDE_EXT = ['.ts', '.tsx'];
+const INCLUDE_EXT = ['.ts', '.tsx', '.mts', '.js', '.mjs'];
+/** The folders with source in them, and the configuration files at the
+ *  top of the repository. */
+const SOURCE_DIRS = ['app', 'content', 'design', 'scripts'];
 const EXCLUDE_DIRS = new Set([
   'node_modules', 'dist', 'build', '.git',
   '.cache', '.vite', 'coverage',
@@ -53,13 +57,24 @@ function hasSpdx(content) {
 }
 
 function addSpdx(content) {
+  // A script's first line names its interpreter and must stay first.
+  if (content.startsWith('#!')) {
+    const end = content.indexOf('\n') + 1;
+    return `${content.slice(0, end)}${SPDX_LINE}\n${content.slice(end)}`;
+  }
   return `${SPDX_LINE}\n${content}`;
 }
 
 const args = process.argv.slice(2);
 const checkOnly = args.includes('--check');
 
-const files = walk(join(REPO_ROOT, 'src'));
+const files = [
+  ...SOURCE_DIRS.flatMap((dir) => walk(join(REPO_ROOT, dir))),
+  ...readdirSync(REPO_ROOT)
+    .filter((entry) => INCLUDE_EXT.some((ext) => entry.endsWith(ext)))
+    .map((entry) => join(REPO_ROOT, entry))
+    .filter((full) => statSync(full).isFile()),
+];
 
 if (files.length === 0) {
   console.log('No source files found.');

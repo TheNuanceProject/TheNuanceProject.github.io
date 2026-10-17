@@ -1,0 +1,1091 @@
+{
+  "$description": "The Nuance Design Language: decisions shared by every theme. See NUANCE_DESIGN_LANGUAGE.md.",
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$description": "Poppins: all interface text, headings, navigation, buttons",
+        "$value": [
+          "Poppins",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif"
+        ]
+      },
+      "serif": {
+        "$description": "Lora: long-form reading on the website",
+        "$value": [
+          "Lora",
+          "Georgia",
+          "serif"
+        ]
+      },
+      "mono": {
+        "$description": "JetBrains Mono: the console, code and every number that changes or lines up",
+        "$value": [
+          "JetBrains Mono",
+          "Consolas",
+          "Menlo",
+          "DejaVu Sans Mono",
+          "monospace"
+        ]
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$description": "Lora only, for emphasis in prose",
+        "$value": 600
+      }
+    }
+  },
+  "type": {
+    "$type": "typography",
+    "caption": {
+      "$description": "Status bar, hints, tooltips, footnotes, meta lines",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333333333333333
+      }
+    },
+    "label": {
+      "$description": "Section labels, in capitals",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": {
+          "value": 0.96,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333333333333333
+      }
+    },
+    "ui": {
+      "$description": "WireTrace's default interface text",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5384615384615385
+      }
+    },
+    "ui-lg": {
+      "$description": "Website navigation and buttons; WireTrace's first screen descriptions",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4285714285714286
+      }
+    },
+    "body": {
+      "$description": "Website default text",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 16,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5
+      }
+    },
+    "reading": {
+      "$description": "Article body",
+      "$value": {
+        "fontFamily": "{font.family.serif}",
+        "fontSize": {
+          "value": 17,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.6470588235294117
+      }
+    },
+    "lead": {
+      "$description": "Lead paragraphs",
+      "$value": {
+        "fontFamily": "{font.family.serif}",
+        "fontSize": {
+          "value": 20,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.4
+      }
+    },
+    "title-sm": {
+      "$description": "Card titles; WireTrace page and dialog titles",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 24,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333333333333333
+      }
+    },
+    "title": {
+      "$description": "Website h2; WireTrace's product name",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 32,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": -0.64,
+          "unit": "px"
+        },
+        "lineHeight": 1.25
+      }
+    },
+    "display-sm": {
+      "$description": "Website h1 on phones, article titles",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 44,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": -0.88,
+          "unit": "px"
+        },
+        "lineHeight": 1.0909090909090908
+      }
+    },
+    "display": {
+      "$description": "Website h1",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 56,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": -1.12,
+          "unit": "px"
+        },
+        "lineHeight": 1.0714285714285714
+      }
+    },
+    "display-lg": {
+      "$description": "Large hero lines",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 72,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": -1.44,
+          "unit": "px"
+        },
+        "lineHeight": 1.0555555555555556
+      }
+    },
+    "hero": {
+      "$description": "The home page's first line",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 88,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": -1.76,
+          "unit": "px"
+        },
+        "lineHeight": 1.0
+      }
+    },
+    "mono-sm": {
+      "$description": "Version numbers, small figures, status bar figures",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333333333333333
+      }
+    },
+    "mono": {
+      "$description": "Inline code, keys; WireTrace's console default",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5384615384615385
+      }
+    },
+    "mono-lg": {
+      "$description": "Code blocks",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0.0,
+          "unit": "px"
+        },
+        "lineHeight": 1.7142857142857142
+      }
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "$description": "The 4-pixel grid. Names follow Tailwind's numbering: space.4 is p-4, 16 px.",
+    "half": {
+      "$description": "Only between two lines of text that belong together",
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    },
+    "1": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "2": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "3": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "4": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "5": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      }
+    },
+    "6": {
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "8": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "10": {
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      }
+    },
+    "12": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      }
+    },
+    "16": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      }
+    },
+    "20": {
+      "$value": {
+        "value": 80,
+        "unit": "px"
+      }
+    },
+    "24": {
+      "$value": {
+        "value": 96,
+        "unit": "px"
+      }
+    },
+    "32": {
+      "$value": {
+        "value": 128,
+        "unit": "px"
+      }
+    }
+  },
+  "size": {
+    "$type": "dimension",
+    "control": {
+      "sm": {
+        "$description": "Dense rows: console header, Find, banners, toasts, plot toolbar, tab bar",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$description": "Default control height",
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$description": "Main actions",
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      }
+    },
+    "control-padding": {
+      "sm": {
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      }
+    },
+    "control-min-width": {
+      "sm": {
+        "$value": {
+          "value": 64,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$value": {
+          "value": 80,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$value": {
+          "value": 96,
+          "unit": "px"
+        }
+      }
+    },
+    "icon": {
+      "sm": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      }
+    },
+    "target-min": {
+      "$description": "WCAG 2.2, 2.5.8",
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "indicator": {
+      "$description": "Check boxes and radio buttons",
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "status-dot": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "scrollbar": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "scrollbar-handle-min": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "progress": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "splitter": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "focus-ring": {
+      "$description": "Width of the keyboard focus ring",
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    },
+    "focus-offset": {
+      "$description": "Gap between a shape and its focus ring",
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    }
+  },
+  "border": {
+    "$type": "dimension",
+    "hairline": {
+      "$description": "Every line: dividers, control edges, card edges",
+      "$value": {
+        "value": 1,
+        "unit": "px"
+      }
+    },
+    "mark": {
+      "$description": "Only marks that say 'this one': focus ring, active tab, selected item",
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "xs": {
+      "$description": "Progress bars, the inside of the focus ring",
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    },
+    "sm": {
+      "$description": "Controls: buttons, fields, chips, tooltips, list rows, tabs",
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "md": {
+      "$description": "Containers that float or group: menus, pop-ups, toasts, banners, cards, code blocks",
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "lg": {
+      "$description": "Large surfaces: website dialogs, image frames",
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "full": {
+      "$description": "Pills, dots, avatars",
+      "$value": {
+        "value": 9999,
+        "unit": "px"
+      }
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Elevation level 1: things that float above the page (website only; WireTrace's floating things have the shadow the operating system draws).",
+    "float": {
+      "$value": {
+        "color": "{color.site.shadow-float}",
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 8,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 24,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$description": "Hover and press colour changes",
+        "$value": {
+          "value": 120,
+          "unit": "ms"
+        }
+      },
+      "base": {
+        "$description": "Toasts, menus, small moves, the link underline",
+        "$value": {
+          "value": 200,
+          "unit": "ms"
+        }
+      },
+      "slow": {
+        "$description": "Panels, page cross-fades, theme change",
+        "$value": {
+          "value": 320,
+          "unit": "ms"
+        }
+      },
+      "reveal": {
+        "$description": "Entrance reveals on the website only",
+        "$value": {
+          "value": 600,
+          "unit": "ms"
+        }
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "out": {
+        "$description": "Things arriving",
+        "$value": [
+          0.25,
+          0.46,
+          0.45,
+          0.94
+        ]
+      },
+      "in-out": {
+        "$description": "Things moving from one place on screen to another",
+        "$value": [
+          0.45,
+          0,
+          0.55,
+          1
+        ]
+      }
+    }
+  },
+  "grid": {
+    "$description": "The dot grid behind calm backgrounds",
+    "$type": "dimension",
+    "pitch": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "dot": {
+      "$value": {
+        "value": 1,
+        "unit": "px"
+      }
+    },
+    "glow-radius": {
+      "$value": {
+        "value": 200,
+        "unit": "px"
+      }
+    },
+    "glow-middle": {
+      "$type": "number",
+      "$description": "The glow around the pointer: the share of its radius where it has faded to its middle strength",
+      "$value": 0.45
+    },
+    "glow-middle-strength": {
+      "$type": "number",
+      "$description": "How strongly the dots are lit at the glow's middle, from 0 to 1",
+      "$value": 0.35
+    },
+    "glow-end": {
+      "$type": "number",
+      "$description": "The share of the glow's radius where it has faded out",
+      "$value": 0.72
+    }
+  },
+  "web": {
+    "$type": "dimension",
+    "container": {
+      "narrow": {
+        "$value": {
+          "value": 720,
+          "unit": "px"
+        }
+      },
+      "default": {
+        "$value": {
+          "value": 1080,
+          "unit": "px"
+        }
+      },
+      "wide": {
+        "$value": {
+          "value": 1280,
+          "unit": "px"
+        }
+      }
+    },
+    "breakpoint": {
+      "sm": {
+        "$value": {
+          "value": 640,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$value": {
+          "value": 768,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$value": {
+          "value": 1024,
+          "unit": "px"
+        }
+      },
+      "xl": {
+        "$value": {
+          "value": 1280,
+          "unit": "px"
+        }
+      }
+    },
+    "gutter": {
+      "phone": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "tablet": {
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        }
+      },
+      "desktop": {
+        "$value": {
+          "value": 64,
+          "unit": "px"
+        }
+      },
+      "$description": "Space between a page's content and the edge of the window"
+    },
+    "ambient": {
+      "$description": "Website: the light that crosses the dot grid",
+      "band": {
+        "$description": "Width of the band of light, as it scrolls and as the wave spreads",
+        "$value": {
+          "value": 128,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "wiretrace": {
+    "$type": "dimension",
+    "$description": "WireTrace's own regions, floors and field widths. Every one is a multiple of 4.",
+    "region": {
+      "tab-bar": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "toolbar": {
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        }
+      },
+      "panel-header": {
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      },
+      "status-bar": {
+        "$value": {
+          "value": 28,
+          "unit": "px"
+        }
+      },
+      "row": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "port-row": {
+        "$value": {
+          "value": 56,
+          "unit": "px"
+        }
+      }
+    },
+    "floor": {
+      "window": {
+        "width": {
+          "$value": {
+            "value": 960,
+            "unit": "px"
+          }
+        },
+        "height": {
+          "$value": {
+            "value": 600,
+            "unit": "px"
+          }
+        }
+      },
+      "pane-height": {
+        "$value": {
+          "value": 120,
+          "unit": "px"
+        }
+      },
+      "dialog-prompt-width": {
+        "$value": {
+          "value": 360,
+          "unit": "px"
+        }
+      },
+      "dialog-form-width": {
+        "$value": {
+          "value": 520,
+          "unit": "px"
+        }
+      },
+      "dialog-medium-width": {
+        "$value": {
+          "value": 640,
+          "unit": "px"
+        }
+      },
+      "dialog-wide-width": {
+        "$value": {
+          "value": 760,
+          "unit": "px"
+        }
+      },
+      "dialog-short-height": {
+        "$value": {
+          "value": 360,
+          "unit": "px"
+        }
+      },
+      "dialog-tall-height": {
+        "$value": {
+          "value": 580,
+          "unit": "px"
+        }
+      },
+      "dialog-wide-height": {
+        "$value": {
+          "value": 520,
+          "unit": "px"
+        }
+      },
+      "toast-width": {
+        "$value": {
+          "value": 240,
+          "unit": "px"
+        }
+      },
+      "plot-window": {
+        "width": {
+          "$value": {
+            "value": 480,
+            "unit": "px"
+          }
+        },
+        "height": {
+          "$value": {
+            "value": 300,
+            "unit": "px"
+          }
+        }
+      }
+    },
+    "width": {
+      "toast-max": {
+        "$value": {
+          "value": 600,
+          "unit": "px"
+        }
+      },
+      "port-field": {
+        "$value": {
+          "value": 300,
+          "unit": "px"
+        }
+      },
+      "port-field-min": {
+        "$value": {
+          "value": 152,
+          "unit": "px"
+        }
+      },
+      "baud-field": {
+        "$value": {
+          "value": 112,
+          "unit": "px"
+        }
+      },
+      "filter-field": {
+        "$value": {
+          "value": 260,
+          "unit": "px"
+        }
+      },
+      "filter-field-min": {
+        "$value": {
+          "value": 128,
+          "unit": "px"
+        }
+      },
+      "tab-min": {
+        "$value": {
+          "value": 88,
+          "unit": "px"
+        }
+      },
+      "line-ending-field": {
+        "$value": {
+          "value": 92,
+          "unit": "px"
+        }
+      },
+      "page-column": {
+        "$value": {
+          "value": 560,
+          "unit": "px"
+        }
+      },
+      "short-label": {
+        "$value": {
+          "value": 64,
+          "unit": "px"
+        }
+      },
+      "plot-values": {
+        "$value": {
+          "value": 240,
+          "unit": "px"
+        }
+      },
+      "plot-swatch": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "plot-axis": {
+        "$value": {
+          "value": 56,
+          "unit": "px"
+        }
+      },
+      "sidebar": {
+        "$value": {
+          "value": 168,
+          "unit": "px"
+        }
+      },
+      "guide-sidebar": {
+        "$description": "The contents column of the user guide",
+        "$value": {
+          "value": 272,
+          "unit": "px"
+        }
+      },
+      "form-label": {
+        "$value": {
+          "value": 232,
+          "unit": "px"
+        }
+      },
+      "form-field": {
+        "$value": {
+          "value": 220,
+          "unit": "px"
+        }
+      },
+      "number-field": {
+        "$value": {
+          "value": 120,
+          "unit": "px"
+        }
+      }
+    },
+    "height": {
+      "sample": {
+        "$value": {
+          "value": 120,
+          "unit": "px"
+        }
+      },
+      "notes": {
+        "$value": {
+          "value": 72,
+          "unit": "px"
+        }
+      }
+    },
+    "plot-window": {
+      "width": {
+        "$value": {
+          "value": 900,
+          "unit": "px"
+        }
+      },
+      "height": {
+        "$value": {
+          "value": 560,
+          "unit": "px"
+        }
+      }
+    },
+    "logo": {
+      "large": {
+        "$value": {
+          "value": 64,
+          "unit": "px"
+        }
+      },
+      "medium": {
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        }
+      }
+    },
+    "splash": {
+      "width": {
+        "$value": {
+          "value": 480,
+          "unit": "px"
+        }
+      },
+      "height": {
+        "$value": {
+          "value": 320,
+          "unit": "px"
+        }
+      }
+    },
+    "port-rows-visible": {
+      "$type": "number",
+      "$description": "More ports than this scroll",
+      "$value": 6
+    }
+  }
+}

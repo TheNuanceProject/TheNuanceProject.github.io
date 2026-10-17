@@ -1,97 +1,23 @@
 /* ───────────────────────────────────────────────────────────────────────────
  * Global styles for The Nuance Project.
  *
- * Tailwind CSS v4 uses CSS-first configuration via the @theme
- * directive; every design token the app uses is declared below.
+ * Every colour, size, font, radius, shadow and duration is a token of the
+ * Nuance Design Language, generated from design/ into tokens.css (Tailwind
+ * v4 reads its @theme). Nothing here is a value of its own: change the
+ * token files and run `npm run tokens`.
  * ─────────────────────────────────────────────────────────────────────────── */
 
 @import 'tailwindcss';
+@import './tokens.css';
 
 /* Custom variant for theme switching via a data-theme attribute. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* ───────────────────────────────────────────────────────────────────────────
- * Design tokens
- * ─────────────────────────────────────────────────────────────────────────── */
-
+/* Transitions without a duration of their own take the language's
+   shortest: colour changes on hover and press. */
 @theme {
-  /* ─── Fonts ─────────────────────────────────────────────────────────────── */
-  --font-display: 'Poppins', 'Arial', sans-serif;
-  --font-body: 'Lora', 'Georgia', serif;
-  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
-  --font-sans:
-    'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-
-  /* ─── Colors — Light (default) ──────────────────────────────────────────── */
-  --color-paper: #faf9f5;
-  --color-surface: #f5f4ee;
-  --color-border: #e8e6dc;
-  --color-text-primary: #141413;
-  --color-text-secondary: #5c5b58;
-  --color-text-mid: #b0aea5;
-  --color-accent: #d97757;
-  --color-accent-hover: #c4684e;
-  --color-accent-soft: #6a9bcc;
-  --color-accent-tertiary: #788c5d;
-
-  /* ─── Type Scale ────────────────────────────────────────────────────────── */
-  --text-xs: 0.8125rem; /* 13px */
-  --text-xs--line-height: 1.4;
-  --text-sm: 0.875rem; /* 14px */
-  --text-sm--line-height: 1.5;
-  --text-base: 1rem; /* 16px */
-  --text-base--line-height: 1.65;
-  --text-body: 1.0625rem; /* 17px — for serif body */
-  --text-body--line-height: 1.75;
-  --text-lg: 1.25rem; /* 20px */
-  --text-lg--line-height: 1.55;
-  --text-xl: 1.5rem; /* 24px */
-  --text-xl--line-height: 1.4;
-  --text-2xl: 2rem; /* 32px */
-  --text-2xl--line-height: 1.25;
-  --text-3xl: 2.75rem; /* 44px */
-  --text-3xl--line-height: 1.15;
-  --text-4xl: 3.5rem; /* 56px */
-  --text-4xl--line-height: 1.1;
-  --text-5xl: 4.5rem; /* 72px */
-  --text-5xl--line-height: 1.05;
-  --text-6xl: 5.5rem; /* 88px */
-  --text-6xl--line-height: 1;
-
-  /* ─── Letter Spacing ────────────────────────────────────────────────────── */
-  --tracking-tight: -0.02em;
-  --tracking-normal: 0;
-  --tracking-wide: 0.04em;
-  --tracking-wider: 0.08em;
-
-  /* ─── Layout Containers ─────────────────────────────────────────────────── */
-  --container-narrow: 720px;
-  --container-default: 1080px;
-  --container-wide: 1280px;
-
-  /* ─── Animation ─────────────────────────────────────────────────────────── */
-  --ease-out-quart: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
- * Dark Mode Token Overrides
- * ─────────────────────────────────────────────────────────────────────────── */
-
-[data-theme='dark'] {
-  --color-paper: #1a1a18;
-  --color-surface: #22221f;
-  --color-border: #2e2d29;
-  --color-text-primary: #faf9f5;
-  --color-text-secondary: #a8a6a0;
-  --color-text-mid: #7a7872;
-  --color-accent: #e5895e;
-  --color-accent-hover: #ed9670;
-
-  /* Ambient layer (see SITE_DYNAMISM_REQUIREMENTS.md) */
-  --dot-color: rgba(250, 249, 245, 0.09);
-  --dot-glow: rgba(229, 137, 94, 0.82);
-  --wave-dot: rgba(229, 137, 94, 0.85);
-  --wave-wash: rgba(229, 137, 94, 0.14);
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-out);
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -99,12 +25,24 @@
  * ─────────────────────────────────────────────────────────────────────────── */
 
 @layer base {
+  /* Code and keys are shown character by character: JetBrains Mono's
+     joined symbols (-> as an arrow, != as a sign) are switched off. */
+  code,
+  kbd,
+  pre,
+  samp,
+  .font-mono {
+    font-variant-ligatures: none;
+    font-feature-settings: 'calt' 0, 'liga' 0;
+  }
+
   html {
     background-color: var(--color-paper);
-    color: var(--color-text-primary);
-    font-family: var(--font-display);
-    font-size: 16px;
-    line-height: 1.5;
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    /* The reader's own browser text size; the scale is in rem from it. */
+    font-size: 100%;
+    line-height: var(--text-body--line-height);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -112,46 +50,52 @@
 
   body {
     background-color: var(--color-paper);
-    color: var(--color-text-primary);
+    color: var(--color-text);
     transition:
-      background-color 250ms var(--ease-out-quart),
-      color 250ms var(--ease-out-quart);
+      background-color var(--duration-slow) var(--ease-out),
+      color var(--duration-slow) var(--ease-out);
     min-height: 100vh;
   }
 
-  /* Smooth focus rings — accent color, 2px offset */
+  /* The focus ring: two pixels of accent-strong, two pixels outside the
+     shape, following its corners; on keyboard focus only. */
   *:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-    border-radius: 2px;
+    outline: var(--size-focus-ring) solid var(--color-accent-strong);
+    outline-offset: var(--size-focus-offset);
   }
 
-  /* Selection */
   ::selection {
-    background-color: var(--color-accent);
-    color: var(--color-paper);
+    background-color: var(--color-selection);
+    color: var(--color-text);
   }
 
-  /* Headings inherit display font; body text inherits sans by default */
+  /* Emphasis stands out by the medium weight: Poppins is loaded in
+     Regular and Medium only. Prose in Lora asks for its SemiBold itself. */
+  strong,
+  b {
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* Headings are never heavy. */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    font-family: var(--font-display);
-    font-weight: 400;
-    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text);
   }
 }
 
 /* ─── Syntax highlighting (Shiki, dual-theme via CSS variables) ───────── */
 .shiki {
   font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.6;
-  padding: 1.5rem;
-  border-radius: 0.25rem;
+  font-size: var(--text-mono-lg);
+  line-height: var(--text-mono-lg--line-height);
+  padding: calc(var(--spacing) * 6);
+  border-radius: var(--radius-md);
   overflow-x: auto;
   background-color: var(--color-surface) !important;
 }
@@ -170,9 +114,9 @@
 }
 .sidenote-marker {
   counter-increment: sidenote;
-  color: var(--color-accent);
-  font-weight: 600;
-  font-size: 0.7em;
+  color: var(--color-accent-strong);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-caption);
   line-height: 0;
 }
 .sidenote-marker::after {
@@ -180,44 +124,40 @@
 }
 .sidenote {
   display: block;
-  margin: 0.75rem 0;
-  padding-left: 1rem;
-  border-left: 2px solid var(--color-border);
-  font-size: 0.85rem;
-  line-height: 1.55;
+  margin: calc(var(--spacing) * 3) 0;
+  padding-left: calc(var(--spacing) * 4);
+  border-left: var(--border-hairline) solid var(--color-divider);
+  font-size: var(--text-ui-lg);
+  line-height: var(--text-ui-lg--line-height);
   color: var(--color-text-secondary);
 }
 .sidenote::before {
   content: counter(sidenote) '. ';
-  color: var(--color-accent);
-  font-weight: 600;
+  color: var(--color-accent-strong);
+  font-weight: var(--font-weight-semibold);
 }
-@media (min-width: 1280px) {
+/* In the margin, a column of 48 steps, 8 steps from the text. */
+@variant xl {
   .sidenote {
     float: right;
     clear: right;
-    width: 190px;
-    margin: 0.2rem 0 1rem -222px;
+    width: calc(var(--spacing) * 48);
+    margin: 0 0 calc(var(--spacing) * 4) calc(var(--spacing) * -56);
     padding-left: 0;
     border-left: none;
   }
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
- * Ambient field — the dynamism layer (D-1…D-5).
+ * Ambient field: the dynamism layer (D-1…D-5).
  * One centralised module (app/components/AmbientField.tsx) renders these
  * layers once inside <main>. All motion is CSS-variable driven. See
  * SITE_DYNAMISM_REQUIREMENTS.md. Light tokens here; dark in the override
  * block above.
  * ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  --dot-color: rgba(20, 20, 19, 0.14);
-  --dot-glow: rgba(217, 119, 87, 0.7);
-  --wave-dot: rgba(217, 119, 87, 0.95);
-  --wave-wash: rgba(217, 119, 87, 0.18);
-  --grid-size: 32px;
-  --grid-dot: 1px;
-  --glow-radius: 200px;
+  /* The pointer and reading positions, set by AmbientField; off the page
+     until it has run. */
   --mx: -1000px;
   --my: -1000px;
   --by: 50%;
@@ -233,21 +173,21 @@
   pointer-events: none;
 }
 
-/* D-1 — base dot grid (static, SSR-safe) */
+/* D-1: base dot grid (static, SSR-safe) */
 .af-base {
   background-image: radial-gradient(
     circle,
-    var(--dot-color) var(--grid-dot),
+    var(--color-dot) var(--grid-dot),
     transparent var(--grid-dot)
   );
-  background-size: var(--grid-size) var(--grid-size);
+  background-size: var(--grid-pitch) var(--grid-pitch);
   background-position: center;
 }
 
-/* D-2 — cursor flow: warm wash + lit dots revealed near the pointer */
+/* D-2: cursor flow: warm wash + lit dots revealed near the pointer */
 .af-wash {
   background: radial-gradient(
-    circle var(--glow-radius) at var(--mx) var(--my),
+    circle var(--grid-glow-radius) at var(--mx) var(--my),
     color-mix(in srgb, var(--color-accent) 6%, transparent) 0%,
     transparent 70%
   );
@@ -255,75 +195,74 @@
 .af-glow {
   background-image: radial-gradient(
     circle,
-    var(--dot-glow) var(--grid-dot),
+    var(--color-dot-glow) var(--grid-dot),
     transparent var(--grid-dot)
   );
-  background-size: var(--grid-size) var(--grid-size);
+  background-size: var(--grid-pitch) var(--grid-pitch);
   background-position: center;
   -webkit-mask-image: radial-gradient(
-    circle var(--glow-radius) at var(--mx) var(--my),
-    #000 0%,
-    rgba(0, 0, 0, 0.35) 45%,
-    transparent 72%
+    circle var(--grid-glow-radius) at var(--mx) var(--my),
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / var(--grid-glow-middle-strength)) calc(var(--grid-glow-middle) * 100%),
+    transparent calc(var(--grid-glow-end) * 100%)
   );
   mask-image: radial-gradient(
-    circle var(--glow-radius) at var(--mx) var(--my),
-    #000 0%,
-    rgba(0, 0, 0, 0.35) 45%,
-    transparent 72%
+    circle var(--grid-glow-radius) at var(--mx) var(--my),
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / var(--grid-glow-middle-strength)) calc(var(--grid-glow-middle) * 100%),
+    transparent calc(var(--grid-glow-end) * 100%)
   );
 }
 
-/* D-5 — scroll-reactive band: faint persistent brightening at reading position */
+/* D-5: scroll-reactive band: faint persistent brightening at reading position */
 .af-band {
   background-image: radial-gradient(
     circle,
-    var(--dot-glow) var(--grid-dot),
+    var(--color-dot-glow) var(--grid-dot),
     transparent var(--grid-dot)
   );
-  background-size: var(--grid-size) var(--grid-size);
+  background-size: var(--grid-pitch) var(--grid-pitch);
   background-position: center;
   opacity: 0.5;
   -webkit-mask-image: radial-gradient(
-    ellipse 70% 130px at 50% var(--by),
-    #000 0%,
+    ellipse 70% var(--web-ambient-band) at 50% var(--by),
+    rgb(0 0 0) 0%,
     transparent 75%
   );
   mask-image: radial-gradient(
-    ellipse 70% 130px at 50% var(--by),
-    #000 0%,
+    ellipse 70% var(--web-ambient-band) at 50% var(--by),
+    rgb(0 0 0) 0%,
     transparent 75%
   );
 }
 
-/* D-3/D-4 — the wave: warm light + lit dots in a slow expanding ring */
+/* D-3/D-4: the wave: warm light + lit dots in a slow expanding ring */
 .af-wave {
   --r: 0px;
-  --band: 120px;
   --ox: 50%;
   --oy: 50%;
   background-image:
-    radial-gradient(circle, var(--wave-wash), var(--wave-wash)),
+    radial-gradient(circle, var(--color-wave-wash), var(--color-wave-wash)),
     radial-gradient(
       circle,
-      var(--wave-dot) var(--grid-dot),
+      var(--color-wave-dot) var(--grid-dot),
       transparent var(--grid-dot)
     );
   background-size:
     100% 100%,
-    var(--grid-size) var(--grid-size);
+    var(--grid-pitch) var(--grid-pitch);
   background-position: center, center;
   background-repeat: no-repeat, repeat;
   -webkit-mask-image: radial-gradient(
     circle at var(--ox) var(--oy),
     transparent calc(var(--r) - var(--band)),
-    #000 calc(var(--r) - (var(--band) / 2)),
+    rgb(0 0 0) calc(var(--r) - (var(--band) / 2)),
     transparent var(--r)
   );
   mask-image: radial-gradient(
     circle at var(--ox) var(--oy),
     transparent calc(var(--r) - var(--band)),
-    #000 calc(var(--r) - (var(--band) / 2)),
+    rgb(0 0 0) calc(var(--r) - (var(--band) / 2)),
     transparent var(--r)
   );
 }
@@ -353,14 +292,14 @@
  * ─────────────────────────────────────────────────────────────────────────── */
 .reveal-armed {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(calc(var(--spacing) * 2));
 }
 .reveal-armed.reveal-in {
   opacity: 1;
   transform: none;
   transition:
-    opacity 0.6s var(--ease-out-quart),
-    transform 0.6s var(--ease-out-quart);
+    opacity var(--duration-reveal) var(--ease-out),
+    transform var(--duration-reveal) var(--ease-out);
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal-armed {
@@ -380,10 +319,10 @@
 .rh-char {
   display: inline-block;
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(calc(var(--spacing) * 3));
   transition:
-    opacity 0.5s var(--ease-out-quart),
-    transform 0.5s var(--ease-out-quart);
+    opacity var(--duration-reveal) var(--ease-out),
+    transform var(--duration-reveal) var(--ease-out);
 }
 .rh-char.in {
   opacity: 1;
@@ -409,11 +348,11 @@
   content: '';
   position: absolute;
   left: 0;
-  bottom: -3px;
-  height: 1.5px;
+  bottom: calc(var(--spacing) * -1);
+  height: var(--border-mark);
   width: 0;
-  background-color: var(--color-accent);
-  transition: width 0.25s var(--ease-out-quart);
+  background-color: var(--color-accent-strong);
+  transition: width var(--duration-base) var(--ease-out);
 }
 .link-underline:hover::after,
 .link-underline:focus-visible::after,
@@ -433,8 +372,8 @@
  * ─────────────────────────────────────────────────────────────────────────── */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.4s;
-  animation-timing-function: var(--ease-out-quart);
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-out);
 }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),

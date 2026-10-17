@@ -1,7 +1,7 @@
 {
   "name": "nuance-site",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "react-router dev",
@@ -10,39 +10,58 @@
     "postinstall": "react-router typegen",
     "typecheck": "react-router typegen && tsc",
     "lint": "eslint .",
-    "preview": "npx -y serve dist/client",
+    "preview": "vite preview --outDir dist/client",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "world": "node scripts/make-world.mjs",
+    "spdx": "node scripts/add-spdx-headers.mjs --check",
+    "tokens": "node design/generate.mjs",
+    "tokens:check": "node design/generate.mjs --check"
   },
   "dependencies": {
-    "@react-router/fs-routes": "^7.17.0",
-    "@react-router/node": "^7.17.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@fontsource/lora": "^5.2.8",
+    "@fontsource/poppins": "^5.2.7",
+    "@react-router/fs-routes": "^7.18.4",
+    "@react-router/node": "^7.18.4",
     "@tailwindcss/vite": "^4.2.2",
+    "d3-geo": "3.1.1",
     "isbot": "^5.1.17",
+    "lucide-react": "1.49.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router": "^7.17.0",
-    "react-router-dom": "^7.17.0",
+    "react-router": "^7.18.4",
+    "react-router-dom": "^7.18.4",
     "shiki": "^4.2.0",
-    "tailwindcss": "^4.2.2"
+    "tailwindcss": "^4.2.2",
+    "topojson-client": "3.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@fontsource/lora": "^5.2.8",
-    "@fontsource/poppins": "^5.2.7",
-    "@react-router/dev": "^7.17.0",
+    "@react-router/dev": "^7.18.4",
     "@resvg/resvg-js": "^2.6.2",
+    "@tailwindcss/node": "4.3.0",
+    "@types/d3-geo": "3.1.0",
+    "@types/geojson": "7946.0.16",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/topojson-client": "3.1.5",
+    "@types/topojson-specification": "1.0.5",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "satori": "^0.26.0",
+    "shapefile": "0.6.6",
+    "topojson-server": "3.0.1",
+    "topojson-simplify": "3.0.3",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
     "vite": "^8.0.4",
     "vitest": "^4.1.4"
+  },
+  "overrides": {
+    "esbuild": "0.28.2"
   }
 }

@@ -8,7 +8,7 @@ import { pageMeta } from '~/lib/page-meta';
 import { breadcrumbSchema } from '~/lib/structured-data';
 
 /**
- * Projects — index page listing every project under the studio.
+ * Projects: index page listing every project under the studio.
  *
  * Auto-discovered from `content/projects/[slug]/meta.ts`. Sort
  * order: lifecycle status (Active → Maintained → Archived), then
@@ -38,10 +38,9 @@ export default function Projects() {
       <section className="pt-20 md:pt-28 pb-12 md:pb-16">
         <h1
           className="
-            font-display font-normal
-            text-3xl md:text-[2.75rem]
-            leading-[1.15] tracking-[-0.02em]
-            text-[var(--color-text-primary)]
+            font-sans font-regular
+            text-display-sm
+            text-text
           "
         >
           Projects
@@ -50,10 +49,9 @@ export default function Projects() {
         <p
           className="
             mt-6 md:mt-8
-            font-body text-[19px] md:text-xl
-            leading-[1.55]
-            text-[var(--color-text-secondary)]
-            max-w-[var(--container-narrow)]
+            font-serif text-lead
+            text-text-secondary
+            max-w-narrow
           "
         >
           The software I&rsquo;ve built and shipped under{' '}
@@ -66,11 +64,11 @@ export default function Projects() {
         {isEmpty ? (
           <p
             className="
-              border-t border-[var(--color-border)]
+              border-t border-divider
               pt-12
-              font-body text-[17px] leading-[1.75]
-              text-[var(--color-text-secondary)]
-              max-w-[var(--container-narrow)]
+              font-serif text-reading
+              text-text-secondary
+              max-w-narrow
             "
           >
             Nothing here yet.

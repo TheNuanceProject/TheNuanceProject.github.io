@@ -4,45 +4,49 @@ import { Container } from '~/components/Container';
 import { Section } from '~/components/Section';
 import { Prose } from '~/components/Prose';
 import { Button } from '~/components/Button';
-import { ArrowIcon } from '~/components/icons/ArrowIcon';
+import { ArrowLeft } from 'lucide-react';
+import { Icon } from '~/components/icons/Icon';
 import { Breadcrumbs } from '~/components/Breadcrumbs';
 import { ReleaseCard } from '~/components/ReleaseCard';
 import { ReleasesTimeline } from '~/components/ReleasesTimeline';
+import { ThemedScreenshot } from '~/components/ThemedScreenshot';
+import { getProjectReleases } from '~/lib/build-data/data.server';
 import { deriveDates } from '~/lib/content/dates';
 import { pageMeta } from '~/lib/page-meta';
-import {
-  softwareApplicationSchema,
-  breadcrumbSchema,
-} from '~/lib/structured-data';
+import { softwareApplicationSchema, breadcrumbSchema } from '~/lib/structured-data';
+import type { Route } from './+types/projects.wiretrace';
 
 import { meta as wtMeta } from '../../content/projects/wiretrace/meta';
 import {
+  SCREENSHOT_SIZE,
+  type ScreenshotName,
   features,
-  specs,
+  howItWorks,
+  releaseSummaries,
+  screenshotPath,
+  screenshots,
   shortcuts,
+  specs,
+  usage,
 } from '../../content/projects/wiretrace/content';
+import { meta as storyMeta } from '../../content/writing/the-road-to-wiretrace-2/meta';
 
 const wt = { ...wtMeta, ...deriveDates(wtMeta.published, wtMeta.updated) };
 
 /**
- * WireTrace — product detail page.
+ * WireTrace: the product page.
  *
  * Content sources:
  *   - Project metadata: `content/projects/wiretrace/meta.ts`
- *   - Page data (features, specs, shortcuts): `content/projects/wiretrace/content.ts`
+ *   - Features, specifications, shortcuts, pictures and release summaries:
+ *     `content/projects/wiretrace/content.ts`
+ *   - Releases: GitHub, read when the site is built (the loader below)
  *   - Long-form prose: inline below
- *
- * Structure:
- *   1. Article header — back link, title, tagline, CTA
- *   2. Why this exists — story prose
- *   3. What came before — story prose
- *   4. What it is now — story prose
- *   5. Features — list
- *   6. Specifications — table
- *   7. System requirements — short paragraph
- *   8. Keyboard shortcuts — table
- *   9. Download and install — final paragraph + CTA
  */
+
+export async function loader() {
+  return { releases: await getProjectReleases(wt) };
+}
 
 export const meta = () =>
   pageMeta({
@@ -66,7 +70,72 @@ export const meta = () =>
     ],
   });
 
-export default function ProjectWireTrace() {
+const LINK = `
+  text-text-secondary
+  hover:text-text
+  transition-colors
+  no-underline
+  border-b border-transparent hover:border-accent-strong
+`;
+
+const PROSE_LINK = `
+  text-text
+  border-b border-divider
+  hover:border-accent-strong
+  transition-colors
+  no-underline
+`;
+
+function Screenshot({ name, wide, className }: { name: ScreenshotName; wide?: boolean; className?: string }) {
+  return (
+    <ThemedScreenshot
+      light={screenshotPath(name, 'light')}
+      dark={screenshotPath(name, 'dark')}
+      alt={screenshots[name].alt}
+      width={SCREENSHOT_SIZE.width}
+      height={SCREENSHOT_SIZE.height}
+      wide={wide}
+      className={className}
+    />
+  );
+}
+
+function Table({ rows, mono }: { rows: readonly (readonly [string, string])[]; mono?: boolean }) {
+  return (
+    <div className="max-w-narrow">
+      <table className="w-full">
+        <tbody>
+          {rows.map(([name, value], index) => (
+            <tr key={name} className={index > 0 ? 'border-t border-divider' : ''}>
+              <th
+                scope="row"
+                className={
+                  mono
+                    ? 'font-serif font-regular text-reading text-text text-left align-top py-3 pr-6'
+                    : 'font-sans font-regular text-ui-lg text-text-secondary text-left align-top py-3 pr-6 w-[40%]'
+                }
+              >
+                {name}
+              </th>
+              <td
+                className={
+                  mono
+                    ? 'font-mono text-ui-lg text-text-secondary py-3 align-top'
+                    : 'font-serif text-reading text-text py-3 align-top'
+                }
+              >
+                {value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function ProjectWireTrace({ loaderData }: Route.ComponentProps) {
+  const { releases } = loaderData;
   return (
     <Container width="default">
       <section className="pt-12 md:pt-16 pb-12 md:pb-16">
@@ -78,385 +147,204 @@ export default function ProjectWireTrace() {
           ]}
         />
 
-        <h1
-          className="
-            font-display font-normal
-            text-[2.5rem] md:text-[3.5rem]
-            leading-[1.05] tracking-[-0.02em]
-            text-[var(--color-text-primary)]
-          "
-        >
+        <h1 className="font-sans font-regular text-display-sm md:text-display text-text">
           {wt.title}
         </h1>
 
-        <p
-          className="
-            mt-6 md:mt-8
-            font-body text-[19px] md:text-xl
-            leading-[1.55]
-            text-[var(--color-text-secondary)]
-            max-w-[var(--container-narrow)]
-          "
-        >
+        <p className="mt-6 md:mt-8 font-serif text-lead text-text-secondary max-w-narrow">
           {wt.productTagline}
         </p>
 
-        <p
-          className="
-            mt-6
-            font-display text-sm
-            text-[var(--color-text-mid)]
-          "
-        >
-          v{wt.version} · {wt.platforms.join(', ')} · Open source · MIT
+        <p className="mt-6 font-sans text-ui-lg text-text-tertiary">
+          v{wt.version} · {wt.platforms.join(' · ')} · Open source · {wt.license}
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
           <Button href={wt.downloadUrl} external>
-            Download latest release
+            Download
           </Button>
-
-          <div className="flex items-center gap-6 font-display text-sm">
-            <a
-              href={wt.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                text-[var(--color-text-secondary)]
-                hover:text-[var(--color-text-primary)]
-                transition-colors duration-150
-                no-underline
-                border-b border-transparent hover:border-[var(--color-accent)]
-              "
-            >
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-sans text-ui-lg">
+            <a href={wt.githubUrl} target="_blank" rel="noopener noreferrer" className={LINK}>
               View on GitHub
             </a>
-            <span className="text-[var(--color-text-mid)]">·</span>
-            <a
-              href={wt.issuesUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                text-[var(--color-text-secondary)]
-                hover:text-[var(--color-text-primary)]
-                transition-colors duration-150
-                no-underline
-                border-b border-transparent hover:border-[var(--color-accent)]
-              "
-            >
+            <span aria-hidden="true" className="text-text-tertiary">·</span>
+            <Link to={`${usage.path}/`} className={LINK}>
+              Where it is used
+            </Link>
+            <span aria-hidden="true" className="text-text-tertiary">·</span>
+            <a href={wt.issuesUrl} target="_blank" rel="noopener noreferrer" className={LINK}>
               Report an issue
             </a>
           </div>
         </div>
       </section>
 
-      {/* Hero screenshot — gives the reader a visual anchor before the
-          long-form prose: the title bar, the live plotter, and the
-          multi-trace legend in one image. */}
-      <figure className="mb-16 md:mb-20">
-        <img
-          src="/images/wiretrace-plot-dark.png"
-          alt="WireTrace connected to a serial port, showing the console with timestamped data and the live plot panel below with four traces"
-          className="
-            w-full h-auto
-            border border-[var(--color-border)]
-            rounded
-            shadow-sm
-          "
-          loading="eager"
-        />
-      </figure>
+      <Screenshot name="session" wide className="mb-16 md:mb-20" />
 
       <Section label="Why this exists" divided>
         <Prose>
           <p>
-            {wt.title} was built for an internal need on my team. We work
-            across a range of problems in research and development, and
-            serial monitoring is one of the things that comes up often
-            — when we are bringing up new hardware, capturing data from
-            a device for later analysis, or trying to make sense of
-            what a board is reporting.
+            {wt.title} was built for a real need on my team. I am a software engineer in a research
+            and development lab, where we build industrial devices, and serial monitoring is part of
+            almost everything we do: bringing up new hardware, capturing data from a device for
+            later analysis, and working out what a board is reporting.
           </p>
           <p>
-            We had been using whatever serial tools were already
-            available, and over time the gaps in those tools started to
-            add up. {wt.title} started as something to fill those gaps,
-            and grew from there.
+            The serial tools we had each left a gap. {wt.title} was written to close those gaps, and
+            it has been used on our bench since its first release.
           </p>
         </Prose>
       </Section>
 
-      <Section label="What came before" divided>
+      <Section label="Where it came from" divided>
         <Prose>
           <p>
-            The first version (called SerialLoggerPro) was a single
-            Python file built on Tkinter. It worked for the original use
-            case — one port, one device, one log file — but the way it
-            was structured made it hard to extend. Threading was managed
-            manually with locks. The dependency list grew as each new
-            feature pulled in something else.
+            It began as SerialLoggerPro, a single Python file written at a colleague&rsquo;s
+            request: one port, one device, one log file. When the team needed several devices at
+            once, it was rewritten from the start and released in April 2026 as {wt.title} 1.0.
           </p>
           <p>
-            Adding multi-device support would have meant rewriting the
-            threading model. Adding cleaner exports would have meant
-            replacing the export pipeline. Each new addition would have
-            made the next one harder to add cleanly.
-          </p>
-          <p>
-            At that point, continuing to patch the existing code stopped
-            making sense. The decision was to start over with an
-            architecture that could support what the application needed
-            to become.
+            Versions 1.1 and 1.2 followed within three months, each shaped by feedback from the
+            lab: a live plotter, fixes, and Linux builds. They remain available on GitHub under the
+            MIT License.
           </p>
         </Prose>
       </Section>
 
-      <Section label="What it is now" divided>
+      <Section label="Why 2.0" divided>
         <Prose>
           <p>
-            The current version, {wt.title} v{wt.version}, is built on
-            PySide6 (Qt6 for Python) and organized into modules with
-            single responsibilities. The serial reader handles only
-            serial I/O. The disk writer handles only disk I/O. The
-            component that filters the on-screen view does not interact
-            with the disk log. These boundaries make it possible for the
-            application to do several things at once without one part
-            interfering with another.
+            Months of real use showed where 1.x reached its limits: sessions that nobody had thought
+            to log, the last lines missing after a disconnect, logs too large to work with, and long
+            sessions that slowed down.
           </p>
           <p>
-            Each connected device opens in its own tab with its own
-            thread, reading from its own port into its own buffer, and
-            writing to its own log file. Multiple USB-to-serial adapters
-            can be connected simultaneously without one device&rsquo;s
-            data interfering with another&rsquo;s.
-          </p>
-        </Prose>
-
-        {/* Multi-tab screenshot — shows the per-tab isolation described
-            in the paragraph above: three connected devices, each with
-            its own data stream, severity tags, and timeline. */}
-        <figure className="my-10 max-w-[var(--container-narrow)]">
-          <img
-            src="/images/wiretrace-demo-board-multi-tab-dark.png"
-            alt="WireTrace running three device tabs simultaneously, each receiving live telemetry from a different connected board"
-            className="
-              w-full h-auto
-              border border-[var(--color-border)]
-              rounded
-              shadow-sm
-            "
-            loading="lazy"
-          />
-        </figure>
-
-        <Prose>
-          <p>
-            Logging uses a buffered write model. Incoming data is
-            appended to an in-memory buffer with a hard size cap, and a
-            separate thread flushes that buffer to disk on a timer. The
-            read path is never blocked by disk I/O. If the application
-            exits or crashes, the buffer is flushed before shutdown. The
-            log file on disk is the source of truth — it contains every
-            line received, regardless of what the on-screen view is
-            showing at any moment.
+            These shared one cause, so 2.0 does not patch them. The path from the serial port to the
+            disk is rebuilt, and the interface, the updater and the release process are rebuilt
+            with it.
           </p>
           <p>
-            The source is available on GitHub under the MIT license. The
-            tool is designed to be installed from a binary, but you can
-            clone the repository and build it yourself if you prefer.
+            <Link to={`/writing/${storyMeta.slug}/`} className={PROSE_LINK}>
+              Read the full story
+            </Link>
           </p>
         </Prose>
       </Section>
 
-      <Section label="Features" divided>
-        <div className="space-y-6 max-w-[var(--container-narrow)]">
-          {features.map((feature) => (
-            <p
-              key={feature.title}
-              className="font-body text-[17px] leading-[1.75] text-[var(--color-text-primary)]"
-            >
-              <strong className="font-semibold">{feature.title}.</strong>{' '}
-              {feature.description}
+      <Section label="How it works" divided>
+        <div className="space-y-6 max-w-narrow">
+          {howItWorks.map((item) => (
+            <p key={item.title} className="font-serif text-reading text-text">
+              <strong className="font-semibold">{item.title}.</strong> {item.text}
             </p>
           ))}
         </div>
+      </Section>
 
-        {/* Configure Plot screenshot — anchored here because the live
-            data plotter is the most visually-novel feature in the list,
-            and the dialog shows what "manual regex with named profiles
-            and capture-from-sample" actually looks like in practice. */}
-        <figure className="mt-10 max-w-[var(--container-narrow)]">
-          <img
-            src="/images/wiretrace-configure-plot-regex.png"
-            alt="The Configure Plot dialog in manual regex mode, with a four-column pattern, a named profile, and a green test result reading Matched 200/200 lines"
-            className="
-              w-full h-auto
-              border border-[var(--color-border)]
-              rounded
-              shadow-sm
-            "
-            loading="lazy"
-          />
-          <figcaption className="mt-3 font-display text-xs text-[var(--color-text-mid)]">
-            The Configure Plot dialog: manual regex mode with named
-            profiles and live pattern testing.
-          </figcaption>
-        </figure>
+      <Section label="Features" divided>
+        <div className="space-y-6">
+          {features.map((feature) => (
+            <div key={feature.title} className="space-y-10">
+              <p className="font-serif text-reading text-text max-w-narrow">
+                <strong className="font-semibold">{feature.title}.</strong> {feature.description}
+              </p>
+              {feature.screenshot && <Screenshot name={feature.screenshot} className="pb-4" />}
+            </div>
+          ))}
+        </div>
       </Section>
 
       <Section label="Specifications" divided>
-        <div className="max-w-[var(--container-narrow)]">
-          <table className="w-full">
-            <tbody>
-              {specs.map((row, idx) => (
-                <tr
-                  key={row.property}
-                  className={
-                    idx > 0
-                      ? 'border-t border-[var(--color-border)]'
-                      : ''
-                  }
-                >
-                  <th
-                    scope="row"
-                    className="
-                      font-display font-normal text-sm
-                      text-[var(--color-text-secondary)]
-                      text-left align-top
-                      py-3 pr-6
-                      w-[40%]
-                    "
-                  >
-                    {row.property}
-                  </th>
-                  <td className="font-body text-[17px] text-[var(--color-text-primary)] py-3 align-top">
-                    {row.value}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table rows={specs.map((row) => [row.property, row.value] as const)} />
       </Section>
 
       <Section label="System requirements" divided>
         <Prose>
           <p>
-            {wt.title} is designed to run on Windows, macOS, and Linux.
-            The codebase is cross-platform — it uses Qt for the UI,
-            QSerialPort for serial I/O, and a build pipeline that
-            produces native binaries for all three operating systems.
+            {wt.title} runs on 64-bit Windows 10 (version 1809) and later, and on 64-bit Linux with
+            glibc 2.35 or later, which includes Ubuntu 22.04 and later. On macOS it runs from source.
           </p>
           <p>
-            Pre-built binaries are published for Windows and Linux — a
-            Windows installer, a Linux AppImage, and a Debian package.
-            macOS is supported from source: the build guide in the
-            repository covers all three operating systems.
+            It draws in software and does not need a graphics card, so it also runs in remote
+            desktop sessions and virtual machines.
           </p>
-          <p>
-            {wt.title} uses CPU-only software rendering, which means
-            it works in remote desktop sessions, virtual machines, and
-            hardware without dedicated graphics.
-          </p>
+          <p>Windows 7, 8 and 8.1 are not supported.</p>
         </Prose>
       </Section>
 
       <Section label="Keyboard shortcuts" divided>
-        <div className="max-w-[var(--container-narrow)]">
-          <table className="w-full">
-            <tbody>
-              {shortcuts.map((row, idx) => (
-                <tr
-                  key={row.action}
-                  className={
-                    idx > 0
-                      ? 'border-t border-[var(--color-border)]'
-                      : ''
-                  }
-                >
-                  <th
-                    scope="row"
-                    className="
-                      font-body font-normal text-[17px]
-                      text-[var(--color-text-primary)]
-                      text-left align-top
-                      py-3 pr-6
-                    "
-                  >
-                    {row.action}
-                  </th>
-                  <td className="font-mono text-sm text-[var(--color-text-secondary)] py-3 align-top">
-                    {row.keys}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table rows={shortcuts.map((row) => [row.action, row.keys] as const)} mono />
       </Section>
 
       <Section label="Download and install" divided>
         <Prose>
           <p>
-            Download the build for your platform from the GitHub
-            Releases page. On Windows, run the installer and follow the
-            prompts; the application launches from the Start menu. On
-            Linux, run the AppImage (mark it executable first) or
-            install the Debian package. On first launch, the welcome
-            screen prompts for a device connection — the rest of the
-            interface appears once a device is connected.
+            <strong className="font-semibold">Windows.</strong> Download the installer from GitHub
+            Releases and run it. It installs for you alone, without administrator rights, or for all
+            users.
           </p>
           <p>
-            For macOS, clone the repository and build from source.
-            Instructions are in the repository&rsquo;s build guide.
+            <strong className="font-semibold">Linux.</strong> Download the AppImage, make it
+            executable and run it. It updates itself when you choose. For Debian and Ubuntu there is
+            also a <code className="font-mono text-mono">.deb</code>.
+          </p>
+          <p>
+            <strong className="font-semibold">macOS.</strong> Clone the repository and run from
+            source.
           </p>
         </Prose>
-
-        <div className="mt-10">
+        <div className="mt-10 max-w-narrow">
           <ReleaseCard
             name={wt.title}
+            release={releases[0] ?? null}
             version={wt.version}
             downloadUrl={wt.downloadUrl}
             releasesUrl={wt.releasesUrl}
-            githubUrl={wt.githubUrl}
           />
-
           <div className="mt-6">
-            <a
-              href={wt.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                font-display text-sm
-                text-[var(--color-text-secondary)]
-                hover:text-[var(--color-text-primary)]
-                transition-colors duration-150
-                no-underline
-                border-b border-transparent hover:border-[var(--color-accent)]
-              "
-            >
-              Build from source on GitHub
+            <a href={wt.githubUrl} target="_blank" rel="noopener noreferrer" className={`font-sans text-ui-lg ${LINK}`}>
+              View the source on GitHub
             </a>
           </div>
         </div>
       </Section>
 
-      <Section label="Releases" divided>
-        <ReleasesTimeline
-          version={wt.version}
-          githubUrl={wt.githubUrl}
-          releasesUrl={wt.releasesUrl}
-        />
+      <Section label="Open source" divided>
+        <Prose>
+          <p>
+            {wt.title} is free and open source under the GNU General Public License, version 3 or
+            later. Use it, study it, change it and share it. Versions 1.0 to 1.2 remain available
+            under the MIT License.
+          </p>
+        </Prose>
       </Section>
 
-      <footer className="pb-24 md:pb-32 pt-12 mt-8 border-t border-[var(--color-border)] max-w-[var(--container-narrow)]">
-        <p className="font-body text-sm text-[var(--color-text-mid)] mb-6 leading-relaxed">
-          WireTrace, as used here, is an independent open-source serial
-          data monitor by The Nuance Project. It is not affiliated with,
-          sponsored by, or endorsed by any other product or company that
-          may use a similar name in a different category.
+      <Section label="Privacy" divided>
+        <Prose>
+          <p>
+            What your devices send stays on your computer. {wt.title} checks for a new version when
+            it starts and every 12 hours, and you can turn the check off. Usage statistics are off
+            unless you switch them on; they never include anything a device sent, and switching
+            them off deletes them. Everything {wt.title} sends is set out on the{' '}
+            <Link to="/privacy/" className={PROSE_LINK}>privacy page</Link>, and the totals are on{' '}
+            <Link to={`${usage.path}/`} className={PROSE_LINK}>where it is used</Link>.
+          </p>
+        </Prose>
+      </Section>
+
+      {releases.length > 0 && (
+        <Section label="Releases" divided>
+          <ReleasesTimeline releases={releases} summaries={releaseSummaries} />
+        </Section>
+      )}
+
+      <footer className="pb-24 md:pb-32 pt-12 mt-8 border-t border-divider max-w-narrow">
+        <p className="font-serif text-ui-lg text-text-tertiary mb-6">
+          WireTrace, as used here, is an independent open-source serial data monitor by The Nuance
+          Project. It is not affiliated with, sponsored by, or endorsed by any other product or
+          company that may use a similar name in a different category.
         </p>
-        <p className="font-display text-sm text-[var(--color-text-mid)] mb-6">
+        <p className="font-sans text-ui-lg text-text-tertiary mb-6">
           {wt.updatedDate ? (
             <>
               Released {wt.publishedDate}
@@ -469,16 +357,9 @@ export default function ProjectWireTrace() {
         </p>
         <Link
           to="/projects"
-          className="
-            inline-flex items-center gap-2
-            font-display text-sm
-            text-[var(--color-text-mid)]
-            hover:text-[var(--color-text-primary)]
-            transition-colors duration-150
-            no-underline
-          "
+          className="inline-flex items-center gap-2 font-sans text-ui-lg text-text-tertiary hover:text-text transition-colors duration-(--duration-fast) no-underline"
         >
-          <ArrowIcon className="rotate-180" />
+          <Icon icon={ArrowLeft} />
           <span>Back to projects</span>
         </Link>
       </footer>

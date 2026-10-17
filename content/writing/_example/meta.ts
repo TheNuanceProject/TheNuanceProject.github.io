@@ -2,7 +2,7 @@
 import type { WritingMeta } from '~/lib/content/types';
 
 /**
- * EXAMPLE WRITING META — reference for writing real pieces.
+ * EXAMPLE WRITING META: reference for writing real pieces.
  *
  * This folder starts with an underscore (_example) so the writing
  * loader ignores it. Use it as a template:
@@ -10,14 +10,14 @@ import type { WritingMeta } from '~/lib/content/types';
  *   1. Copy this folder to a new name (e.g., `why-i-rebuilt-it`).
  *      The folder name becomes the URL slug.
  *
- *   2. Update meta.ts (this file) — set kind, slug, title,
+ *   2. Update meta.ts (this file): set kind, slug, title,
  *      description, published date, and optional updated date.
  *      The slug must match the folder name.
  *
- *   3. Update index.tsx — replace the placeholder body with your
+ *   3. Update index.tsx: replace the placeholder body with your
  *      actual prose, using the components from ~/components/writing-prose.
  *
- *   4. Add the route in src/App.tsx — one line:
+ *   4. Add the route in src/App.tsx, one line:
  *      <Route path="/writing/your-slug" element={<YourPage />} />
  *
  *   5. Restart the dev server.
@@ -33,6 +33,10 @@ import type { WritingMeta } from '~/lib/content/types';
  *   - updated:     Set this when you make a meaningful revision.
  *                  Causes the piece to resurface on index pages and
  *                  shows "Updated [date]" in the article footer.
+ *   - about:       The project release the piece describes, e.g.
+ *                  { project: 'wiretrace', version: '1.1.0' }. Set it
+ *                  once and leave it: when a later version is released,
+ *                  the piece says so above its body by itself.
  */
 export const meta: WritingMeta = {
   kind: 'writing',

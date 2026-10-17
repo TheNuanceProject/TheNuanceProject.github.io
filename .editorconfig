@@ -1,4 +1,4 @@
-# EditorConfig — https://editorconfig.org
+# EditorConfig: https://editorconfig.org
 #
 # Universal editor settings so every contributor (and every editor)
 # produces consistently formatted files. Most modern editors read this
@@ -30,6 +30,6 @@ max_line_length = 80
 [*.{yml,yaml,json,toml}]
 indent_size = 2
 
-# ─── package.json — npm convention ───────────────────────────────────
+# ─── package.json: npm convention ───────────────────────────────────
 [package.json]
 indent_size = 2

@@ -5,7 +5,7 @@ import { highlightCode } from '~/lib/highlight';
 import { CopyButton } from '~/components/CopyButton';
 
 /**
- * Prose components — pre-styled typographic building blocks.
+ * Prose components: pre-styled typographic building blocks.
  *
  * Use these when writing an article or any long-form prose page.
  * Each one encodes the site's reading typography (Lora body,
@@ -28,16 +28,15 @@ interface HeadingProps {
   id?: string;
 }
 
-/** Section heading — use for the main divisions of an article. */
+/** Section heading: use for the main divisions of an article. */
 export function H2({ children, id }: HeadingProps) {
   return (
     <h2
       id={id}
       className="
-        font-display font-normal
-        text-2xl md:text-[28px]
-        leading-[1.25] tracking-[-0.01em]
-        text-[var(--color-text-primary)]
+        font-sans font-regular
+        text-title
+        text-text
         mt-16 mb-4
       "
     >
@@ -46,16 +45,15 @@ export function H2({ children, id }: HeadingProps) {
   );
 }
 
-/** Subsection heading — use under an H2 for finer divisions. */
+/** Subsection heading: use under an H2 for finer divisions. */
 export function H3({ children, id }: HeadingProps) {
   return (
     <h3
       id={id}
       className="
-        font-display font-normal
-        text-xl
-        leading-[1.4]
-        text-[var(--color-text-primary)]
+        font-sans font-regular
+        text-title-sm
+        text-text
         mt-12 mb-3
       "
     >
@@ -64,13 +62,13 @@ export function H3({ children, id }: HeadingProps) {
   );
 }
 
-/** Paragraph — the workhorse. Use for all body copy. */
+/** Paragraph: the workhorse. Use for all body copy. */
 export function P({ children }: { children: ReactNode }) {
   return (
     <p
       className="
-        font-body text-[17px] leading-[1.75]
-        text-[var(--color-text-primary)]
+        font-serif text-reading
+        text-text
         mb-6
       "
     >
@@ -79,14 +77,13 @@ export function P({ children }: { children: ReactNode }) {
   );
 }
 
-/** Lead paragraph — slightly larger, muted, for an essay's opener. */
+/** Lead paragraph: slightly larger, muted, for an essay's opener. */
 export function Lead({ children }: { children: ReactNode }) {
   return (
     <p
       className="
-        font-body text-[19px] md:text-xl
-        leading-[1.55]
-        text-[var(--color-text-secondary)]
+        font-serif text-lead
+        text-text-secondary
         mb-8
       "
     >
@@ -119,10 +116,10 @@ export function A(
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       className="
-        text-[var(--color-text-primary)]
-        border-b border-[var(--color-border)]
-        hover:border-[var(--color-accent)]
-        transition-colors duration-150
+        text-text
+        border-b border-divider
+        hover:border-accent-strong
+        transition-colors duration-(--duration-fast)
         no-underline
       "
       {...rest}
@@ -132,16 +129,16 @@ export function A(
   );
 }
 
-/** Block quote — pulled-out passage, italic, subtle left border. */
+/** Block quote: pulled-out passage, italic, subtle left border. */
 export function Quote({ children }: { children: ReactNode }) {
   return (
     <blockquote
       className="
         my-8 pl-6
-        border-l border-[var(--color-border)]
+        border-l border-divider
         italic
-        text-[var(--color-text-secondary)]
-        font-body text-[17px] leading-[1.75]
+        text-text-secondary
+        font-serif text-reading
       "
     >
       {children}
@@ -154,11 +151,11 @@ export function UL({ children }: { children: ReactNode }) {
   return (
     <ul
       className="
-        font-body text-[17px] leading-[1.75]
-        text-[var(--color-text-primary)]
+        font-serif text-reading
+        text-text
         list-disc pl-6 mb-6
         space-y-2
-        marker:text-[var(--color-text-mid)]
+        marker:text-text-tertiary
       "
     >
       {children}
@@ -171,11 +168,11 @@ export function OL({ children }: { children: ReactNode }) {
   return (
     <ol
       className="
-        font-body text-[17px] leading-[1.75]
-        text-[var(--color-text-primary)]
+        font-serif text-reading
+        text-text
         list-decimal pl-6 mb-6
         space-y-2
-        marker:text-[var(--color-text-mid)]
+        marker:text-text-tertiary
       "
     >
       {children}
@@ -193,10 +190,10 @@ export function Code({ children }: { children: ReactNode }) {
   return (
     <code
       className="
-        font-mono text-[0.9em]
-        bg-[var(--color-surface)]
-        px-1.5 py-0.5 rounded
-        text-[var(--color-text-primary)]
+        font-mono text-mono
+        bg-surface
+        px-1 rounded-sm
+        text-text
       "
     >
       {children}
@@ -204,10 +201,10 @@ export function Code({ children }: { children: ReactNode }) {
   );
 }
 
-/** Code block — multi-line code, scrolls horizontally if needed. */
+/** Code block: multi-line code, scrolls horizontally if needed. */
 const PLAIN_PRE =
-  'font-mono text-[14px] leading-[1.6] bg-[var(--color-surface)] ' +
-  'text-[var(--color-text-primary)] p-6 rounded overflow-x-auto';
+  'font-mono text-mono-lg bg-surface ' +
+  'text-text p-6 rounded-md overflow-x-auto';
 
 export function CodeBlock({
   children,
@@ -257,9 +254,9 @@ export function CodeBlock({
   );
 }
 
-/** Horizontal rule — marks a shift in the piece. */
+/** Horizontal rule: marks a shift in the piece. */
 /**
- * Sidenote — an auto-numbered note. On wide screens (>= xl) it floats
+ * Sidenote: an auto-numbered note. On wide screens (>= xl) it floats
  * into the right margin beside its marker; below xl it renders inline as
  * a small numbered aside. Numbering is automatic via a CSS counter
  * scoped to the article body (see `.article-body` in globals.css), so
@@ -278,7 +275,7 @@ export function Sidenote({ children }: { children: ReactNode }) {
 export function Divider() {
   return (
     <hr
-      className="my-12 border-0 border-t border-[var(--color-border)]"
+      className="my-12 border-0 border-t border-divider"
     />
   );
 }

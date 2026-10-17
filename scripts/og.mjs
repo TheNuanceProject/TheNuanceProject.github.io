@@ -3,9 +3,11 @@
  * Per-page Open Graph card generation.
  *
  * Renders a 1200×630 PNG per page at build time with satori (JSX-like
- * tree → SVG) and resvg (SVG → PNG), using the site's Poppins font and
- * design-system colours. Output lands in `dist/client/og/<key>.png`,
- * where `<key>` is derived from the page path by `ogKey()` — the same
+ * tree → SVG) and resvg (SVG → PNG), in the Nuance Design Language: its
+ * colours, its Poppins at the weights it uses, and its type scale and
+ * spacing. A link preview shows the card at about half its size, so the
+ * card is drawn at twice the language's sizes. Output lands in `dist/client/og/<key>.png`,
+ * where `<key>` is derived from the page path by `ogKey()`, the same
  * mapping `page-meta.ts` uses to point each page's `og:image` at its
  * card. Keeping both in sync via an identical key function means no
  * per-route wiring and no drift.
@@ -19,16 +21,28 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { resolveThemes } from '../design/generate.mjs';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const FONT_DIR = join(ROOT, 'node_modules', '@fontsource', 'poppins', 'files');
 
-// Design-system colours (light/paper theme — the brand default).
+// The light theme: the brand's default.
+const { values: TOKENS } = resolveThemes().themes.light;
+const colour = (role) => TOKENS.get(`color.${role}`).hex;
 const COLOR = {
-  paper: '#FAF9F5',
-  ink: '#1A1A18',
-  accent: '#D97757',
-  mid: '#8A8A82',
+  paper: colour('paper'),
+  ink: colour('text'),
+  accent: colour('accent'),
+  mid: colour('text-tertiary'),
 };
+
+/** A link preview shows the card at about half its size. */
+const CARD_SCALE = 2;
+const px = (value) => `${value * CARD_SCALE}px`;
+const type = (name) => TOKENS.get(`type.${name}`);
+const measure = (path) => TOKENS.get(path);
+const REGULAR = TOKENS.get('font.weight.regular');
+const MEDIUM = TOKENS.get('font.weight.medium');
 
 /** Map a site-relative path to its OG card key. Mirrors page-meta.ts. */
 export function ogKey(path) {
@@ -41,15 +55,15 @@ function loadFonts() {
   return [
     {
       name: 'Poppins',
-      weight: 400,
+      weight: REGULAR,
       style: 'normal',
-      data: readFileSync(join(FONT_DIR, 'poppins-latin-400-normal.woff')),
+      data: readFileSync(join(FONT_DIR, `poppins-latin-${REGULAR}-normal.woff`)),
     },
     {
       name: 'Poppins',
-      weight: 600,
+      weight: MEDIUM,
       style: 'normal',
-      data: readFileSync(join(FONT_DIR, 'poppins-latin-600-normal.woff')),
+      data: readFileSync(join(FONT_DIR, `poppins-latin-${MEDIUM}-normal.woff`)),
     },
   ];
 }
@@ -68,7 +82,7 @@ function card({ eyebrow, title, footer }) {
         background: COLOR.paper,
         color: COLOR.ink,
         fontFamily: 'Poppins',
-        padding: '88px 80px',
+        padding: px(measure('space.10')),
         position: 'relative',
       },
       children: [
@@ -80,7 +94,7 @@ function card({ eyebrow, title, footer }) {
               top: 0,
               left: 0,
               right: 0,
-              height: '12px',
+              height: px(measure('size.progress')),
               background: COLOR.accent,
             },
           },
@@ -90,9 +104,9 @@ function card({ eyebrow, title, footer }) {
           props: {
             style: {
               display: 'flex',
-              fontSize: '26px',
-              fontWeight: 400,
-              letterSpacing: '0.12em',
+              fontSize: px(type('label').size),
+              fontWeight: type('label').weight,
+              letterSpacing: px(type('label').letterSpacing),
               textTransform: 'uppercase',
               color: COLOR.mid,
             },
@@ -104,11 +118,10 @@ function card({ eyebrow, title, footer }) {
           props: {
             style: {
               display: 'flex',
-              fontSize: '70px',
-              fontWeight: 600,
-              lineHeight: 1.1,
-              letterSpacing: '-0.02em',
-              maxWidth: '1000px',
+              fontSize: px(type('title').size),
+              fontWeight: type('title').weight,
+              lineHeight: px(type('title').lineHeight),
+              letterSpacing: px(type('title').letterSpacing),
             },
             children: title,
           },
@@ -118,8 +131,8 @@ function card({ eyebrow, title, footer }) {
           props: {
             style: {
               display: 'flex',
-              fontSize: '28px',
-              fontWeight: 400,
+              fontSize: px(type('ui-lg').size),
+              fontWeight: type('ui-lg').weight,
               color: COLOR.mid,
             },
             children: footer,

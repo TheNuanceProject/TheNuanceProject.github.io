@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 import { Link } from 'react-router';
 import { Container } from '~/components/Container';
-import { ArrowIcon } from '~/components/icons/ArrowIcon';
+import { ArrowLeft } from 'lucide-react';
+import { Icon } from '~/components/icons/Icon';
 import { pageMeta } from '~/lib/page-meta';
 
 /**
- * NotFound — the 404 page.
+ * NotFound: the 404 page.
  *
  * Matches any URL not covered by another route. Kept quiet and
- * deliberately low-key — a missing page isn't a reason for alarm.
+ * deliberately low-key: a missing page isn't a reason for alarm.
  */
 
 export const meta = () =>
@@ -24,9 +25,9 @@ export default function NotFound() {
       <section className="pt-20 md:pt-32 pb-20 md:pb-32">
         <p
           className="
-            text-xs font-display font-medium
-            uppercase tracking-[0.08em]
-            text-[var(--color-accent)]
+            text-label font-sans font-medium
+            uppercase
+            text-accent-strong
             mb-6
           "
         >
@@ -35,10 +36,9 @@ export default function NotFound() {
 
         <h1
           className="
-            font-display font-normal
-            text-3xl md:text-[2.75rem]
-            leading-[1.15] tracking-[-0.02em]
-            text-[var(--color-text-primary)]
+            font-sans font-regular
+            text-display-sm
+            text-text
             mb-6
           "
         >
@@ -47,9 +47,9 @@ export default function NotFound() {
 
         <p
           className="
-            font-body text-[17px] leading-[1.75]
-            text-[var(--color-text-secondary)]
-            max-w-[var(--container-narrow)]
+            font-serif text-reading
+            text-text-secondary
+            max-w-narrow
             mb-10
           "
         >
@@ -65,25 +65,25 @@ export default function NotFound() {
             to="/"
             className="
               inline-flex items-center gap-2
-              font-display text-sm
-              text-[var(--color-text-primary)]
+              font-sans text-ui-lg
+              text-text
               no-underline
-              border-b border-transparent hover:border-[var(--color-accent)]
-              transition-colors duration-150
+              border-b border-transparent hover:border-accent-strong
+              transition-colors duration-(--duration-fast)
             "
           >
-            <ArrowIcon className="rotate-180" />
+            <Icon icon={ArrowLeft} />
             <span>Home</span>
           </Link>
 
           <Link
             to="/writing"
             className="
-              font-display text-sm
-              text-[var(--color-text-secondary)]
-              no-underline hover:text-[var(--color-text-primary)]
-              border-b border-transparent hover:border-[var(--color-accent)]
-              transition-colors duration-150
+              font-sans text-ui-lg
+              text-text-secondary
+              no-underline hover:text-text
+              border-b border-transparent hover:border-accent-strong
+              transition-colors duration-(--duration-fast)
             "
           >
             Writing
@@ -92,11 +92,11 @@ export default function NotFound() {
           <Link
             to="/projects"
             className="
-              font-display text-sm
-              text-[var(--color-text-secondary)]
-              no-underline hover:text-[var(--color-text-primary)]
-              border-b border-transparent hover:border-[var(--color-accent)]
-              transition-colors duration-150
+              font-sans text-ui-lg
+              text-text-secondary
+              no-underline hover:text-text
+              border-b border-transparent hover:border-accent-strong
+              transition-colors duration-(--duration-fast)
             "
           >
             Projects

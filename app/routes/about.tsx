@@ -11,7 +11,7 @@ import {
 } from '~/lib/structured-data';
 
 /**
- * About — the studio's "who and why" page.
+ * About: the studio's "who and why" page.
  *
  * First-person throughout, factual and restrained. The Person
  * JSON-LD schema on this page consolidates the author's identity
@@ -20,9 +20,9 @@ import {
  *
  * Structure:
  *   1. Page header
- *   2. The Nuance Project — what the studio is and why
- *   3. About me           — brief factual bio
- *   4. Get in touch       — email and LinkedIn
+ *   2. The Nuance Project: what the studio is and why
+ *   3. About me          : brief factual bio
+ *   4. Get in touch      : email and LinkedIn
  */
 
 export const meta = () =>
@@ -47,10 +47,9 @@ export default function About() {
       <section className="pt-20 md:pt-28 pb-12 md:pb-16">
         <h1
           className="
-            font-display font-normal
-            text-3xl md:text-[2.75rem]
-            leading-[1.15] tracking-[-0.02em]
-            text-[var(--color-text-primary)]
+            font-sans font-regular
+            text-display-sm
+            text-text
           "
         >
           About
@@ -58,11 +57,11 @@ export default function About() {
       </section>
 
       <Section label="The Nuance Project" divided>
-        <div className="max-w-[var(--container-narrow)]">
+        <div className="max-w-narrow">
           <P>
             {siteConfig.identity.name} is a small, independent studio.
             It is a single place to keep the work that comes out of my
-            own hours — the software I build for myself or for people
+            own hours: the software I build for myself or for people
             who need it, the writing I publish when I have something
             worth saying, and the occasional note on something
             I&rsquo;ve been working through.
@@ -83,7 +82,7 @@ export default function About() {
             What you&rsquo;ll find here is intentionally narrow. There
             won&rsquo;t be dozens of projects. The plan is to put out a
             small number of things that are actually finished, that
-            are maintained over time, and that hold up to use — not a
+            are maintained over time, and that hold up to use, not a
             long list of half-built experiments. The same goes for the
             writing. When there is something to share, it appears here.
             When there isn&rsquo;t, the page stays quiet.
@@ -92,14 +91,14 @@ export default function About() {
           <P>
             Updates to anything on this site happen on the studio&rsquo;s
             own pace. No newsletter. No social feed. The work is the
-            signal — when something new is here, you&rsquo;ll see it on
+            signal. When something new is here, you&rsquo;ll see it on
             the page.
           </P>
         </div>
       </Section>
 
       <Section label="About me" divided>
-        <div className="max-w-[var(--container-narrow)]">
+        <div className="max-w-narrow">
           <P>
             I&rsquo;m {siteConfig.author.fullName}. Most people call me{' '}
             {siteConfig.author.shortName}, and online I go by Shahin Hashim.
@@ -122,23 +121,23 @@ export default function About() {
       </Section>
 
       <Section label="Get in touch" divided className="pb-24 md:pb-32">
-        <div className="max-w-[var(--container-narrow)]">
+        <div className="max-w-narrow">
           <P>The best way to reach me is by email.</P>
 
           <p
             className="
-              font-mono text-[17px]
-              text-[var(--color-text-primary)]
+              font-mono text-reading
+              text-text
               mb-6
             "
           >
             <a
               href={`mailto:${siteConfig.author.email}`}
               className="
-                text-[var(--color-text-primary)]
-                border-b border-[var(--color-border)]
-                hover:border-[var(--color-accent)]
-                transition-colors duration-150
+                text-text
+                border-b border-divider
+                hover:border-accent-strong
+                transition-colors duration-(--duration-fast)
                 no-underline
               "
             >

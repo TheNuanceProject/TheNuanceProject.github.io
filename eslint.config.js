@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -11,7 +12,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
  * `react-refresh` is scoped to regular component files only. In
  * Framework Mode, route files legitimately export multiple named
  * things (default component, `meta`, `loader`, etc.) alongside the
- * default export — that's the route-module contract, not an HMR
+ * default export: that's the route-module contract, not an HMR
  * problem, so the rule is skipped there.
  */
 export default defineConfig([

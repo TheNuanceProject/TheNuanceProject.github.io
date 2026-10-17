@@ -30,12 +30,11 @@ export default function Article() {
       <figure className="my-10 -mx-4 md:mx-0">
         <img
           src="/images/wiretrace-plot-dark.png"
-          alt="WireTrace v1.1.0 with the live plot panel showing four traces — RPM, Current, Voltage, MotorTemp — below the console"
+          alt="WireTrace v1.1.0 with the live plot panel showing four traces (RPM, Current, Voltage, MotorTemp) below the console"
           className="
             w-full h-auto
-            border border-[var(--color-border)]
-            rounded
-            shadow-sm
+            border border-divider
+            rounded-lg
           "
           loading="eager"
         />
@@ -55,8 +54,8 @@ export default function Article() {
       <P>
         The plotter was the obvious next thing to build. The data
         pipeline already fans out the parsed line signal to multiple
-        subscribers — the console view and the log engine are two
-        of those today — so adding a third subscriber that draws a
+        subscribers (the console view and the log engine are two
+        of those today), so adding a third subscriber that draws a
         chart did not require restructuring the data flow. The
         actual question was always how the plotter would know which
         numbers in a line are the ones to plot, and what to name
@@ -81,8 +80,8 @@ export default function Article() {
         and so on. A line that starts with one of these prefixes is
         plotted; everything else is treated as ordinary log output
         and ignored by the plotter. Engineers who want explicit
-        control — or who emit mixed traffic where auto-detect would
-        guess wrong — mark their plot lines at the source and
+        control, or who emit mixed traffic where auto-detect would
+        guess wrong, mark their plot lines at the source and
         WireTrace does the rest. The prefix protocol came from
         somebody else.
       </P>
@@ -119,7 +118,7 @@ export default function Article() {
         multi-plot extension via the trailing digit. There was no
         ambiguity about what the engineer was asking for. Second,
         the framing acknowledged something true about the problem
-        space — engineers are the ones who design their firmware&rsquo;s
+        space: engineers are the ones who design their firmware&rsquo;s
         output format, so an explicit marker they put in their own
         protocol is more reliable than any amount of clever
         guessing on the receiver&rsquo;s side.
@@ -149,7 +148,7 @@ export default function Article() {
 
       <P>
         Auto-detection runs by default on every new tab. When it
-        works — and on key:value or JSON traffic it usually does —
+        works (and on key:value or JSON traffic it usually does),
         the user sees a plot panel populate within a couple of
         seconds of the data starting to flow, with sensible column
         names taken directly from the keys. No configuration step,
@@ -161,7 +160,7 @@ export default function Article() {
         When auto-detection cannot make sense of a line, the panel
         shows a small placeholder with a single call to action:{' '}
         <B>Configure manually</B>. That opens a dialog where an
-        engineer declares a regex with named groups — each{' '}
+        engineer declares a regex with named groups: each{' '}
         <Code>(?P&lt;name&gt;...)</Code> becomes a plot column with
         that name on the axis. Patterns can be saved as named
         profiles, applied to a tab as a default, and reused across
@@ -174,9 +173,8 @@ export default function Article() {
           alt="The Configure Plot dialog in manual regex mode, with a four-column pattern, a named profile selector, and a green test result reading Matched 200 of 200 lines"
           className="
             w-full h-auto
-            border border-[var(--color-border)]
-            rounded
-            shadow-sm
+            border border-divider
+            rounded-lg
           "
           loading="lazy"
         />
@@ -210,9 +208,8 @@ export default function Article() {
           alt="The Capture from sample dialog showing a source line with four numeric chips selected and named RPM, Current, Voltage, MotorTemp, and the generated regex below"
           className="
             w-full h-auto
-            border border-[var(--color-border)]
-            rounded
-            shadow-sm
+            border border-divider
+            rounded-lg
           "
           loading="lazy"
         />
@@ -220,9 +217,9 @@ export default function Article() {
 
       <P>
         The chip-based capture step also handles the part of regex
-        authoring that catches even experienced engineers — escaping
+        authoring that catches even experienced engineers (escaping
         decimals, allowing optional signs, allowing scientific
-        notation — so the generated pattern is correct against the
+        notation), so the generated pattern is correct against the
         actual data, not a transcription of what the engineer
         thinks the data looks like.
       </P>
@@ -231,10 +228,10 @@ export default function Article() {
 
       <P>
         v1.1.0 ships <Code>plt0:x,y,z</Code> as u/Stromi1011
-        described it. There is one extension — a{' '}
+        described it. There is one extension, a{' '}
         <Code>plt!Name1,Name2,...</Code> form that lets engineers
         name the columns explicitly when their payload values do
-        not have keys — but the prefix routing, the multi-plot
+        not have keys, but the prefix routing, the multi-plot
         grouping via trailing digits, and the CSV-shaped payload
         are his proposal verbatim. The GitHub Issue and the User
         Guide both link the original comment.
@@ -256,26 +253,29 @@ export default function Article() {
 
       <footer
         className="
-          font-display text-sm
-          text-[var(--color-text-mid)]
-          max-w-[var(--container-narrow)]
+          font-sans text-ui-lg
+          text-text-tertiary
+          max-w-narrow
           space-y-2
         "
       >
-        <p className="text-[var(--color-text-secondary)] font-medium">
+        <p className="text-text-secondary font-medium">
           About this release
         </p>
         <p>
           v1.1.0 is on{' '}
-          <A
-            href="https://github.com/TheNuanceProject/WireTrace/releases/latest"
-          >
+          <A href="https://github.com/TheNuanceProject/WireTrace/releases/tag/v1.1.0">
             GitHub Releases
           </A>{' '}
           as a Windows installer. v1.0.0 installs will auto-update
           within twenty-four hours. Project page, full feature list,
           and build-from-source instructions:{' '}
           <A href="/projects/wiretrace">WireTrace</A>.
+        </p>
+        <p>
+          WireTrace 2.0 has since been released. The{' '}
+          <A href="/projects/wiretrace">project page</A> describes the
+          current version.
         </p>
       </footer>
     </>

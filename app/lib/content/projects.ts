@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 import type { ProjectMeta, ResolvedProject } from './types';
 import { deriveDates, isValidIsoDate } from './dates';
+import { isVersion } from './versions';
 
 /**
- * Projects loader — auto-discovers projects from their folders.
+ * Projects loader: auto-discovers projects from their folders.
  *
  * Every folder under src/pages/projects/[slug]/ must export a `meta`
  * constant conforming to ProjectMeta. The loader scans these files
@@ -25,7 +26,7 @@ const metaModules = import.meta.glob<MetaModule>(
   { eager: true }
 );
 
-/** Status ordering for sort — Active first, Archived last. */
+/** Status ordering for sort, Active first, Archived last. */
 const STATUS_ORDER: Record<ProjectMeta['status'], number> = {
   Active: 0,
   Maintained: 1,
@@ -64,8 +65,8 @@ function validateProject(
   if (m.updated !== undefined && !isValidIsoDate(m.updated)) {
     errors.push('`updated` must be YYYY-MM-DD if provided');
   }
-  if (typeof m.version !== 'string' || m.version.trim() === '') {
-    errors.push('missing or empty `version`');
+  if (!isVersion(m.version)) {
+    errors.push('missing or invalid `version` (must be major.minor.patch)');
   }
   if (
     m.status !== 'Active' &&

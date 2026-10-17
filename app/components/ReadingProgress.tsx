@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 
 /**
- * ReadingProgress — a slim bar fixed to the top of the viewport that
+ * ReadingProgress: a slim bar fixed to the top of the viewport that
  * fills as the reader scrolls through the page.
  *
  * Client-only behaviour, SSR-safe: it renders at 0% on the server and
@@ -42,12 +42,12 @@ export function ReadingProgress() {
   return (
     <div
       aria-hidden="true"
-      className="fixed top-0 left-0 right-0 z-[60] h-[2px] pointer-events-none"
+      className="fixed top-0 left-0 right-0 z-60 h-(--size-progress) pointer-events-none"
     >
       <div
         className="
-          h-full bg-[var(--color-accent)]
-          motion-safe:transition-[width] motion-safe:duration-75
+          h-full bg-accent
+          motion-safe:transition-[width] motion-safe:duration-(--duration-fast)
           motion-safe:ease-out
         "
         style={{ width: `${progress}%` }}

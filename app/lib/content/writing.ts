@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
-import type { WritingMeta, ResolvedWriting } from './types';
+import type { ResolvedProject, ResolvedWriting, WritingAbout, WritingMeta } from './types';
 import { deriveDates, isValidIsoDate } from './dates';
+import { allProjects } from './projects';
+import { compareVersions, isVersion } from './versions';
 
 /**
- * Writing loader — auto-discovers writing pieces from their folders.
+ * Writing loader: auto-discovers writing pieces from their folders.
  *
  * Every folder under src/pages/writing/[slug]/ must export a `meta`
  * constant conforming to WritingMeta. The loader scans these files
  * at build time, validates them, and builds a sorted manifest.
  *
  * Sort order: by effective date (`updated` if present, else
- * `published`), newest first. This makes revised pieces resurface —
+ * `published`), newest first. This makes revised pieces resurface:
  * an update is not a hidden footnote, it's a reason to re-read.
  *
  * Folders starting with an underscore are ignored (use for drafts).
@@ -27,7 +29,7 @@ const metaModules = import.meta.glob<MetaModule>(
 
 /**
  * Validate a writing piece's metadata. Throws with a clear, file-named
- * error if anything is wrong — fails fast at module load (dev server
+ * error if anything is wrong; fails fast at module load (dev server
  * start or build time), never in production render.
  */
 function validateWriting(filePath: string, mod: MetaModule): ResolvedWriting {
@@ -67,6 +69,9 @@ function validateWriting(filePath: string, mod: MetaModule): ResolvedWriting {
   ) {
     errors.push('`readingTime` must be a positive number of minutes if provided');
   }
+  if (m.about !== undefined) {
+    errors.push(...aboutErrors(m.about, allProjects));
+  }
 
   if (errors.length > 0) {
     throw new Error(
@@ -77,6 +82,65 @@ function validateWriting(filePath: string, mod: MetaModule): ResolvedWriting {
   return {
     ...m,
     ...deriveDates(m.published, m.updated),
+  };
+}
+
+/**
+ * What is wrong with a piece's `about`, given the projects there are:
+ * it must name a project there is, and a version of it written
+ * major.minor.patch that is not later than the project's current one.
+ */
+export function aboutErrors(
+  about: WritingAbout,
+  projects: readonly ResolvedProject[]
+): string[] {
+  if (typeof about !== 'object' || about === null) {
+    return ['`about` must be { project, version } if provided'];
+  }
+  const project = projects.find((p) => p.slug === about.project);
+  if (!project) {
+    return [`\`about.project\` must be the slug of a project; there is none called "${String(about.project)}"`];
+  }
+  if (!isVersion(about.version)) {
+    return ['`about.version` must be major.minor.patch'];
+  }
+  if (compareVersions(about.version, project.version) > 0) {
+    return [`\`about.version\` ${about.version} is later than ${project.title}'s current version, ${project.version}`];
+  }
+  return [];
+}
+
+/** A project's release that is later than the one a piece describes. */
+export interface NewerRelease {
+  /** Slug of the project, for the link to its page. */
+  readonly slug: string;
+  /** Display name of the project. */
+  readonly title: string;
+  /** The version the piece describes. */
+  readonly described: string;
+  /** The project's current version, later than `described`. */
+  readonly latest: string;
+}
+
+/**
+ * The project's current release when it is later than the one the piece
+ * describes, else null: a piece about the current release, or about no
+ * release, needs no notice. Pure, for testability.
+ */
+export function newerRelease(
+  about: WritingAbout | undefined,
+  projects: readonly ResolvedProject[]
+): NewerRelease | null {
+  if (!about) return null;
+  const project = projects.find((p) => p.slug === about.project);
+  if (!project || compareVersions(project.version, about.version) <= 0) {
+    return null;
+  }
+  return {
+    slug: project.slug,
+    title: project.title,
+    described: about.version,
+    latest: project.version,
   };
 }
 

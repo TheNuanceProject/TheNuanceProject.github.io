@@ -1,109 +1,65 @@
 // SPDX-License-Identifier: MIT
-import { useEffect, useState } from 'react';
 import { Button } from '~/components/Button';
-import { ArrowIcon } from '~/components/icons/ArrowIcon';
+import { ArrowRight } from 'lucide-react';
+import { Icon } from '~/components/icons/Icon';
+import type { Release } from '~/lib/build-data/releases';
+import { formatIsoDate } from '~/lib/content/dates';
 
 interface ReleaseCardProps {
   /** Display name, e.g. "WireTrace". */
   readonly name: string;
-  /** Fallback version (from project meta), shown until/if live data loads. */
+  /** The latest stable release, read from GitHub when the site was
+   *  built, or null when there is none. */
+  readonly release: Release | null;
+  /** The version the project's meta names, shown when there is no
+   *  release to show. */
   readonly version: string;
   /** Download link (stable). */
   readonly downloadUrl: string;
   /** Releases page link. */
   readonly releasesUrl: string;
-  /** Repo URL, used to derive the GitHub Releases API endpoint. */
-  readonly githubUrl: string;
-}
-
-/** Derive the "latest release" API endpoint from a github.com repo URL. */
-function apiFromGithub(url: string): string | null {
-  const match = url.match(/github\.com\/([^/]+)\/([^/?#]+)/);
-  if (!match) return null;
-  return `https://api.github.com/repos/${match[1]}/${match[2]}/releases/latest`;
 }
 
 /**
- * ReleaseCard — shows the current release, upgrading in place from live
- * GitHub data.
+ * ReleaseCard: the current release, with its date and a download button.
  *
- * The static fallback (version from project meta) renders immediately,
- * so the prerendered HTML and no-JS visitors always show a real
- * version. After mount it fetches the latest release and updates the
- * version and date in place — same layout, no shift. On any failure
- * (offline, rate limit) it simply keeps the fallback. No download count
- * is read or shown.
+ * Everything in it is in the page as built; the visitor's browser asks
+ * GitHub for nothing. No download count is read or shown.
  */
-export function ReleaseCard({
-  name,
-  version,
-  downloadUrl,
-  releasesUrl,
-  githubUrl,
-}: ReleaseCardProps) {
-  const [current, setCurrent] = useState(version);
-  const [date, setDate] = useState<string | null>(null);
-
-  useEffect(() => {
-    const api = apiFromGithub(githubUrl);
-    if (!api) return;
-    let alive = true;
-    fetch(api, { headers: { Accept: 'application/vnd.github+json' } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { tag_name?: string; published_at?: string } | null) => {
-        if (!alive || !data || typeof data.tag_name !== 'string') return;
-        setCurrent(data.tag_name.replace(/^v/, ''));
-        if (typeof data.published_at === 'string') setDate(data.published_at);
-      })
-      .catch(() => {
-        /* keep the fallback */
-      });
-    return () => {
-      alive = false;
-    };
-  }, [githubUrl]);
-
-  const dateLabel = date
-    ? `Released ${new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })}`
-    : 'Latest stable release';
-
+export function ReleaseCard({ name, release, version, downloadUrl, releasesUrl }: ReleaseCardProps) {
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-6 md:p-8">
+    <div className="rounded-lg border border-divider bg-surface p-6 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-5">
         <div>
-          <span className="block text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-text-mid)] mb-2">
+          <span className="block text-label font-sans font-medium uppercase text-text-tertiary mb-2">
             Latest release
           </span>
-          <p className="font-display text-2xl text-[var(--color-text-primary)]">
+          <p className="font-sans text-title text-text">
             {name}{' '}
-            <span className="text-[var(--color-accent)]">v{current}</span>
+            <span className="text-accent-strong">v{release?.version ?? version}</span>
           </p>
-          <p className="font-body text-sm text-[var(--color-text-mid)] mt-1">
-            {dateLabel}
+          <p className="font-serif text-ui-lg text-text-tertiary mt-1">
+            {release ? `Released ${formatIsoDate(release.date)}` : 'Latest stable release'}
           </p>
         </div>
         <Button href={downloadUrl} external>
           Download
-          <ArrowIcon />
+          <Icon icon={ArrowRight} />
         </Button>
       </div>
       <a
-        href={releasesUrl}
+        href={release?.url ?? releasesUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="
-          mt-5 inline-block font-display text-sm
-          text-[var(--color-text-secondary)]
-          hover:text-[var(--color-text-primary)]
-          transition-colors duration-150 no-underline
-          border-b border-transparent hover:border-[var(--color-accent)]
+          mt-5 inline-block font-sans text-ui-lg
+          text-text-secondary
+          hover:text-text
+          transition-colors duration-(--duration-fast) no-underline
+          border-b border-transparent hover:border-accent-strong
         "
       >
-        All releases and notes
+        Release notes
       </a>
     </div>
   );

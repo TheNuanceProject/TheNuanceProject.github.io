@@ -12,14 +12,14 @@ interface BaseButtonProps {
 }
 
 interface InternalButtonProps extends BaseButtonProps {
-  /** Internal route — uses React Router <Link> */
+  /** Internal route: uses React Router <Link> */
   to: string;
   href?: never;
   external?: never;
 }
 
 interface ExternalButtonProps extends BaseButtonProps {
-  /** External URL — uses <a> with target="_blank" */
+  /** External URL: uses <a> with target="_blank" */
   href: string;
   to?: never;
   external: true;
@@ -30,13 +30,13 @@ interface ExternalButtonProps extends BaseButtonProps {
 type ButtonProps = InternalButtonProps | ExternalButtonProps;
 
 /**
- * Button — primary call-to-action, with a ghost variant for
+ * Button: primary call-to-action, with a ghost variant for
  * secondary actions.
  *
  * Two variants:
- *   - `primary`: filled with the text-primary colour, used for the
+ *   - `primary`: filled with the text colour, used for the
  *     main action on a page.
- *   - `ghost`: transparent with a hairline border, used for
+ *   - `ghost`: transparent with an edge outline, used for
  *     secondary actions next to a primary button.
  *
  * Renders either as a React Router `<Link>` (for internal routes)
@@ -50,22 +50,24 @@ export function Button(props: ButtonProps) {
   const classes = cn(
     // Base
     'inline-flex items-center justify-center gap-2',
-    'font-display font-medium text-sm',
-    'px-6 py-3 rounded',
-    'transition-all duration-150',
+    // The large control of the design language: a main action on a page.
+    // A design height is the least: a label that wraps makes the button taller.
+    'min-h-(--size-control-lg) min-w-(--size-control-min-width-lg) px-(--size-control-padding-lg)',
+    'font-sans text-ui-lg font-medium rounded-sm',
+    'transition-colors',
     'no-underline',
 
     // Variant
     variant === 'primary' && [
-      'bg-[var(--color-text-primary)]',
-      'text-[var(--color-paper)]',
-      'hover:opacity-90',
+      'bg-text',
+      'text-paper',
+      'hover:bg-primary-hover',
     ],
     variant === 'ghost' && [
       'bg-transparent',
-      'border border-[var(--color-border)]',
-      'text-[var(--color-text-primary)]',
-      'hover:border-[var(--color-text-primary)]',
+      'border border-edge',
+      'text-text',
+      'hover:bg-divider',
     ],
 
     props.className

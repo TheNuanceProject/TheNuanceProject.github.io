@@ -8,9 +8,9 @@ import { Sources, Source } from '~/components/Sources';
  *
  * A revisit of a LinkedIn post the author wrote in July 2024, days after
  * the outage. The piece links that original post and the primary-source
- * record that emerged since — CrowdStrike's Root Cause Analysis, the
+ * record that emerged since (CrowdStrike's Root Cause Analysis, the
  * September 2024 congressional testimony, the Delta ruling, and
- * Microsoft's Windows kernel changes — so the trail back is intact.
+ * Microsoft's Windows kernel changes), so the trail back is intact.
  *
  * The timeline uses the reusable <Timeline> component; the primary-sources
  * block uses the reusable <Sources> component. Both are general-purpose and
@@ -47,14 +47,14 @@ export default function Article() {
 
       <P>
         CrowdStrike sells security software called Falcon. Its working part
-        is the <I>sensor</I> &mdash; not a piece of hardware, despite the
+        is the <I>sensor</I>: not a piece of hardware, despite the
         name, but a software agent that installs on each machine and runs
-        deep inside Windows, in the <I>kernel</I>: the privileged core of
+        deep inside Windows, in the <I>kernel</I>, the privileged core of
         the operating system, where code can watch everything, but where a
         crash takes down the whole machine rather than a single program. To
         keep up with new attack techniques without shipping a whole new
         sensor each time, Falcon pulls down small configuration files
-        &mdash; CrowdStrike calls them Rapid Response Content &mdash; that
+        (CrowdStrike calls them Rapid Response Content) that
         tell the sensor already on the machine what to look for. In February
         2024 the company added a capability of this kind aimed at a
         particular Windows mechanism (named pipes, one of the ways programs
@@ -73,12 +73,12 @@ export default function Article() {
         , the sensor on those machines expected twenty input fields, while
         this update referenced a twenty-first. When the sensor&rsquo;s
         interpreter went to read that twenty-first value, it was reading
-        past the end of an array that only held twenty &mdash; an
+        past the end of an array that only held twenty. That is an
         out-of-bounds memory read, a read of memory that was never there to
         be read. In kernel code there is no quiet recovery from that: the
         read crashed the sensor, and the sensor took Windows down with it,
-        into the blue screen of death &mdash; the full-stop crash screen
-        &mdash; on repeat.
+        into the blue screen of death, Windows&rsquo; full-stop crash
+        screen, again on every restart.
       </P>
 
       <P>
@@ -89,14 +89,14 @@ export default function Article() {
         contained it was absent. Both gaps were documented and fixed
         afterwards. The company reverted the bad file at <B>05:27 UTC</B>,
         about seventy-eight minutes later, but reversion does not un-crash a
-        machine that already pulled the file &mdash; recovery meant
+        machine that already pulled the file. Recovery meant
         touching devices, often by hand, often booting into safe mode to
         delete a single file.
       </P>
 
       <P>
         The blast radius is the part worth sitting with. The update reached
-        roughly <B>8.5 million</B> Windows devices &mdash; well under one
+        roughly <B>8.5 million</B> Windows devices, well under one
         percent of all Windows machines, but concentrated in exactly the
         places that cannot absorb it: airlines grounded flights, hospitals
         postponed procedures, banks and broadcasters and payment systems
@@ -180,7 +180,12 @@ export default function Article() {
         that its checks had tested content files individually but not
         together, and that the new process would test updates internally
         before sending them to anyone. He also offered a line that has
-        stuck with me: <Quote>Trust takes years to make and seconds to break.</Quote>
+        stuck with me:
+      </P>
+
+      <Quote>Trust takes years to make and seconds to break.</Quote>
+
+      <P>
         The{' '}
         <A href="https://homeland.house.gov/wp-content/uploads/2024/09/2024-09-24-HRG-CIP-Testimony-Meyers.pdf">
           written testimony
@@ -192,7 +197,7 @@ export default function Article() {
 
       <P>
         The legal read sharpened the point. When Delta sued, its argument
-        was not that software has bugs &mdash; everyone&rsquo;s does &mdash;
+        was not that software has bugs (everyone&rsquo;s does)
         but that this was a breakdown of basic practice:{' '}
         <A href="https://www.bankinfosecurity.com/judge-lets-deltas-cyber-failure-suit-vs-crowdstrike-proceed-a-28443">
           no testing, no staging, no rollback
@@ -211,7 +216,7 @@ export default function Article() {
         The first is accountability that outlived the news cycle: the
         congressional hearing, the still-running Delta litigation, and an
         industry that now reaches for this outage as the standard example
-        of concentration risk &mdash; one vendor, one file, a meaningful
+        of concentration risk. One vendor and one file reached a meaningful
         slice of the world&rsquo;s computers.
       </P>
 
@@ -225,7 +230,7 @@ export default function Article() {
         </A>
         , in the same user space as ordinary applications, where a crash
         stays contained. It also began requiring partners to ship updates
-        gradually, through deployment rings, with monitoring &mdash; the
+        gradually, through deployment rings, with monitoring: the
         staged rollout whose absence caused this. The platform is being
         reshaped around the lesson.
       </P>
@@ -246,7 +251,7 @@ export default function Article() {
 
       <P>
         So this is the correction to my July 2024 post. The instinct in it
-        was not wrong &mdash; reliable systems really are the work of people
+        was not wrong. Reliable systems really are the work of people
         you never hear about, and that is worth saying. But the
         appreciation belongs to the discipline that prevents these events,
         not to the speed of the apology after one. A year of record turned
@@ -266,20 +271,20 @@ export default function Article() {
       <Sources>
         <Source
           href="https://www.crowdstrike.com/wp-content/uploads/2024/08/Channel-File-291-Incident-Root-Cause-Analysis-08.06.2024.pdf"
-          label="CrowdStrike — Channel File 291 Root Cause Analysis (PDF)"
+          label="CrowdStrike: Channel File 291 Root Cause Analysis (PDF)"
         >
           The full technical account of the field-count mismatch and the
           validation gaps.
         </Source>
         <Source
           href="https://www.crowdstrike.com/en-us/blog/channel-file-291-rca-available/"
-          label="CrowdStrike — RCA announcement and recovery figures"
+          label="CrowdStrike: RCA announcement and recovery figures"
         >
           The timeline, the revert, and the ~99% recovery by 29 July.
         </Source>
         <Source
           href="https://homeland.house.gov/hearing/an-outage-strikes-assessing-the-global-impact-of-crowdstrikes-faulty-software-update/"
-          label="US House Homeland Security — the 24 September 2024 hearing"
+          label="US House Homeland Security: the 24 September 2024 hearing"
         >
           The subcommittee hearing, with the witness testimony linked from
           the page.

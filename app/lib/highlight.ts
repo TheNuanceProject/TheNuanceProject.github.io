@@ -6,7 +6,7 @@ import type { HighlighterCore } from 'shiki/core';
  *
  * Shiki and its grammars load via dynamic `import()` the first time a
  * code block actually needs them, so the bundler splits them into their
- * own async chunk — they never weigh down the main bundle or the
+ * own async chunk: they never weigh down the main bundle or the
  * article pages that contain no code. The static HTML ships plain;
  * `CodeBlock` upgrades it after mount. Output uses dual themes via CSS
  * variables, so colours adapt to `[data-theme='dark']`.

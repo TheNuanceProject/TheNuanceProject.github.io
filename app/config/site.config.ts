@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /**
- * Site configuration — single source of truth.
+ * Site configuration: single source of truth.
  *
  * Site-wide identity and shared metadata. To change something across
  * the entire site, edit one value here.
@@ -13,12 +13,12 @@
  *   - Navigation menu structure
  *
  * What does not live here:
- *   - Project-specific data — each project owns its own `meta.ts` in
+ *   - Project-specific data: each project owns its own `meta.ts` in
  *     `content/projects/[slug]/meta.ts`, auto-discovered by the
  *     project loader.
- *   - Essay content — each writing folder in `content/writing/` is
+ *   - Essay content: each writing folder in `content/writing/` is
  *     auto-discovered by the writing loader.
- *   - Page-specific prose — lives in the route file.
+ *   - Page-specific prose: lives in the route file.
  */
 
 export interface NavLink {

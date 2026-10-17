@@ -19,7 +19,7 @@ interface SectionProps {
 }
 
 /**
- * Section — labelled content section with consistent rhythm.
+ * Section: labelled content section with consistent rhythm.
  *
  * A section is:
  *   - Vertical padding (top and bottom)
@@ -45,17 +45,17 @@ export function Section({
       ref={revealRef}
       className={cn(
         'py-16 md:py-20',
-        divided && 'border-t border-[var(--color-border)]',
+        divided && 'border-t border-divider',
         className
       )}
     >
       {label && (
-        <p className="text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-accent)] mb-6">
+        <p className="text-label font-sans uppercase text-accent-strong mb-6">
           {label}
         </p>
       )}
       {heading && (
-        <h2 className="font-display text-2xl md:text-[32px] text-[var(--color-text-primary)] tracking-[-0.01em] mb-8">
+        <h2 className="font-sans text-title-sm md:text-title text-text mb-8">
           {heading}
         </h2>
       )}

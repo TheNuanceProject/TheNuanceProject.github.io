@@ -2,7 +2,8 @@
 import { Link } from 'react-router';
 import { Container } from '~/components/Container';
 import { ArticleLayout } from '~/components/ArticleLayout';
-import { ArrowIcon } from '~/components/icons/ArrowIcon';
+import { ArrowLeft } from 'lucide-react';
+import { Icon } from '~/components/icons/Icon';
 import { findWritingBySlug } from '~/lib/content/writing';
 import { pageMeta } from '~/lib/page-meta';
 import { articleSchema, breadcrumbSchema } from '~/lib/structured-data';
@@ -10,19 +11,19 @@ import type { ComponentType, ReactNode } from 'react';
 import type { Route } from './+types/writing.$slug';
 
 /**
- * Writing article — dynamic per-slug route.
+ * Writing article: dynamic per-slug route.
  *
  * Renders an individual writing piece by resolving the URL slug to:
- *   1. Its `meta.ts` (discovered by the writing loader) — for the
+ *   1. Its `meta.ts` (discovered by the writing loader), for the
  *      title, dates, description, and ArticleLayout chrome.
- *   2. Its `index.tsx` — the essay body component.
+ *   2. Its `index.tsx`: the essay body component.
  *
  * Both files live at `content/writing/[slug]/`. The folder name MUST
  * match the slug declared in meta.ts (the loader rejects mismatches
  * at module load, so a broken pairing is caught at dev server start
  * or build time, not in production render).
  *
- * Pre-rendering: see `react-router.config.ts` — its `prerender()`
+ * Pre-rendering: see `react-router.config.ts`: its `prerender()`
  * enumerates one URL per discovered writing folder, so this route
  * emits one static HTML file per essay at build time.
  *
@@ -49,7 +50,7 @@ const articleModules = import.meta.glob<ArticleModule>(
  *
  * Resolving the component at module scope (not at render time) is
  * required by the `react-hooks/static-components` rule and is also
- * better practice — the lookup is just a map index in render, no
+ * better practice: the lookup is just a map index in render, no
  * iteration, no re-computation per request.
  */
 const articleComponentBySlug: Record<string, ComponentType> = (() => {
@@ -120,7 +121,7 @@ export default function WritingArticle({ params }: Route.ComponentProps) {
 }
 
 /**
- * NotFoundArticle — the in-writing 404 fallback.
+ * NotFoundArticle: the in-writing 404 fallback.
  *
  * Visually quiet. Sends the reader back to /writing rather than
  * the home page, since they were looking for a piece specifically.
@@ -131,9 +132,9 @@ function NotFoundArticle(): ReactNode {
       <section className="pt-20 md:pt-32 pb-20 md:pb-32">
         <p
           className="
-            text-xs font-display font-medium
-            uppercase tracking-[0.08em]
-            text-[var(--color-accent)]
+            text-label font-sans font-medium
+            uppercase
+            text-accent-strong
             mb-6
           "
         >
@@ -142,10 +143,9 @@ function NotFoundArticle(): ReactNode {
 
         <h1
           className="
-            font-display font-normal
-            text-3xl md:text-[2.75rem]
-            leading-[1.15] tracking-[-0.02em]
-            text-[var(--color-text-primary)]
+            font-sans font-regular
+            text-display-sm
+            text-text
             mb-6
           "
         >
@@ -154,9 +154,9 @@ function NotFoundArticle(): ReactNode {
 
         <p
           className="
-            font-body text-[17px] leading-[1.75]
-            text-[var(--color-text-secondary)]
-            max-w-[var(--container-narrow)]
+            font-serif text-reading
+            text-text-secondary
+            max-w-narrow
             mb-10
           "
         >
@@ -168,14 +168,14 @@ function NotFoundArticle(): ReactNode {
           to="/writing"
           className="
             inline-flex items-center gap-2
-            font-display text-sm
-            text-[var(--color-text-primary)]
+            font-sans text-ui-lg
+            text-text
             no-underline
-            border-b border-transparent hover:border-[var(--color-accent)]
-            transition-colors duration-150
+            border-b border-transparent hover:border-accent-strong
+            transition-colors duration-(--duration-fast)
           "
         >
-          <ArrowIcon className="rotate-180" />
+          <Icon icon={ArrowLeft} />
           <span>Back to writing</span>
         </Link>
       </section>

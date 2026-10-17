@@ -2,16 +2,16 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * AmbientField — the centralised ambient motion layer
+ * AmbientField: the centralised ambient motion layer
  * (see SITE_DYNAMISM_REQUIREMENTS.md). Mounted once inside <main>, so the
  * grid is content-scoped and the Header and Footer stay clean. It owns:
  *
  *   D-1  the static dot grid (renders on the server; SSR-safe)
- *   D-2  cursor flow — warm light following the pointer (desktop only)
- *   D-3  the unified wave — click/tap anywhere, theme toggle, logo slash
- *   D-4  the idle heartbeat — a double pulse from the logo slash once the
+ *   D-2  cursor flow: warm light following the pointer (desktop only)
+ *   D-3  the unified wave: click/tap anywhere, theme toggle, logo slash
+ *   D-4  the idle heartbeat: a double pulse from the logo slash once the
  *        page has sat idle, on a slow ~2.5 min cadence
- *   D-5  the scroll-reactive band — faint brightening at reading position
+ *   D-5  the scroll-reactive band: faint brightening at reading position
  *
  * Everything is driven by CSS custom properties and a single
  * requestAnimationFrame; there is no per-frame React state. The
@@ -50,7 +50,10 @@ export function AmbientField() {
     let tapMoved = false;
     const TAP_SLOP = 10; // px of movement allowed before it counts as a scroll/drag
 
-    // D-3 — emit one slow warm wave from a viewport point.
+    // The waves' widths, travel times and timings below are the choreography
+    // of this one effect (SITE_DYNAMISM_REQUIREMENTS D-3, D-4), not measures
+    // of the interface; the design language names them as its own.
+    // D-3: emit one slow warm wave from a viewport point.
     const emitWave = (
       clientX: number,
       clientY: number,
@@ -61,7 +64,7 @@ export function AmbientField() {
       const r = field.getBoundingClientRect();
       const ox = clientX - r.left;
       const oy = clientY - r.top;
-      // Travel distance is the viewport diagonal — constant per screen and
+      // Travel distance is the viewport diagonal, constant per screen and
       // independent of page length, so the wave SPEED is identical on every
       // page, short or long. Recomputed each emit, so it stays responsive.
       const maxR = Math.hypot(window.innerWidth, window.innerHeight);
@@ -77,7 +80,7 @@ export function AmbientField() {
       const step = (now: number) => {
         let t = (now - start) / dur;
         if (t > 1) t = 1;
-        const eased = Math.sin((t * Math.PI) / 2); // easeOutSine — slow, calm
+        const eased = Math.sin((t * Math.PI) / 2); // easeOutSine, slow, calm
         el.style.setProperty('--r', `${eased * maxR}px`);
         el.style.opacity = `${op * (1 - t)}`;
         if (t < 1) window.requestAnimationFrame(step);
@@ -86,7 +89,7 @@ export function AmbientField() {
       window.requestAnimationFrame(step);
     };
 
-    // D-4 — gentle double pulse from the logo slash.
+    // D-4: gentle double pulse from the logo slash.
     const heartbeat = () => {
       const r = field.getBoundingClientRect();
       let cx = r.left + r.width / 2;
@@ -119,7 +122,7 @@ export function AmbientField() {
       idleTimer = window.setTimeout(startBeating, 15000);
     };
 
-    // D-2 — cursor flow.
+    // D-2: cursor flow.
     const applyCursor = () => {
       frame = 0;
       const r = field.getBoundingClientRect();
@@ -132,7 +135,7 @@ export function AmbientField() {
         tapTracking &&
         Math.hypot(e.clientX - tapX, e.clientY - tapY) > TAP_SLOP
       ) {
-        tapMoved = true; // moved too far — this is a scroll or drag, not a tap
+        tapMoved = true; // moved too far, this is a scroll or drag, not a tap
       }
       if (fine && e.pointerType !== 'touch') {
         mx = e.clientX;
@@ -141,7 +144,7 @@ export function AmbientField() {
       }
       resetIdle();
     };
-    // D-3 — a gesture begins; we ripple only if it ends as a tap (below).
+    // D-3: a gesture begins; we ripple only if it ends as a tap (below).
     const onDown = (e: PointerEvent) => {
       tapTracking = true;
       tapMoved = false;
@@ -159,7 +162,7 @@ export function AmbientField() {
     const onCancel = () => {
       tapTracking = false;
     };
-    // D-5 — scroll band tracks the reading position.
+    // D-5: scroll band tracks the reading position.
     const onScroll = () => {
       if (fine) {
         const r = field.getBoundingClientRect();

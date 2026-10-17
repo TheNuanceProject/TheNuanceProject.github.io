@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 import { Link } from 'react-router';
-import { ArrowIcon } from './icons/ArrowIcon';
+import { ArrowRight } from 'lucide-react';
+import { Icon } from '~/components/icons/Icon';
 
 interface ProjectCardProps {
   /** Project name displayed as the row title */
@@ -20,7 +21,7 @@ interface ProjectCardProps {
 }
 
 /**
- * ProjectCard — full-width clickable row.
+ * ProjectCard: full-width clickable row.
  *
  * Not a traditional card. A full-width row with hairline borders
  * top and bottom; the whole row is the clickable target. Used on
@@ -41,35 +42,35 @@ export function ProjectCard({
       viewTransition
       className="
         group block
-        border-t border-[var(--color-border)]
+        border-t border-divider
         py-8 md:py-10
-        transition-colors duration-150
-        hover:bg-[var(--color-surface)]
+        transition-colors duration-(--duration-fast)
+        hover:bg-surface
         no-underline
         last:border-b
-        -mx-6 md:-mx-12 lg:-mx-16
-        px-6 md:px-12 lg:px-16
+        -mx-(--web-gutter-phone) md:-mx-(--web-gutter-tablet) lg:-mx-(--web-gutter-desktop)
+        px-(--web-gutter-phone) md:px-(--web-gutter-tablet) lg:px-(--web-gutter-desktop)
       "
-      aria-label={`${name} — ${description}`}
+      aria-label={`${name}: ${description}`}
     >
       <div className="flex items-baseline justify-between gap-6 mb-2">
-        <h3 className="font-display text-xl md:text-2xl text-[var(--color-text-primary)] font-normal tracking-[-0.01em]">
+        <h3 className="font-sans text-title-sm md:text-title text-text font-regular">
           {name}
         </h3>
         {meta && (
-          <span className="font-display text-sm text-[var(--color-text-mid)] shrink-0 hidden sm:block">
+          <span className="font-sans text-ui-lg text-text-tertiary shrink-0 hidden sm:block">
             {meta}
           </span>
         )}
       </div>
 
       {availability && (
-        <p className="font-body italic text-sm text-[var(--color-text-mid)] mb-4">
+        <p className="font-serif italic text-ui-lg text-text-tertiary mb-4">
           {availability}
         </p>
       )}
 
-      <p className="font-body text-[17px] leading-[1.6] text-[var(--color-text-secondary)] max-w-[var(--container-narrow)]">
+      <p className="font-serif text-reading text-text-secondary max-w-narrow">
         {description}
       </p>
 
@@ -79,12 +80,11 @@ export function ProjectCard({
             <span
               key={tag}
               className="
-                inline-block
-                font-display text-xs font-medium
-                tracking-[0.04em]
-                px-2.5 py-1
-                border border-[var(--color-border)]
-                text-[var(--color-text-mid)]
+                inline-flex items-center
+                font-sans text-ui font-medium
+                h-(--size-control-sm) px-(--size-control-padding-sm)
+                border border-divider
+                text-text-tertiary
                 rounded-sm
               "
             >
@@ -94,11 +94,11 @@ export function ProjectCard({
         </div>
       )}
 
-      <div className="mt-6 flex items-center gap-1.5 font-display text-sm text-[var(--color-text-primary)]">
-        <span className="border-b border-transparent group-hover:border-[var(--color-accent)] transition-colors duration-150">
+      <div className="mt-6 flex items-center gap-1 font-sans text-ui-lg text-text">
+        <span className="border-b border-transparent group-hover:border-accent-strong transition-colors duration-(--duration-fast)">
           {ctaLabel}
         </span>
-        <ArrowIcon className="transition-transform duration-200 group-hover:translate-x-0.5" />
+        <Icon icon={ArrowRight} className="transition-transform duration-(--duration-base) group-hover:translate-x-0.5" />
       </div>
     </Link>
   );

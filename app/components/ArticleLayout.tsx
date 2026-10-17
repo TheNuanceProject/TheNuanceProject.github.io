@@ -2,11 +2,15 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Container } from '~/components/Container';
-import { ArrowIcon } from '~/components/icons/ArrowIcon';
+import { ArrowLeft } from 'lucide-react';
+import { Icon } from '~/components/icons/Icon';
 import { Breadcrumbs } from '~/components/Breadcrumbs';
+import { NewerReleaseNotice } from '~/components/NewerReleaseNotice';
+import { allProjects } from '~/lib/content/projects';
 import {
   allWriting,
   adjacentWriting,
+  newerRelease,
   relatedWriting,
 } from '~/lib/content/writing';
 import type { ResolvedWriting } from '~/lib/content/types';
@@ -14,18 +18,19 @@ import type { ResolvedWriting } from '~/lib/content/types';
 interface ArticleLayoutProps {
   /** The resolved writing metadata from this piece's meta.ts */
   meta: ResolvedWriting;
-  /** The article body — use prose components from ~/components/writing-prose */
+  /** The article body: use prose components from ~/components/writing-prose */
   children: ReactNode;
 }
 
 /**
- * ArticleLayout — the standard wrapper for every writing piece.
+ * ArticleLayout: the standard wrapper for every writing piece.
  *
  * Provides the full chrome around an article's body:
  *   - Back link to /writing (top)
  *   - Date label
  *   - Large title
  *   - Description as a lead paragraph
+ *   - A notice when the project release it describes is no longer the latest
  *   - The article body (passed as children)
  *   - Footer with "Published X · Updated Y" and a second back link
  *
@@ -37,6 +42,7 @@ interface ArticleLayoutProps {
  */
 export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
   const { newer, older } = adjacentWriting(allWriting, meta.slug);
+  const later = newerRelease(meta.about, allProjects);
   const related = relatedWriting(allWriting, meta.slug, 3).filter(
     (r) => r.slug !== newer?.slug && r.slug !== older?.slug
   );
@@ -56,15 +62,15 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
         {/* ─── Date label ──────────────────────────────────────────── */}
         <p
           className="
-            text-xs font-display font-medium
-            uppercase tracking-[0.08em]
-            text-[var(--color-accent)]
+            text-label font-sans font-medium
+            uppercase
+            text-accent-strong
             mb-6
           "
         >
           {meta.displayDate}
           {meta.readingTime != null && (
-            <span className="text-[var(--color-text-mid)]">
+            <span className="text-text-tertiary">
               {' '}· {meta.readingTime} min read
             </span>
           )}
@@ -73,11 +79,10 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
         {/* ─── Title ───────────────────────────────────────────────── */}
         <h1
           className="
-            font-display font-normal
-            text-[2.25rem] md:text-[3rem]
-            leading-[1.1] tracking-[-0.02em]
-            text-[var(--color-text-primary)]
-            max-w-[var(--container-narrow)]
+            font-sans font-regular
+            text-title md:text-display-sm
+            text-text
+            max-w-narrow
           "
         >
           {meta.title}
@@ -87,17 +92,19 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
         <p
           className="
             mt-6 md:mt-8
-            font-body text-[19px] md:text-xl
-            leading-[1.55]
-            text-[var(--color-text-secondary)]
-            max-w-[var(--container-narrow)]
+            font-serif text-lead
+            text-text-secondary
+            max-w-narrow
           "
         >
           {meta.description}
         </p>
 
+        {/* ─── A later release of what the piece describes ─────────── */}
+        {later && <NewerReleaseNotice release={later} />}
+
         {/* ─── Body ────────────────────────────────────────────────── */}
-        <div className="article-body mt-12 md:mt-16 max-w-[var(--container-narrow)]">
+        <div className="article-body mt-12 md:mt-16 max-w-narrow">
           {children}
         </div>
 
@@ -105,7 +112,7 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
         {(older || newer || related.length > 0) && (
           <nav
             aria-label="More writing"
-            className="mt-20 pt-8 border-t border-[var(--color-border)] max-w-[var(--container-narrow)]"
+            className="mt-20 pt-8 border-t border-divider max-w-narrow"
           >
             {(older || newer) && (
               <div className="grid gap-8 sm:grid-cols-2">
@@ -116,10 +123,10 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
                       viewTransition
                       className="group block no-underline"
                     >
-                      <span className="block text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-text-mid)] mb-2">
+                      <span className="block text-label font-sans font-medium uppercase text-text-tertiary mb-2">
                         Older
                       </span>
-                      <span className="block font-display text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors duration-150">
+                      <span className="block font-sans text-text group-hover:text-accent-strong transition-colors duration-(--duration-fast)">
                         {older.title}
                       </span>
                     </Link>
@@ -132,10 +139,10 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
                       viewTransition
                       className="group block no-underline"
                     >
-                      <span className="block text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-text-mid)] mb-2">
+                      <span className="block text-label font-sans font-medium uppercase text-text-tertiary mb-2">
                         Newer
                       </span>
-                      <span className="block font-display text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors duration-150">
+                      <span className="block font-sans text-text group-hover:text-accent-strong transition-colors duration-(--duration-fast)">
                         {newer.title}
                       </span>
                     </Link>
@@ -145,7 +152,7 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
             )}
             {related.length > 0 && (
               <div className="mt-10">
-                <span className="block text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-text-mid)] mb-4">
+                <span className="block text-label font-sans font-medium uppercase text-text-tertiary mb-4">
                   Related reading
                 </span>
                 <ul className="space-y-3 list-none p-0 m-0">
@@ -154,7 +161,7 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
                       <Link
                         to={`/writing/${r.slug}`}
                         viewTransition
-                        className="font-display text-[var(--color-text-primary)] hover:text-[var(--color-accent)] transition-colors duration-150 no-underline"
+                        className="font-sans text-text hover:text-accent-strong transition-colors duration-(--duration-fast) no-underline"
                       >
                         {r.title}
                       </Link>
@@ -167,8 +174,8 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
         )}
 
         {/* ─── Footer ──────────────────────────────────────────────── */}
-        <footer className="mt-20 pt-8 border-t border-[var(--color-border)] max-w-[var(--container-narrow)]">
-          <p className="font-display text-sm text-[var(--color-text-mid)] mb-6">
+        <footer className="mt-20 pt-8 border-t border-divider max-w-narrow">
+          <p className="font-sans text-ui-lg text-text-tertiary mb-6">
             {meta.updatedDate ? (
               <>
                 Published {meta.publishedDate}
@@ -184,14 +191,14 @@ export function ArticleLayout({ meta, children }: ArticleLayoutProps) {
             viewTransition
             className="
               inline-flex items-center gap-2
-              font-display text-sm
-              text-[var(--color-text-mid)]
-              hover:text-[var(--color-text-primary)]
-              transition-colors duration-150
+              font-sans text-ui-lg
+              text-text-tertiary
+              hover:text-text
+              transition-colors duration-(--duration-fast)
               no-underline
             "
           >
-            <ArrowIcon className="rotate-180" />
+            <Icon icon={ArrowLeft} />
             <span>Back to writing</span>
           </Link>
         </footer>

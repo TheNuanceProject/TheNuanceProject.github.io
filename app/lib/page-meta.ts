@@ -13,11 +13,11 @@ import type { StructuredData } from './structured-data';
  *
  * Canonical URLs are normalised to a single trailing-slash form so
  * the canonical tag, sitemap, schema, and the path GitHub Pages
- * actually serves (`/about/`) all agree — no duplicate-URL signals.
+ * actually serves (`/about/`) all agree, no duplicate-URL signals.
  */
 
 interface PageMetaInput {
-  /** Page title — the site suffix is added automatically unless `titleAsIs` is true. */
+  /** Page title: the site suffix is added automatically unless `titleAsIs` is true. */
   readonly title: string;
   /** Short description used by search engines and link previews. */
   readonly description: string;
@@ -33,9 +33,9 @@ interface PageMetaInput {
   readonly ogImage?: string;
   /** Alt text for the Open Graph image. Falls back to the site name. */
   readonly ogImageAlt?: string;
-  /** For `ogType: 'article'` — ISO publish date. */
+  /** For `ogType: 'article'`: ISO publish date. */
   readonly articlePublishedTime?: string;
-  /** For `ogType: 'article'` — ISO last-modified date. */
+  /** For `ogType: 'article'`: ISO last-modified date. */
   readonly articleModifiedTime?: string;
 }
 
@@ -77,7 +77,7 @@ export function pageMeta(input: PageMetaInput): MetaDescriptor[] {
     // Canonical URL. Framework Mode supports link tags via `tagName`.
     { tagName: 'link', rel: 'canonical', href: canonical },
 
-    // Open Graph — covers LinkedIn, Facebook, Slack, WhatsApp.
+    // Open Graph: covers LinkedIn, Facebook, Slack, WhatsApp.
     { property: 'og:type', content: ogType },
     { property: 'og:site_name', content: siteConfig.identity.name },
     { property: 'og:url', content: canonical },

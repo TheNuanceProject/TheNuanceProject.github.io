@@ -17,6 +17,7 @@ import type { ProjectMeta } from '~/lib/content/types';
  *
  * Project-specific fields:
  *   - version: current version string
+ *   - license: the licence of the current version, as its SPDX short name
  *   - status: Active | Maintained | Archived
  *   - platforms: list of supported platforms
  *   - tagline: short, accessible copy for Home/Projects cards
@@ -28,15 +29,16 @@ export const meta: ProjectMeta = {
   slug: 'wiretrace',
   title: 'WireTrace',
   description: 'A serial data monitor for hardware and embedded engineers.',
-  published: '2026-02-25',
-  updated: '2026-06-21',
+  published: '2026-04-15',
+  updated: '2026-10-18',
 
-  version: '1.2.0',
+  version: '2.0.0',
+  license: 'GPL-3.0-or-later',
   status: 'Active',
   platforms: ['Windows', 'Linux'],
   tagline: 'A serial data monitor for hardware and embedded engineers.',
   productTagline:
-    'Multi-device, built for the throughput real hardware bring-up demands.',
+    'The serial monitor that keeps every line. Multi-device, fast, and honest about what it wrote.',
   downloadUrl:
     'https://github.com/TheNuanceProject/WireTrace/releases/latest',
   githubUrl: 'https://github.com/TheNuanceProject/WireTrace',

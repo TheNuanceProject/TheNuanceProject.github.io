@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { deriveDates, isValidIsoDate } from './dates';
 
 describe('isValidIsoDate', () => {
@@ -61,8 +61,25 @@ describe('deriveDates', () => {
 
   it('displayDate reflects updated month when present', () => {
     // Content that was updated in May should surface with May's label,
-    // not April's — this is how revised pieces bubble up on the index.
+    // not April's: this is how revised pieces bubble up on the index.
     const result = deriveDates('2026-04-15', '2026-05-01');
     expect(result.displayDate).toBe('May 2026');
+  });
+});
+
+describe('formatIsoDate', () => {
+  it('names the same day whatever the timezone it runs in', async () => {
+    const previous = process.env.TZ;
+    try {
+      for (const zone of ['Pacific/Kiritimati', 'Pacific/Pago_Pago', 'UTC']) {
+        process.env.TZ = zone;
+        vi.resetModules();
+        const { formatIsoDate: format } = await import('./dates');
+        expect(format('2026-04-15')).toBe('April 15, 2026');
+      }
+    } finally {
+      process.env.TZ = previous;
+      vi.resetModules();
+    }
   });
 });

@@ -2,7 +2,7 @@
 # native line endings on checkout. Prevents cross-platform diff noise.
 * text=auto eol=lf
 
-# Explicit text files — always LF regardless of platform
+# Explicit text files: always LF regardless of platform
 *.ts        text eol=lf
 *.tsx       text eol=lf
 *.js        text eol=lf
@@ -19,7 +19,7 @@
 CNAME       text eol=lf
 .nojekyll   text eol=lf
 
-# Binary files — never attempt diff or line-ending normalization
+# Binary files: never attempt diff or line-ending normalization
 *.png       binary
 *.jpg       binary
 *.jpeg      binary
@@ -33,8 +33,8 @@ CNAME       text eol=lf
 *.pdf       binary
 *.zip       binary
 
-# Lockfile — keep one line per entry, no wrapping
+# Lockfile: keep one line per entry, no wrapping
 package-lock.json text eol=lf
 
-# GitHub linguist — exclude generated files from language stats
+# GitHub linguist: exclude generated files from language stats
 dist/** linguist-generated=true

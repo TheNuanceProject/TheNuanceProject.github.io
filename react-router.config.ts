@@ -4,13 +4,15 @@ import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { STATIC_PAGES } from './scripts/pages.mjs';
+
 /**
  * React Router framework configuration.
  *
  * `ssr: false` together with a full `prerender()` path list produces
  * a static site: every URL the app responds to is rendered at build
  * time into its own HTML file. The output is served by any static
- * host (GitHub Pages, Cloudflare Pages, S3, etc.) — no runtime
+ * host (GitHub Pages, Cloudflare Pages, S3, etc.), no runtime
  * server required.
  *
  * Why a function instead of `prerender: true`:
@@ -21,7 +23,7 @@ import { fileURLToPath } from 'node:url';
  *   and `content/projects/` for folders that contain a `meta.ts`
  *   (and skip underscore-prefixed drafts). This keeps the config
  *   data-driven: adding a new essay or project folder is enough, no
- *   config edit needed — and guarantees every content page is
+ *   config edit needed. It also guarantees every content page is
  *   prerendered, never left to the SPA fallback.
  *
  * `buildDirectory: 'dist'` matches the existing deploy workflow,
@@ -33,14 +35,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONTENT_DIR = join(__dirname, 'content');
 
-const STATIC_PATHS = [
-  '/',
-  '/about',
-  '/projects',
-  '/writing',
-  '/privacy',
-  '/search',
-];
+/** Pages that are not discovered from `content/`: see scripts/pages.mjs. */
+const STATIC_PATHS = STATIC_PAGES.map((page) => page.path);
 
 /**
  * Discover slugs under `content/<kind>` that have a `meta.ts` whose

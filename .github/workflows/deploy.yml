@@ -1,17 +1,21 @@
 name: Deploy to GitHub Pages
 
-# Trigger: every push to main, and manual dispatch from the Actions UI.
+# Trigger: every push to main, every 12 hours (so the WireTrace usage
+# page and the releases shown are at most that old), and manual dispatch
+# from the Actions UI.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '17 */12 * * *'
   workflow_dispatch:
 
-# Permissions: the job needs to read the repo and write to GitHub Pages.
-# Everything else is denied by default for security.
+# Permissions: read the repository, nothing else. Only the deploy job,
+# which runs no code from the repository or its dependencies, may write
+# to GitHub Pages: the site publishes the WireTrace 1.x update file, so
+# no build step, lint rule or dependency script ever holds that right.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Only run one deployment at a time. Cancel any in-progress runs when a new
 # push comes in, so a late deploy doesn't overwrite a newer one.
@@ -22,31 +26,56 @@ concurrency:
 jobs:
   # ─── Build ─────────────────────────────────────────────────────────────
   # Installs dependencies deterministically from the lockfile, runs lint,
-  # builds the static site with Vite, and uploads the output as a Pages
-  # artifact. The deploy job then publishes that artifact.
+  # typecheck, and the unit tests, builds the static site with Vite, and
+  # uploads the output as a Pages artifact. The deploy job then publishes
+  # that artifact, so a failing gate stops the deploy.
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
+      # Exactly the locked versions, with no package's install script
+      # run: nothing a dependency ships runs before the checks do.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Licence headers
+        run: npm run spdx
+
+      # The stylesheet's tokens are made from design/; a hand edit or a
+      # token change without generating again fails here.
+      - name: Design tokens
+        run: npm run tokens:check
 
       - name: Lint
         run: npm run lint
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      # The build reads WireTrace's releases from GitHub's API and the
+      # update server's public summary. If either cannot be read or is
+      # not what is expected, the build fails and the site stays as it
+      # was. The workflow's own token, which can only read this public
+      # repository, gives the API calls GitHub's higher rate limit.
       - name: Build
         run: npm run build
         env:
           NODE_ENV: production
+          GITHUB_TOKEN: ${{ github.token }}
           VITE_CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.VITE_CLOUDFLARE_ANALYTICS_TOKEN }}
 
       # Belt-and-braces: make sure `.nojekyll` exists in the published
@@ -56,14 +85,11 @@ jobs:
       - name: Ensure .nojekyll is present
         run: touch ./dist/client/.nojekyll
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
       # `include-hidden-files: true` is required so the archive keeps
-      # `.nojekyll` — `actions/upload-pages-artifact@v3` excludes
+      # `.nojekyll`: `actions/upload-pages-artifact@v3` excludes
       # dotfiles by default.
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           path: ./dist/client
           include-hidden-files: true
@@ -76,10 +102,13 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

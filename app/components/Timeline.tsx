@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 
 /**
- * Timeline — a general, content-agnostic vertical timeline for prose.
+ * Timeline: a general, content-agnostic vertical timeline for prose.
  *
  * Composable and reusable by any writing piece: pass a sequence of
  * <TimelineItem> children, each with a `date` label and free-form body
@@ -22,20 +22,19 @@ interface TimelineItemProps {
 
 export function TimelineItem({ date, children }: TimelineItemProps) {
   return (
-    <li className="relative pl-6 pb-7 last:pb-0">
+    <li className="relative pl-6 pb-8 last:pb-0">
       <span
         aria-hidden="true"
         className="
-          absolute -left-[5px] top-1.5
-          h-2 w-2 rounded-full
-          border-2 border-[var(--color-paper)]
-          bg-[var(--color-accent)]
+          absolute left-0 -translate-x-1/2 top-1
+          size-(--size-status-dot) rounded-full
+          bg-accent
         "
       />
-      <div className="font-mono text-[12.5px] uppercase tracking-[0.04em] text-[var(--color-text-secondary)]">
+      <div className="font-mono text-label uppercase text-text-secondary">
         {date}
       </div>
-      <div className="font-body text-[16px] leading-[1.7] text-[var(--color-text-primary)] mt-1">
+      <div className="font-serif text-body text-text mt-1">
         {children}
       </div>
     </li>
@@ -48,7 +47,7 @@ interface TimelineProps {
 
 export function Timeline({ children }: TimelineProps) {
   return (
-    <ol className="relative list-none p-0 my-8 ml-1.5 border-l border-[var(--color-border)]">
+    <ol className="relative list-none p-0 my-8 ml-1 border-l border-divider">
       {children}
     </ol>
   );

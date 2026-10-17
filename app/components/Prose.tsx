@@ -8,7 +8,7 @@ interface ProseProps {
 }
 
 /**
- * Prose — wrapper for article-style serif body content.
+ * Prose: wrapper for article-style serif body content.
  *
  * Applies the site's long-form reading typography: Lora serif at
  * 17px with 1.75 line-height, a comfortable reading width, and
@@ -20,9 +20,9 @@ export function Prose({ children, className }: ProseProps) {
   return (
     <div
       className={cn(
-        'font-body text-[17px] leading-[1.75]',
-        'text-[var(--color-text-primary)]',
-        'max-w-[var(--container-narrow)]',
+        'font-serif text-reading',
+        'text-text',
+        'max-w-narrow',
         'space-y-6',
         className
       )}

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 /**
- * cn — conditional class name composer.
+ * cn: conditional class name composer.
  *
  * Accepts strings, numbers, falsy values (false, null, undefined), or
  * arrays of the same (nested arbitrarily deep). Flattens and joins the
  * truthy string/number values with spaces.
  *
- * No external dependency — matches the subset of `clsx` behavior we
+ * No external dependency: matches the subset of `clsx` behavior we
  * actually need.
  *
  * Examples:

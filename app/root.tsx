@@ -17,16 +17,27 @@ import { Footer } from '~/components/Footer';
 import { ThemeProvider } from '~/lib/theme';
 import { siteConfig } from '~/config/site.config';
 import { logConsoleSignature } from '~/lib/console-signature';
+import { COLOURS } from '~/lib/design-tokens';
 
+// The site's fonts, served from this site itself: no request leaves for
+// a font service. Each file covers only the characters it is needed for.
+import '@fontsource/lora/400.css';
+import '@fontsource/lora/600.css';
+import '@fontsource/lora/400-italic.css';
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/500.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
 import './styles/globals.css';
 
 /**
  * Root route.
  *
  * This module owns the HTML shell: everything outside the per-route
- * content. It sets up the document head (favicons, fonts, base
- * meta tags), wraps every page in `ThemeProvider`, and renders the
- * persistent chrome (Header, Footer) around the routed `<Outlet />`.
+ * content. It sets up the document head (favicons, base meta tags),
+ * loads the site's own fonts, wraps every page in `ThemeProvider`,
+ * and renders the persistent chrome (Header, Footer) around the
+ * routed `<Outlet />`.
  *
  * The `themeScript` block runs before React hydrates and reads the
  * user's saved preference (or their OS setting) to set the
@@ -35,7 +46,7 @@ import './styles/globals.css';
  *
  * The Cloudflare Web Analytics beacon is injected only when the
  * `VITE_CLOUDFLARE_ANALYTICS_TOKEN` environment variable is set at
- * build time — otherwise the script tag is simply omitted. This
+ * build time; otherwise the script tag is simply omitted. This
  * means the public repo stays free of analytics tokens while still
  * emitting the beacon in the production build.
  */
@@ -55,33 +66,22 @@ export const links: LinksFunction = () => [
     sizes: '180x180',
     href: '/apple-touch-icon.png',
   },
-  { rel: 'mask-icon', href: '/favicon.svg', color: '#D97757' },
+  { rel: 'mask-icon', href: '/favicon.svg', color: COLOURS.light.accent },
 
   // RSS feed (generated at build into dist/client/feed.xml).
   {
     rel: 'alternate',
     type: 'application/rss+xml',
-    title: `${siteConfig.identity.name} — Writing`,
+    title: `${siteConfig.identity.name}: Writing`,
     href: '/feed.xml',
   },
 
-  // Fonts — preconnect first, then the stylesheet.
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
-  },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Poppins:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap',
-  },
 ];
 
 // ─── Site-wide default meta ────────────────────────────────────────────
 // These defaults may be overridden by individual routes. Anything
 // that MUST be present on every single page regardless of the
-// route — viewport, charset, theme-color — lives in the Layout
+// route (viewport, charset, theme-color) lives in the Layout
 // JSX below, not here. React Router replaces the parent `meta`
 // array with the child's when a route exports its own `meta`, so
 // descriptors declared here would be lost on every non-root page.
@@ -104,7 +104,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         {/*
-          Static head elements — these are identical on every page and
+          Static head elements: these are identical on every page and
           must render on every page. Keeping them here as fixed JSX
           (rather than inside `meta`) ensures they survive per-route
           meta overrides.
@@ -117,12 +117,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta
           name="theme-color"
           media="(prefers-color-scheme: light)"
-          content="#FAF9F5"
+          content={COLOURS.light.paper}
         />
         <meta
           name="theme-color"
           media="(prefers-color-scheme: dark)"
-          content="#1A1A18"
+          content={COLOURS.dark.paper}
         />
 
         {/* Per-route meta and link tags injected by React Router. */}
@@ -163,12 +163,12 @@ export default function App() {
           href="#main"
           className="
             sr-only focus:not-sr-only
-            focus:fixed focus:top-4 focus:left-4 focus:z-[100]
+            focus:fixed focus:top-4 focus:left-4 focus:z-100
             focus:px-4 focus:py-2
-            focus:bg-[var(--color-paper)]
-            focus:border focus:border-[var(--color-text-primary)]
-            focus:rounded
-            focus:text-sm focus:font-display
+            focus:bg-paper
+            focus:border focus:border-text
+            focus:rounded-sm
+            focus:text-ui-lg focus:font-sans
           "
         >
           Skip to content
@@ -176,7 +176,7 @@ export default function App() {
         <Header />
         <main id="main" className="relative isolate flex-1 overflow-x-clip">
           <AmbientField />
-          <div className="relative z-[1]">
+          <div className="relative z-1">
             <Outlet />
           </div>
         </main>
@@ -194,7 +194,7 @@ export function ErrorBoundary({ error }: { error: unknown }) {
   const title = isResponse
     ? status === 404
       ? 'Page not found'
-      : `${status} — Something went wrong`
+      : `${status}: Something went wrong`
     : 'Something went wrong';
   const body =
     status === 404
@@ -208,15 +208,15 @@ export function ErrorBoundary({ error }: { error: unknown }) {
         <Header />
         <main id="main" className="relative isolate flex-1 overflow-x-clip">
           <AmbientField />
-          <div className="relative z-[1] max-w-[var(--container-default)] mx-auto px-6 md:px-12">
+          <div className="relative z-1 max-w-default mx-auto px-(--web-gutter-phone) md:px-(--web-gutter-tablet)">
             <section className="pt-20 md:pt-32 pb-20 md:pb-32">
-              <p className="text-xs font-display font-medium uppercase tracking-[0.08em] text-[var(--color-accent)] mb-6">
+              <p className="text-label font-sans font-medium uppercase text-accent-strong mb-6">
                 {status}
               </p>
-              <h1 className="font-display font-normal text-3xl md:text-[2.75rem] leading-[1.15] tracking-[-0.02em] text-[var(--color-text-primary)] mb-6">
+              <h1 className="font-sans font-regular text-display-sm text-text mb-6">
                 {title}
               </h1>
-              <p className="font-body text-[17px] leading-[1.75] text-[var(--color-text-secondary)] max-w-[var(--container-narrow)]">
+              <p className="font-serif text-reading text-text-secondary max-w-narrow">
                 {body}
               </p>
             </section>

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { siteConfig } from '~/config/site.config';
 
 /**
- * Logo — the "/TheNuanceProject" wordmark.
+ * Logo: the "/TheNuanceProject" wordmark.
  *
  * The forward slash is a path metaphor: this is a directory, a place
  * where work lives. The slash is rendered in accent orange and sits
@@ -28,9 +28,9 @@ export function Logo() {
         data-logo-slash=""
         className="
           inline-block origin-bottom
-          text-[var(--color-accent)] font-display font-normal
-          text-[17px] leading-none
-          transition-[color,transform] duration-200 ease-[var(--ease-out-quart)]
+          text-accent font-sans font-regular
+          text-reading
+          transition-[color,transform] duration-(--duration-base) ease-out
           group-hover:-translate-y-px group-hover:-rotate-12
           motion-reduce:transition-none
         "
@@ -39,10 +39,10 @@ export function Logo() {
       </span>
       <span
         className="
-          text-[var(--color-text-primary)] font-display font-normal
-          text-[15px] tracking-[-0.01em] leading-none
-          transition-colors duration-150
-          group-hover:text-[var(--color-text-secondary)]
+          text-text font-sans font-regular
+          text-body
+          transition-colors duration-(--duration-fast)
+          group-hover:text-text-secondary
         "
       >
         {siteConfig.identity.shortName}

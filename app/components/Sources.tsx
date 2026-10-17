@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 
 /**
- * Sources — a compact, reusable primary-sources block for prose.
+ * Sources: a compact, reusable primary-sources block for prose.
  *
  * Composable and content-agnostic: pass a sequence of <Source> children,
  * each a labelled link with a one-line description of what it is. Any
@@ -41,23 +41,23 @@ export function Source({ href, label, children }: SourceProps) {
         rel={isExternal ? 'noopener noreferrer' : undefined}
         className="
           group block no-underline
-          rounded-lg border border-[var(--color-border)]
-          px-4 py-3.5
-          hover:border-[var(--color-accent)]
-          transition-colors duration-150
+          rounded-lg border border-divider
+          px-4 py-3
+          hover:border-accent-strong
+          transition-colors duration-(--duration-fast)
         "
       >
         <div className="flex items-baseline justify-between gap-3">
-          <span className="font-display text-[15px] leading-snug text-[var(--color-text-primary)]">
+          <span className="font-sans text-body text-text">
             {label}
           </span>
           {host && (
-            <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.04em] text-[var(--color-text-mid)] group-hover:text-[var(--color-accent)] transition-colors duration-150">
+            <span className="shrink-0 font-mono text-label uppercase text-text-tertiary group-hover:text-accent-strong transition-colors duration-(--duration-fast)">
               {host}
             </span>
           )}
         </div>
-        <p className="font-body text-[14px] leading-[1.6] text-[var(--color-text-secondary)] mt-1.5">
+        <p className="font-serif text-ui-lg text-text-secondary mt-1">
           {children}
         </p>
       </a>

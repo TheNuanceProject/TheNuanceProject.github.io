@@ -44,7 +44,7 @@ export function personSchema(): StructuredData {
     familyName: 'Ambalatha Kandy',
     jobTitle: 'Software Engineer',
     description:
-      'Software engineer based in Bangalore, India. Builds software, writes, and runs The Nuance Project — an independent studio.',
+      'Software engineer based in Bangalore, India. Builds software, writes, and runs The Nuance Project, an independent studio.',
     url: siteConfig.identity.url,
     email: `mailto:${siteConfig.author.email}`,
     image: `${siteConfig.identity.url}/og-image.png`,

@@ -2,22 +2,25 @@
 import type { IsoDate, DerivedDates } from './types';
 
 /**
- * Date formatters — declared once, reused across the content system.
+ * Date formatters: declared once, reused across the content system.
  *
  * All formats use en-US for consistency with the rest of the site's
- * editorial voice. Times use noon UTC internally to avoid off-by-one
- * display issues in timezones east of GMT.
+ * editorial voice. A date is formatted in UTC, so it reads the same in
+ * every timezone and the page a visitor's browser renders matches the
+ * one that was built.
  */
 
 const monthYearFmt = new Intl.DateTimeFormat('en-US', {
   month: 'long',
   year: 'numeric',
+  timeZone: 'UTC',
 });
 
 const fullDateFmt = new Intl.DateTimeFormat('en-US', {
   month: 'long',
   day: 'numeric',
   year: 'numeric',
+  timeZone: 'UTC',
 });
 
 /**
@@ -55,4 +58,9 @@ export function deriveDates(
     updatedDate: updatedObj ? fullDateFmt.format(updatedObj) : null,
     sortDate,
   };
+}
+
+/** "April 15, 2026" for a YYYY-MM-DD date. */
+export function formatIsoDate(value: IsoDate): string {
+  return fullDateFmt.format(new Date(`${value}T12:00:00Z`));
 }

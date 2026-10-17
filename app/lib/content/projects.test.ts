@@ -4,7 +4,7 @@ import { allProjects, findProjectBySlug, latestActiveProjects } from './projects
 
 describe('projects loader', () => {
   it('loads at least one project', () => {
-    // WireTrace ships with the site — this test breaks loudly if the
+    // WireTrace ships with the site; this test breaks loudly if the
     // project loader or meta validation ever fails silently.
     expect(allProjects.length).toBeGreaterThan(0);
   });

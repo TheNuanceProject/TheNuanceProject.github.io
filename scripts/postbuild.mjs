@@ -5,11 +5,11 @@
  * Runs after `react-router build` via the `postbuild` npm hook.
  * Two concerns:
  *
- *   1. Sitemap generation — scans `content/` for projects and
+ *   1. Sitemap generation: scans `content/` for projects and
  *      writing pieces, combines them with static top-level routes,
  *      and writes `dist/client/sitemap.xml`.
  *
- *   2. GitHub Pages 404 handling — renames React Router's
+ *   2. GitHub Pages 404 handling. Renames React Router's
  *      `__spa-fallback.html` to `404.html` so GitHub Pages serves
  *      it for unknown paths. This preserves client-side routing
  *      for any edge case the pre-renderer cannot statically
@@ -29,7 +29,9 @@ import {
 } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withPolicy } from './csp.mjs';
 import { generateOgCards } from './og.mjs';
+import { STATIC_PAGES } from './pages.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -38,13 +40,13 @@ const SITE_TAGLINE =
   'A small studio for software, writing, and the work that lives outside of working hours.';
 const OUT_FILE = join(ROOT, 'dist', 'client', 'sitemap.xml');
 
-const STATIC_ROUTES = [
-  { path: '/', priority: '1.0', changefreq: 'weekly' },
-  { path: '/projects/', priority: '0.8', changefreq: 'weekly' },
-  { path: '/writing/', priority: '0.8', changefreq: 'weekly' },
-  { path: '/about/', priority: '0.7', changefreq: 'monthly' },
-  { path: '/privacy/', priority: '0.3', changefreq: 'yearly' },
-];
+/** The URL path of a page, with the trailing slash every page is served at. */
+const slashed = (path) => (path === '/' ? '/' : `${path}/`);
+
+const STATIC_ROUTES = STATIC_PAGES.filter((page) => page.sitemap).map((page) => ({
+  path: slashed(page.path),
+  ...page.sitemap,
+}));
 
 /** Extract slug and dates from a meta.ts file using regex. */
 function parseMetaFile(metaPath, kind) {
@@ -132,7 +134,7 @@ function buildSitemap(staticRoutes, dynamicPages) {
 }
 
 /**
- * Build `llms.txt` — a clean Markdown map of identity and content for
+ * Build `llms.txt`: a clean Markdown map of identity and content for
  * AI assistants (ChatGPT, Claude, Gemini, Perplexity). Generated from
  * the same discovered content as the sitemap, so it never drifts.
  */
@@ -174,7 +176,7 @@ function buildRssFeed(writing) {
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n` +
     `  <channel>\n` +
-    `    <title>${escapeXml('The Nuance Project — Writing')}</title>\n` +
+    `    <title>${escapeXml('The Nuance Project: Writing')}</title>\n` +
     `    <link>${SITE_URL}/writing/</link>\n` +
     `    <atom:link href="${SITE_URL}/feed.xml" rel="self" ` +
     `type="application/rss+xml" />\n` +
@@ -201,11 +203,9 @@ function buildLlmsTxt(projects, writing) {
     `Site: ${SITE_URL}`,
     '',
     '## Pages',
-    `- [Home](${SITE_URL}/): the studio's front door.`,
-    `- [Projects](${SITE_URL}/projects/): software shipped under the studio.`,
-    `- [Writing](${SITE_URL}/writing/): essays and notes.`,
-    `- [About](${SITE_URL}/about/): about the studio and Mohamad Shahin ` +
-      'Ambalatha Kandy (Shahin Hashim).',
+    ...STATIC_PAGES.filter((page) => page.llms).map(
+      (page) => `- [${page.title}](${SITE_URL}${slashed(page.path)}): ${page.llms}`
+    ),
   ];
   if (projects.length > 0) {
     lines.push('', '## Projects');
@@ -261,13 +261,8 @@ console.log('[postbuild] Wrote dist/client/feed.xml');
 
 // ─── Open Graph cards (per page) ───────────────────────────────────────
 const ogPages = [
-  { path: '/', title: SITE_TAGLINE },
-  { path: '/about', title: 'About' },
-  { path: '/projects', title: 'Projects' },
-  { path: '/writing', title: 'Writing' },
-  { path: '/privacy', title: 'Privacy' },
+  ...STATIC_PAGES.map((page) => ({ path: page.path, title: page.path === '/' ? SITE_TAGLINE : page.title })),
   { path: '/404', title: 'Page not found' },
-  { path: '/search', title: 'Search' },
   ...projects.map((p) => ({ path: `/projects/${p.slug}`, title: p.title })),
   ...writing.map((w) => ({ path: `/writing/${w.slug}`, title: w.title })),
 ];
@@ -281,11 +276,12 @@ console.log(`[postbuild] Wrote ${ogCount} OG cards to dist/client/og/`);
 
 // ─── search-index.json ─────────────────────────────────────────────────
 const searchIndex = [
-  { title: 'Home', url: '/', kind: 'page' },
-  { title: 'About', url: '/about/', kind: 'page' },
-  { title: 'Projects', url: '/projects/', kind: 'page' },
-  { title: 'Writing', url: '/writing/', kind: 'page' },
-  { title: 'Privacy', url: '/privacy/', kind: 'page' },
+  ...STATIC_PAGES.filter((page) => page.search).map((page) => ({
+    title: page.title,
+    ...(page.llms ? { description: page.llms } : {}),
+    url: slashed(page.path),
+    kind: 'page',
+  })),
   ...projects.map((p) => ({
     title: p.title,
     description: p.description,
@@ -320,13 +316,13 @@ if (existsSync(spaFallback)) {
 }
 
 // ─── Source greeting (D-11) ────────────────────────────────────────────
-// Inject a short HTML comment at the top of every prerendered page — a
+// Inject a short HTML comment at the top of every prerendered page, a
 // quiet hello for anyone who opens "view source". Idempotent via a marker
 // so re-runs never stack duplicate comments. Runs last so 404.html (created
 // by the rename above) is included.
 const GREETING = `<!--
   / the nuance project
-  Built by Shahin. If you are reading the source, hello — you found one.
+  Built by Shahin. If you are reading the source, hello, you found one.
   The site is open source: https://github.com/TheNuanceProject
 -->
 `;
@@ -355,3 +351,13 @@ for (const file of collectHtml(CLIENT_DIR)) {
   greeted += 1;
 }
 console.log(`[postbuild] Injected source greeting into ${greeted} HTML files`);
+
+// ─── Content Security Policy ───────────────────────────────────────────
+// Last, once every page is final: each page may run only the inline
+// scripts it was built with (see csp.mjs).
+let secured = 0;
+for (const file of collectHtml(CLIENT_DIR)) {
+  writeFileSync(file, withPolicy(readFileSync(file, 'utf8')), 'utf8');
+  secured += 1;
+}
+console.log(`[postbuild] Wrote the Content Security Policy of ${secured} HTML files`);

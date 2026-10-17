@@ -5,10 +5,12 @@ import { siteConfig } from '~/config/site.config';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { CommandPalette } from './CommandPalette';
+import { Menu, Search, X } from 'lucide-react';
 import { cn } from '~/lib/cn';
+import { Icon } from './icons/Icon';
 
 /**
- * Header — sticky top navigation with a responsive mobile menu.
+ * Header: sticky top navigation with a responsive mobile menu.
  *
  * Desktop (≥ 768px): inline nav + theme toggle.
  * Mobile (< 768px): hamburger button opens a slide-down panel. The
@@ -71,16 +73,16 @@ export function Header() {
     <header
       className="
         sticky top-0 z-50
-        border-b border-[var(--color-border)]
-        bg-[var(--color-paper)]/85
+        border-b border-divider
+        bg-paper/85
         backdrop-blur-md
-        transition-colors duration-250
+        transition-colors duration-(--duration-slow)
       "
     >
-      <div className="max-w-[var(--container-wide)] mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
+      <div className="max-w-wide mx-auto px-(--web-gutter-phone) md:px-(--web-gutter-tablet) h-16 flex items-center justify-between">
         <Logo />
 
-        {/* Desktop nav — inline links visible at md and above */}
+        {/* Desktop nav: inline links visible at md and above */}
         <nav
           aria-label="Primary"
           className="hidden md:flex items-center gap-8"
@@ -93,11 +95,11 @@ export function Header() {
               viewTransition
               className={({ isActive }) =>
                 cn(
-                  'link-underline font-display text-sm font-medium',
-                  'transition-colors duration-150',
+                  'link-underline font-sans text-ui-lg font-medium',
+                  'transition-colors',
                   isActive
-                    ? 'text-[var(--color-text-primary)]'
-                    : 'text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)]'
+                    ? 'text-text'
+                    : 'text-text hover:text-text-secondary'
                 )
               }
             >
@@ -109,10 +111,10 @@ export function Header() {
             type="button"
             aria-label="Search"
             onClick={() => setIsSearchOpen(true)}
-            className="flex items-center gap-2 font-display text-sm text-[var(--color-text-mid)] hover:text-[var(--color-text-primary)] transition-colors duration-150"
+            className="flex items-center gap-2 font-sans text-ui-lg text-text-tertiary hover:text-text transition-colors"
           >
-            <SearchIcon />
-            <span className="hidden lg:inline text-xs border border-[var(--color-border)] rounded px-1.5 py-0.5">
+            <Icon icon={Search} />
+            <span className="hidden lg:inline font-mono text-mono-sm bg-surface rounded-sm px-1">
               ⌘K
             </span>
           </button>
@@ -122,15 +124,15 @@ export function Header() {
           </div>
         </nav>
 
-        {/* Mobile controls — theme toggle + hamburger, visible below md */}
+        {/* Mobile controls: theme toggle + hamburger, visible below md */}
         <div className="flex items-center gap-2 md:hidden">
           <button
             type="button"
             aria-label="Search"
             onClick={() => setIsSearchOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-md text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[var(--color-surface)]"
+            className="flex size-(--size-control-lg) items-center justify-center rounded-sm text-text transition-colors hover:bg-divider"
           >
-            <SearchIcon />
+            <Icon icon={Search} size="md" />
           </button>
           <ThemeToggle />
           <button
@@ -140,23 +142,19 @@ export function Header() {
             aria-controls="mobile-nav-panel"
             onClick={() => setIsMenuOpen((v) => !v)}
             className="
-              flex h-10 w-10 items-center justify-center
-              rounded-md
-              text-[var(--color-text-primary)]
-              transition-colors duration-150
-              hover:bg-[var(--color-surface)]
-              focus-visible:outline-none
-              focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]
-              focus-visible:ring-offset-2
-              focus-visible:ring-offset-[var(--color-paper)]
+              flex size-(--size-control-lg) items-center justify-center
+              rounded-sm
+              text-text
+              transition-colors
+              hover:bg-divider
             "
           >
-            <MenuIcon open={isMenuOpen} />
+            <Icon icon={isMenuOpen ? X : Menu} size="md" />
           </button>
         </div>
       </div>
 
-      {/* Mobile panel — slides down below the header on small screens */}
+      {/* Mobile panel: slides down below the header on small screens */}
       <div
         id="mobile-nav-panel"
         role="dialog"
@@ -164,15 +162,15 @@ export function Header() {
         aria-hidden={!isMenuOpen}
         className={cn(
           'md:hidden overflow-hidden',
-          'border-b border-[var(--color-border)]',
-          'bg-[var(--color-paper)]',
-          'transition-[max-height,opacity] duration-250 ease-out',
+          'border-b border-divider',
+          'bg-paper',
+          'transition-[max-height,opacity] duration-(--duration-base) ease-out',
           isMenuOpen
             ? 'max-h-96 opacity-100'
             : 'max-h-0 opacity-0 pointer-events-none'
         )}
       >
-        <nav aria-label="Primary" className="px-6 py-4 flex flex-col">
+        <nav aria-label="Primary" className="px-(--web-gutter-phone) py-4 flex flex-col">
           {siteConfig.nav.map((item) => (
             <NavLink
               key={item.href}
@@ -181,12 +179,12 @@ export function Header() {
               viewTransition
               className={({ isActive }) =>
                 cn(
-                  'font-display text-base font-medium',
-                  'py-3 border-b border-[var(--color-border)] last:border-b-0',
-                  'transition-colors duration-150',
+                  'font-sans text-body font-medium',
+                  'py-3 border-b border-divider last:border-b-0',
+                  'transition-colors',
                   isActive
-                    ? 'text-[var(--color-accent)]'
-                    : 'text-[var(--color-text-primary)] hover:text-[var(--color-accent)]'
+                    ? 'text-accent-strong'
+                    : 'text-text hover:text-accent-strong'
                 )
               }
             >
@@ -198,59 +196,5 @@ export function Header() {
 
       {isSearchOpen && <CommandPalette onClose={closeSearch} />}
     </header>
-  );
-}
-
-/**
- * Inline SVG icon — hamburger that morphs to X when open.
- * Kept inline (rather than importing from lucide-react) so the icon
- * is part of the initial HTML paint with no extra bundle cost.
- */
-function MenuIcon({ open }: { readonly open: boolean }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {open ? (
-        <>
-          <line x1="5" y1="5" x2="15" y2="15" />
-          <line x1="15" y1="5" x2="5" y2="15" />
-        </>
-      ) : (
-        <>
-          <line x1="3" y1="6" x2="17" y2="6" />
-          <line x1="3" y1="10" x2="17" y2="10" />
-          <line x1="3" y1="14" x2="17" y2="14" />
-        </>
-      )}
-    </svg>
-  );
-}
-
-/** Inline magnifier icon for the search trigger. */
-function SearchIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="9" cy="9" r="6" />
-      <line x1="17" y1="17" x2="13.5" y2="13.5" />
-    </svg>
   );
 }
