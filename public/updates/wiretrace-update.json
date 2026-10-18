@@ -1,17 +1,17 @@
 {
-  "latest_version": "1.2.0",
-  "release_notes": "WireTrace v1.2.0\n\nMaintenance release. Linux binaries (AppImage and .deb) are now published, with working in-app updates.\n\nFixed\n- Data durability: atomic preferences save, concurrent log-write protection, fsync ordering\n- ANSI/VT100 escape codes stripped from console, log, CSV, and plot\n- CSV exports hardened against spreadsheet formula injection\n- Linux: serial port released immediately on disconnect; AppImage bundles its dependencies\n- The tab now resets when a device drops on its own\n- Custom plot patterns can no longer freeze the app\n- Window no longer opens off-screen after a monitor change\n\nFully backwards-compatible; no user action required to upgrade.",
+  "latest_version": "2.0.0",
+  "release_notes": "WireTrace v2.0.0\n\nA rebuilt WireTrace. The path from the serial port to the disk is new, and so is the interface.\n\nChanged\n- The log is written straight from the port to the disk and never waits for the window. On disconnect, an unplugged device or closing, everything waiting is written before the result is reported.\n- Every session is recorded from the moment of connection, the most recent 1 GB of each tab, so it can be exported without a log running and after the device has gone.\n- If the disk cannot keep up or fails, WireTrace says how many lines were not written and marks the place in the file.\n- A new interface: a list of ports that updates by itself, a toolbar in every tab, level filters with counts, and Light, Dark and System themes.\n- One design with thenuanceproject.com: the same colours, sizes and type, with the Poppins font included, so WireTrace looks the same on every computer and no text is cut off.\n- Updates are verified by signature, and checked every 12 hours while WireTrace is open.\n- Licence: GNU General Public License, version 3 or later. Versions 1.0.0 to 1.2.0 remain under the MIT License.\n\nAdded\n- Maximum log file size, a remembered log folder, saved commands, a HEX view, and firmware log levels (ESP-IDF, Zephyr).\n- The plot: point at it to read the values at any moment, measure between two cursors, and group values into panels by scale.\n- Usage statistics, off unless you switch them on.\n\nWhen updating from 1.x\n- Ctrl+S opens Export session (it was Quick Save), and the live plot is Ctrl+P.\n- Log files end lines with LF on every system. A preference restores CR LF.\n- On the first start, the theme is set to System and the console font and its size to the new defaults, once. The console text size is now in pixels. Every other setting is kept.\n\nEvery change: CHANGELOG.md in the repository. Privacy: https://thenuanceproject.com/privacy/",
   "min_version": "1.0.0",
   "platforms": {
-    "windows": {
-      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v1.2.0/WireTrace-Setup-v1.2.0.exe",
-      "file_size": 50592547,
-      "sha256_hash": "469b0ccbe8f74c20f4349af5d0214bc12934834a195ab0141cb965bfd5f73dce"
-    },
     "linux": {
-      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v1.2.0/WireTrace-v1.2.0-x86_64.AppImage",
-      "file_size": 104375488,
-      "sha256_hash": "3e1dcaf5ab88006af7902045b0a491f3822b803f18b9fbcd4a13eb11c5e442fc"
+      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v2.0.0/WireTrace-v2.0.0-x86_64.AppImage",
+      "file_size": 93297144,
+      "sha256_hash": "2113d661c0980d04dd6339fbd41838e987595d71815e02c89aac247814f31160"
+    },
+    "windows": {
+      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v2.0.0/WireTrace-Setup-v2.0.0.exe",
+      "file_size": 41915958,
+      "sha256_hash": "ecd0233b9ef4521792f7f7471016608559744d30d8e07fd40f24eebc936e12cd"
     }
   }
 }
