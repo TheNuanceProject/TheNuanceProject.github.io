@@ -9,7 +9,8 @@ import { UsageGlobe } from '~/components/usage/UsageGlobe';
 import { UsageTrend } from '~/components/usage/UsageTrend';
 import { countryNames, mapCodes } from '~/lib/build-data/country-names.server';
 import { getUsageSummary } from '~/lib/build-data/data.server';
-import { type UsageShare, dayDate } from '~/lib/build-data/usage-summary';
+import { type UsageShare, countryCodes, dayDate } from '~/lib/build-data/usage-summary';
+import { BUBBLE_FROM } from '~/lib/usage/clusters';
 import { useLiveSummary } from '~/lib/usage/live-summary';
 import { withRegionNames } from '~/lib/usage/region-names';
 import { formatIsoDate } from '~/lib/content/dates';
@@ -26,9 +27,9 @@ import { usage } from '../../content/projects/wiretrace/content';
  * Made from the update server's public summary. The page is built with
  * the summary of that moment, and when it opens in a browser it reads the
  * current one, which the server makes every hour (`useLiveSummary`). It
- * holds totals only: no count is published for any area or country.
- * Until the server has made its first summary the page says so, and shows
- * no figures.
+ * holds totals only: the installations of each country, and of each area
+ * of about 100 km on the last day it was seen. Until the server has made
+ * its first summary the page says so, and shows no figures.
  */
 
 const TITLE = 'Where WireTrace is used';
@@ -46,7 +47,7 @@ const SYSTEM_NAMES: Readonly<Record<string, string>> = {
 
 export async function loader() {
   const summary = await getUsageSummary(usage.summaryUrl);
-  return { summary, names: countryNames(summary?.countries ?? []), onMap: mapCodes() };
+  return { summary, names: countryNames(summary === null ? [] : countryCodes(summary)), onMap: mapCodes() };
 }
 
 export const meta = () =>
@@ -109,17 +110,20 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
   // The built names cover every country on the map and in the built
   // summary; one that only the current summary holds is named here.
   const names = useMemo(
-    () => withRegionNames(loaderData.names, summary?.countries ?? []),
+    () => withRegionNames(loaderData.names, summary === null ? [] : countryCodes(summary)),
     [loaderData.names, summary]
   );
   const outlined = useMemo(() => new Set(onMap), [onMap]);
   const [chosen, setChosen] = useState<string | null>(null);
-  const used = useMemo(() => new Set(summary?.countries ?? []), [summary]);
+  const installations = useMemo(
+    () => new Map((summary?.countries ?? []).map((country) => [country.code, country.installations])),
+    [summary]
+  );
   const countries = useMemo(
     () =>
       (summary?.countries ?? [])
-        .map((code) => ({ code, name: names[code] ?? code }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'en')),
+        .map(({ code, installations }) => ({ code, installations, name: names[code] ?? code }))
+        .sort((a, b) => b.installations - a.installations || a.name.localeCompare(b.name, 'en')),
     [summary, names]
   );
 
@@ -139,8 +143,11 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
         </h1>
         <p className="mt-6 md:mt-8 font-serif text-lead text-text-secondary max-w-narrow">
           Installations of {wtMeta.title} that checked for updates, and the areas of about 100 km
-          they checked from. Drag the globe to turn it, and point at a mark or a country to see its
-          name. Marks that pulse checked today or yesterday; steady ones within the last 30 days.
+          they checked from. Each dot is an installation; where an area has {BUBBLE_FROM} or more, or
+          areas lie close together, one marker gives their number, and zooming in shows them apart.
+          Drag the globe to turn it, scroll or use the buttons to zoom, and point at a marker or a
+          country to see its figures. Markers that pulse checked in today or yesterday; steady ones
+          within the last 30 days.
         </p>
       </section>
 
@@ -163,22 +170,29 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
           </section>
 
           <section className="py-14 md:py-16">
-            <UsageGlobe places={summary.places} used={used} names={names} chosen={chosen} />
+            <UsageGlobe
+              places={summary.places}
+              day={summary.day}
+              installations={installations}
+              names={names}
+              chosen={chosen}
+            />
             <div className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-2 font-sans text-ui text-text-secondary">
               <span className="inline-flex items-center gap-2">
                 <span aria-hidden="true" className="h-2 w-2 rounded-full bg-accent" />
-                Checked in the last two days
+                Checked in today or yesterday
               </span>
               <span className="inline-flex items-center gap-2">
                 <span aria-hidden="true" className="h-2 w-2 rounded-full bg-text-secondary" />
                 Within the last 30 days
               </span>
-              <span>Arrow keys turn it, + and &minus; zoom</span>
+              <span>Arrow keys turn it; scroll, + and &minus; zoom</span>
             </div>
-            {/* The marks come from the server's places, which run to today;
-                the counts from complete days only (the summary's day). */}
-            <p className="mt-3 text-center font-sans text-ui text-text-secondary">
-              Marks include today. The counts cover complete days (UTC), up to{' '}
+            {/* The dots come from the server's places, which run to today;
+                the other counts from complete days only (the summary's day). */}
+            <p className="mt-3 mx-auto max-w-narrow text-center font-sans text-ui text-text-secondary">
+              An area shows the installations that checked in from it on the last day it was seen,
+              today included. The other counts cover complete days (UTC), up to{' '}
               {formatIsoDate(dayDate(summary.day))}.
             </p>
           </section>
@@ -206,25 +220,33 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
             {countries.length === 0 ? (
               <p className="font-sans text-ui-lg text-text-secondary">None in the last 30 days.</p>
             ) : (
-              <ul className="m-0 list-none p-0 columns-2 sm:columns-3 gap-8 font-sans text-ui-lg">
-                {countries.map(({ code, name }) => (
-                  <li key={code} className="mb-2 break-inside-avoid">
-                    {/* A country too small for the map's outlines is named, not chosen. */}
-                    {!outlined.has(code) ? (
-                      <span className="text-text-secondary">{name}</span>
-                    ) : (
-                    <button
-                      type="button"
-                      aria-pressed={chosen === code}
-                      onClick={() => setChosen(chosen === code ? null : code)}
-                      className="cursor-pointer border-b border-transparent text-left text-text-secondary hover:text-text aria-pressed:border-accent-strong aria-pressed:text-text"
-                    >
-                      {name}
-                    </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="m-0 grid list-none gap-x-8 gap-y-2 p-0 sm:grid-cols-2 md:grid-cols-3 font-sans text-ui-lg">
+                  {countries.map(({ code, name, installations: count }) => (
+                    <li key={code} className="flex min-w-0 items-baseline justify-between gap-3">
+                      {/* A country too small for the map's outlines is named, not chosen. */}
+                      {!outlined.has(code) ? (
+                        <span className="min-w-0 truncate text-text-secondary">{name}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          aria-pressed={chosen === code}
+                          onClick={() => setChosen(chosen === code ? null : code)}
+                          className="min-w-0 truncate cursor-pointer border-b border-transparent text-left text-text-secondary hover:text-text aria-pressed:border-accent-strong aria-pressed:text-text"
+                        >
+                          {name}
+                        </button>
+                      )}
+                      <span className="shrink-0 font-mono text-ui text-text-secondary tabular-nums">
+                        {number.format(count)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-6 font-sans text-ui-lg text-text-secondary max-w-narrow">
+                  Installations active in each country in the last 30 days, each counted once.
+                </p>
+              </>
             )}
           </Section>
 
@@ -233,9 +255,17 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
               <p>
                 Totals up to {formatIsoDate(dayDate(summary.day))}, made from the update checks of{' '}
                 {wtMeta.title} 2.x. The update server makes them every hour, and this page reads them
-                when it opens. A mark sits at a fixed point inside its
-                one-degree area, never where a computer is, and no count is shown for any area or country.
-                The map is drawn in your browser from{' '}
+                when it opens. The marker of an area is drawn at a fixed point inside its
+                one-degree area, never where a computer is. An area is named after its largest place,
+                from{' '}
+                <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
+                  GeoNames
+                </a>{' '}
+                (
+                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
+                  CC BY 4.0
+                </a>
+                ). The map is drawn in your browser from{' '}
                 <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
                   Natural Earth
                 </a>{' '}

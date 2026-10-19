@@ -13,7 +13,9 @@ import type { Feature, Geometry, MultiLineString } from 'geojson';
 import { feature as toFeatures, mesh } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 
-import type { UsagePlace } from '~/lib/build-data/usage-summary';
+import { type UsagePlace, dayDate } from '~/lib/build-data/usage-summary';
+import { formatIsoDate } from '~/lib/content/dates';
+import { DOT_RADIUS, type Marker, clusterMarkers, dotsOf, BUBBLE_FROM } from '~/lib/usage/clusters';
 import { Minus, Plus } from 'lucide-react';
 import { Icon } from '~/components/icons/Icon';
 
@@ -31,8 +33,11 @@ type World = Topology<{ countries: GeometryCollection<CountryProperties> }>;
 
 interface UsageGlobeProps {
   readonly places: readonly UsagePlace[];
-  /** Codes of the countries WireTrace is used in. */
-  readonly used: ReadonlySet<string>;
+  /** The last complete day the summary covers: an area seen on it or
+   *  later pulses. */
+  readonly day: number;
+  /** Installations active in the last 30 days, by country code. */
+  readonly installations: ReadonlyMap<string, number>;
   /** The English name of each country code. */
   readonly names: Readonly<Record<string, string>>;
   /** A country to turn the globe to and outline, or null. */
@@ -40,18 +45,32 @@ interface UsageGlobeProps {
 }
 
 const ZOOM_MIN = 1;
-/** No closer than this, so a mark is never read as finer than its area. */
-const ZOOM_MAX = 3;
+/** Close enough for neighbouring areas to show apart. A marker stays at
+ *  its fixed point inside its area, so zooming shows nothing finer. */
+const ZOOM_MAX = 8;
 const ZOOM_STEP = 1.5;
 const TILT_LIMIT = 80;
 const SPIN_DEGREES_PER_FRAME = 0.05;
 const TURN_EASING = 0.12;
 const KEY_STEP_DEGREES = 10;
+/** Wheel steps reported in lines are taken as this many pixels each. */
+const WHEEL_LINE_PIXELS = 16;
+/** Zoom changes by e^(-k·pixels) for a wheel turn of that many pixels. */
+const WHEEL_ZOOM_PER_PIXEL = 0.002;
 const PULSE_MS = 2400;
-const MARK_RADIUS = 4;
-const MARK_RADIUS_HOVER = 6;
+const MARKER_OUTLINE = 1;
+const MARKER_OUTLINE_HOVER = 1.5;
+/** A bubble's number is set this high for each pixel of its radius, and
+ *  smaller if it would not fit within its padding. */
+const BUBBLE_FONT_PER_RADIUS = 0.95;
+const BUBBLE_TEXT_PADDING = 3;
+/** From this many installations, a bubble writes its number in short. */
+const BUBBLE_SHORT_FROM = 1000;
+/** The areas a merged marker names, largest first; the rest are counted. */
+const MERGED_AREAS_LISTED = 5;
 const PULSE_GROWTH = 14;
-const PICK_DISTANCE = 12;
+/** How far outside a marker the pointer still picks it, in pixels. */
+const PICK_MARGIN = 6;
 const EDGE_MARGIN = 2;
 /** A mark this close to the edge of the visible half is left out. */
 const HORIZON_MARGIN = 0.02;
@@ -64,11 +83,40 @@ interface Hover {
   readonly x: number;
   readonly y: number;
   readonly title: string;
-  readonly detail: string;
+  readonly lines: readonly string[];
+}
+
+/** A marker as the globe draws it this frame, with its areas. */
+interface Shown {
+  readonly marker: Marker;
+  /** Its areas, most installations first. */
+  readonly places: readonly UsagePlace[];
+  /** Whether an area in it was seen on the summary's day or later. */
+  readonly recent: boolean;
+  /** Names the marker by its areas, so a hovered one is found again. */
+  readonly key: string;
+}
+
+const number = new Intl.NumberFormat('en-US');
+const shortNumber = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+
+function installationsText(count: number): string {
+  return `${number.format(count)} ${count === 1 ? 'installation' : 'installations'}`;
+}
+
+/** Most installations first, so a merged marker names its largest areas
+ *  first and the largest areas gather the others; the rest in a fixed
+ *  order. */
+function layoutOrder(a: UsagePlace, b: UsagePlace): number {
+  return b.installations - a.installations || b.seen - a.seen || a.lat - b.lat || a.lon - b.lon;
 }
 
 function clampTilt(value: number): number {
   return Math.max(-TILT_LIMIT, Math.min(TILT_LIMIT, value));
+}
+
+function clampZoom(value: number): number {
+  return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, value));
 }
 
 function token(name: string): string {
@@ -77,12 +125,13 @@ function token(name: string): string {
 
 /**
  * UsageGlobe: a globe drawn in the visitor's browser from public-domain
- * map data served by this site, with a mark for each area WireTrace was
- * used in. It can be turned by dragging or with the arrow keys, zoomed
- * with its buttons or + and -, and names a mark or a country under the
- * pointer. Nothing is loaded from anywhere else.
+ * map data served by this site, with the installations of each area as
+ * dots, or as a bubble with their number, merged with nearby areas until
+ * zooming in leaves them room (`~/lib/usage/clusters`). It can be turned by dragging or with the arrow keys, zoomed with the mouse
+ * wheel, its buttons or + and -, and gives the figures of an area or a
+ * country under the pointer. Nothing is loaded from anywhere else.
  */
-export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
+export function UsageGlobe({ places, day, installations, names, chosen }: UsageGlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [countries, setCountries] = useState<Country[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -93,7 +142,7 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
     zoom: ZOOM_MIN,
     dragging: null as { x: number; y: number } | null,
     target: null as [number, number] | null,
-    hoverMark: null as UsagePlace | null,
+    hoverKey: null as string | null,
     hoverCountry: null as Country | null,
     chosen,
   });
@@ -144,8 +193,13 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
     const path = geoPath(projection, context);
     const sphere: GeoPermissibleObjects = { type: 'Sphere' };
     const graticule = geoGraticule10();
+    const ordered = [...places].sort(layoutOrder);
+    const recent = (place: UsagePlace) => place.seen >= day;
     let size = 0;
     let frame = 0;
+    /** The markers as last laid out, and the view they were laid out for. */
+    let laidOut: Shown[] = [];
+    let laidOutFor = '';
 
     const resize = () => {
       const ratio = window.devicePixelRatio || 1;
@@ -168,6 +222,8 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
       paper: token('--color-paper'),
       accent: token('--color-accent'),
       steady: token('--color-text-secondary'),
+      text: token('--color-text'),
+      font: token('--font-sans'),
     });
     let colours = readColours();
     let themeVersion = 0;
@@ -179,6 +235,45 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
 
     /** Whether a point on the canvas lies on the globe's disc. */
     const onDisc = (x: number, y: number) => Math.hypot(x - size / 2, y - size / 2) <= size / 2 - EDGE_MARGIN;
+
+    /** The markers of the areas on the visible half, for the current
+     *  view. The projection must already be set for it. */
+    const layout = (): Shown[] => {
+      const key = [state.rotation.join(','), state.zoom, size].join('|');
+      if (key === laidOutFor) return laidOut;
+      const seen: { place: UsagePlace; x: number; y: number }[] = [];
+      for (const place of ordered) {
+        if (!visible(place)) continue;
+        const point = projection([place.lon, place.lat]);
+        if (point) seen.push({ place, x: point[0], y: point[1] });
+      }
+      const markers = clusterMarkers(seen.map(({ x, y, place }) => ({ x, y, count: place.installations })));
+      laidOut = markers.map((marker) => {
+        const members = marker.members.map((i) => (seen[i] as (typeof seen)[number]).place);
+        return {
+          marker,
+          places: members,
+          recent: members.some(recent),
+          key: members.map((place) => places.indexOf(place)).join(','),
+        };
+      });
+      laidOutFor = key;
+      return laidOut;
+    };
+
+    /** A bubble's number, as large as fits inside it. */
+    const bubbleText = (marker: Marker) => {
+      const text = marker.count >= BUBBLE_SHORT_FROM ? shortNumber.format(marker.count) : number.format(marker.count);
+      let fontSize = marker.radius * BUBBLE_FONT_PER_RADIUS;
+      context.font = `500 ${fontSize}px ${colours.font}`;
+      const room = 2 * (marker.radius - BUBBLE_TEXT_PADDING);
+      const width = context.measureText(text).width;
+      if (width > room) {
+        fontSize *= room / width;
+        context.font = `500 ${fontSize}px ${colours.font}`;
+      }
+      return text;
+    };
 
     const draw = (time: number) => {
       const radius = size / 2 - EDGE_MARGIN;
@@ -200,7 +295,7 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
       for (const country of countries) {
         context.beginPath();
         path(country);
-        context.fillStyle = used.has(country.properties.code) ? colours.used : colours.land;
+        context.fillStyle = installations.has(country.properties.code) ? colours.used : colours.land;
         context.fill();
         if (country === state.hoverCountry || (state.chosen && country.properties.code === state.chosen)) {
           context.strokeStyle = colours.accent;
@@ -216,27 +311,38 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
         context.stroke();
       }
       const phase = reduced.matches ? 0 : (time % PULSE_MS) / PULSE_MS;
-      for (const place of places) {
-        if (!visible(place)) continue;
-        const point = projection([place.lon, place.lat]);
-        if (!point) continue;
-        const [x, y] = point;
-        if (place.pulse && !reduced.matches) {
+      for (const shown of layout()) {
+        const { marker } = shown;
+        if (shown.recent && !reduced.matches) {
           context.beginPath();
-          context.arc(x, y, MARK_RADIUS + phase * PULSE_GROWTH, 0, 2 * Math.PI);
+          context.arc(marker.x, marker.y, marker.radius + phase * PULSE_GROWTH, 0, 2 * Math.PI);
           context.strokeStyle = colours.accent;
           context.globalAlpha = 1 - phase;
           context.lineWidth = 1.5;
           context.stroke();
           context.globalAlpha = 1;
         }
-        context.beginPath();
-        context.arc(x, y, place === state.hoverMark ? MARK_RADIUS_HOVER : MARK_RADIUS, 0, 2 * Math.PI);
-        context.fillStyle = place.pulse ? colours.accent : colours.steady;
-        context.fill();
-        context.lineWidth = 1.5;
-        context.strokeStyle = colours.paper;
-        context.stroke();
+        const hovered = shown.key === state.hoverKey;
+        const circles: [number, number, number][] =
+          marker.count < BUBBLE_FROM
+            ? dotsOf(marker.count).map(([dx, dy]) => [marker.x + dx, marker.y + dy, DOT_RADIUS])
+            : [[marker.x, marker.y, marker.radius]];
+        for (const [x, y, r] of circles) {
+          context.beginPath();
+          context.arc(x, y, r, 0, 2 * Math.PI);
+          context.fillStyle = shown.recent ? colours.accent : colours.steady;
+          context.fill();
+          context.lineWidth = hovered ? MARKER_OUTLINE_HOVER : MARKER_OUTLINE;
+          context.strokeStyle = hovered ? colours.text : colours.paper;
+          context.stroke();
+        }
+        if (marker.count >= BUBBLE_FROM) {
+          const text = bubbleText(marker);
+          context.fillStyle = colours.paper;
+          context.textAlign = 'center';
+          context.textBaseline = 'middle';
+          context.fillText(text, marker.x, marker.y);
+        }
       }
       context.restore();
       context.beginPath();
@@ -251,7 +357,7 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
     // sight, so an idle or hidden globe costs nothing.
     let shown = '';
     let onScreen = false;
-    const pulsing = () => !reduced.matches && places.some((place) => place.pulse && visible(place));
+    const pulsing = () => !reduced.matches && places.some((place) => recent(place) && visible(place));
 
     const tick = (time: number) => {
       if (state.target) {
@@ -262,12 +368,12 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
           0,
         ];
         if (Math.abs(lon - state.rotation[0]) < 0.1 && Math.abs(lat - state.rotation[1]) < 0.1) state.target = null;
-      } else if (!state.dragging && !state.hoverMark && !state.hoverCountry && !state.chosen && !reduced.matches) {
+      } else if (!state.dragging && !state.hoverKey && !state.hoverCountry && !state.chosen && !reduced.matches) {
         state.rotation[0] += SPIN_DEGREES_PER_FRAME;
       }
       const view = [
         state.rotation.join(','), state.zoom, size, themeVersion, state.chosen,
-        places.indexOf(state.hoverMark as UsagePlace), state.hoverCountry?.properties.name ?? '',
+        state.hoverKey ?? '', state.hoverCountry?.properties.name ?? '',
       ].join('|');
       if (view !== shown || pulsing()) {
         draw(time);
@@ -284,7 +390,7 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
 
     const nameOf = (country: Country) => names[country.properties.code] ?? country.properties.name;
 
-    /** The country most of a mark's one-degree area lies in, if any. */
+    /** The country most of an area lies in, if any. */
     const countryOfArea = (place: UsagePlace): Country | undefined => {
       const south = Math.floor(place.lat);
       const west = Math.floor(place.lon);
@@ -303,31 +409,57 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
       return best;
     };
 
+    /** An area's name: its largest place and country, else the country
+     *  it lies in. */
+    const areaName = (place: UsagePlace): { name: string; named: boolean } => {
+      if (place.area) {
+        return { name: `${place.area.name}, ${names[place.area.country] ?? place.area.country}`, named: true };
+      }
+      const home = countries.find((c) => geoContains(c, [place.lon, place.lat])) ?? countryOfArea(place);
+      return { name: home ? `An area in ${nameOf(home)}` : 'An area at sea', named: false };
+    };
+
+    /** What the tooltip says of a marker. */
+    const describe = (shown: Shown): Omit<Hover, 'x' | 'y'> => {
+      const [only] = shown.places;
+      if (only && shown.places.length === 1) {
+        const { name, named } = areaName(only);
+        const date = formatIsoDate(dayDate(only.seen));
+        const today = only.seen > day ? ' (today, so far)' : '';
+        return {
+          title: named ? `Around ${name}` : name,
+          lines: [`${installationsText(only.installations)} checked in on ${date}${today}`],
+        };
+      }
+      const listed = shown.places.slice(0, MERGED_AREAS_LISTED);
+      const rest = shown.places.length - listed.length;
+      return {
+        title: `${installationsText(shown.marker.count)} in ${number.format(shown.places.length)} areas`,
+        lines: [
+          ...listed.map((place) => `${areaName(place).name}: ${number.format(place.installations)}`),
+          ...(rest > 0 ? [`and ${number.format(rest)} more ${rest === 1 ? 'area' : 'areas'}; zoom in to see them`] : []),
+        ],
+      };
+    };
+
     const pick = (px: number, py: number) => {
-      state.hoverMark = null;
+      state.hoverKey = null;
       state.hoverCountry = null;
-      let best: UsagePlace | null = null;
-      let distance = PICK_DISTANCE;
-      for (const place of places) {
-        if (!visible(place)) continue;
-        const point = projection([place.lon, place.lat]);
-        if (!point || !onDisc(point[0], point[1])) continue;
-        const d = Math.hypot(point[0] - px, point[1] - py);
+      projection.rotate(state.rotation).scale((size / 2 - EDGE_MARGIN) * state.zoom);
+      let best: Shown | null = null;
+      let distance = PICK_MARGIN;
+      for (const shown of layout()) {
+        const { marker } = shown;
+        if (!onDisc(marker.x, marker.y)) continue;
+        const d = Math.hypot(marker.x - px, marker.y - py) - marker.radius;
         if (d < distance) {
-          best = place;
+          best = shown;
           distance = d;
         }
       }
       if (best) {
-        const point = projection([best.lon, best.lat]) as [number, number];
-        const home = countries.find((c) => geoContains(c, [best.lon, best.lat])) ?? countryOfArea(best);
-        state.hoverMark = best;
-        setHover({
-          x: point[0],
-          y: point[1],
-          title: home ? nameOf(home) : 'An area at sea',
-          detail: best.pulse ? 'Checked in the last two days' : 'Checked within the last 30 days',
-        });
+        state.hoverKey = best.key;
+        setHover({ x: best.marker.x, y: best.marker.y - best.marker.radius, ...describe(best) });
         return;
       }
       if (!onDisc(px, py)) {
@@ -341,12 +473,19 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
         return;
       }
       state.hoverCountry = country;
+      const active = installations.get(country.properties.code);
       setHover({
         x: px,
         y: py,
         title: nameOf(country),
-        detail: used.has(country.properties.code) ? 'WireTrace is used here' : 'No installation seen in 30 days',
+        lines: [active ? `${installationsText(active)} active in the last 30 days` : 'No installation seen in 30 days'],
       });
+    };
+
+    const forget = () => {
+      state.hoverKey = null;
+      state.hoverCountry = null;
+      setHover(null);
     };
 
     const local = (event: PointerEvent) => {
@@ -387,9 +526,20 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
       // A finger lifted from a touch screen also leaves: what the tap
       // named stays until the next tap.
       if (state.dragging || event.pointerType !== 'mouse') return;
-      state.hoverMark = null;
-      state.hoverCountry = null;
-      setHover(null);
+      forget();
+    };
+    // The wheel zooms. At the closest or farthest zoom it is left to the
+    // page, which scrolls on.
+    const onWheel = (event: WheelEvent) => {
+      const unit =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE ? WHEEL_LINE_PIXELS
+        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? size
+        : 1;
+      const next = clampZoom(state.zoom * Math.exp(-event.deltaY * unit * WHEEL_ZOOM_PER_PIXEL));
+      if (next === state.zoom) return;
+      event.preventDefault();
+      state.zoom = next;
+      forget();
     };
     const onKey = (event: KeyboardEvent) => {
       const steps: Record<string, [number, number]> = {
@@ -399,9 +549,9 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
         ArrowDown: [0, -KEY_STEP_DEGREES],
       };
       if (event.key === '+' || event.key === '=') {
-        state.zoom = Math.min(ZOOM_MAX, state.zoom * ZOOM_STEP);
+        state.zoom = clampZoom(state.zoom * ZOOM_STEP);
       } else if (event.key === '-') {
-        state.zoom = Math.max(ZOOM_MIN, state.zoom / ZOOM_STEP);
+        state.zoom = clampZoom(state.zoom / ZOOM_STEP);
       } else if (steps[event.key]) {
         const [dLon, dLat] = steps[event.key] as [number, number];
         state.target = null;
@@ -410,7 +560,7 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
         return;
       }
       event.preventDefault();
-      setHover(null);
+      forget();
     };
 
     const observer = new ResizeObserver(resize);
@@ -422,6 +572,7 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
     canvas.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('pointercancel', onCancel);
     canvas.addEventListener('keydown', onKey);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
     sight.observe(canvas);
     return () => {
       cancelAnimationFrame(frame);
@@ -434,12 +585,15 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
       canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('pointercancel', onCancel);
       canvas.removeEventListener('keydown', onKey);
+      canvas.removeEventListener('wheel', onWheel);
     };
-  }, [countries, places, used, names]);
+  }, [countries, places, day, installations, names]);
 
   const zoom = (factor: number) => {
     const state = view.current;
-    state.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, state.zoom * factor));
+    state.zoom = clampZoom(state.zoom * factor);
+    state.hoverKey = null;
+    state.hoverCountry = null;
     setHover(null);
   };
 
@@ -449,7 +603,7 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
         ref={canvasRef}
         tabIndex={0}
         role="img"
-        aria-label="A globe with a mark for each area of about 100 km where WireTrace was used in the last 30 days. The same countries are listed below."
+        aria-label="A globe with the WireTrace installations of each area of about 100 km they checked in from, as dots or as a number. The countries and their installations are listed below."
         className="block h-full w-full cursor-grab rounded-full active:cursor-grabbing"
       />
       {failed && (
@@ -464,7 +618,11 @@ export function UsageGlobe({ places, used, names, chosen }: UsageGlobeProps) {
           style={{ left: hover.x, top: hover.y }}
         >
           {hover.title}
-          <span className="block text-ui text-text-secondary">{hover.detail}</span>
+          {hover.lines.map((line, i) => (
+            <span key={i} className="block text-ui text-text-secondary">
+              {line}
+            </span>
+          ))}
         </div>
       )}
       <div className="absolute bottom-0 right-0 grid gap-2">

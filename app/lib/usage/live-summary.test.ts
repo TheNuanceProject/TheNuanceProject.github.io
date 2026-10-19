@@ -12,10 +12,10 @@ function written(changes: Record<string, unknown> = {}): Record<string, unknown>
   return {
     day: 20_743,
     active: { day: 2, week: 2, month: 2 },
-    countries: ['IN'],
+    countries: [{ code: 'IN', installations: 2 }],
     versions: [{ name: '2.0.0', share: 1 }],
     systems: [{ name: 'windows', share: 1 }],
-    places: [{ lat: 12.5, lon: 77.5, pulse: true }],
+    places: [{ lat: 12.5, lon: 77.5, seen: 20_744, installations: 2, area: { name: 'Bengaluru', country: 'IN' } }],
     legacyChecks: 0,
     trend: { start: 20_654, counts: [...Array.from({ length: 89 }, () => 0), 2] },
     ...changes,
@@ -103,13 +103,26 @@ describe('laterSummary', () => {
   });
 
   it('takes a summary of the same day, made later in it', () => {
-    const next = readUsageSummary(written({ places: [{ lat: 12.5, lon: 77.5, pulse: true }, { lat: 48.5, lon: 2.5, pulse: true }] }));
+    const next = readUsageSummary(
+      written({
+        places: [
+          { lat: 12.5, lon: 77.5, seen: 20_744, installations: 2, area: { name: 'Bengaluru', country: 'IN' } },
+          { lat: 48.5, lon: 2.5, seen: 20_744, installations: 1, area: { name: 'Paris', country: 'FR' } },
+        ],
+      })
+    );
 
     expect(laterSummary(built, next)).toBe(next);
   });
 
   it('keeps the summary it has over one of an earlier day', () => {
-    const earlier = readUsageSummary(written({ day: 20_742, trend: { start: 20_653, counts: [...Array.from({ length: 89 }, () => 0), 2] } }));
+    const earlier = readUsageSummary(
+      written({
+        day: 20_742,
+        places: [{ lat: 12.5, lon: 77.5, seen: 20_743, installations: 2, area: { name: 'Bengaluru', country: 'IN' } }],
+        trend: { start: 20_653, counts: [...Array.from({ length: 89 }, () => 0), 2] },
+      })
+    );
 
     expect(laterSummary(built, earlier)).toBe(built);
   });

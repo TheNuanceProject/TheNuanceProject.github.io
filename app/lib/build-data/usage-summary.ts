@@ -12,12 +12,34 @@
  * figures it was built with.
  */
 
-/** A place: a fixed point inside a one-degree area. */
+/** The name of a one-degree area: its place with the most people. */
+export interface UsageArea {
+  readonly name: string;
+  /** ISO 3166-1 alpha-2 code of that place's country. */
+  readonly country: string;
+}
+
+/** A one-degree area 2.x installations checked in from. */
 export interface UsagePlace {
+  /** A fixed point inside the area. */
   readonly lat: number;
   readonly lon: number;
-  /** A check came from the area today or yesterday. */
-  readonly pulse: boolean;
+  /** The last day installations checked in from the area: a day number,
+   *  from 29 days before the summary's `day` to the day after it (the
+   *  day the summary was made, which may still be in progress). */
+  readonly seen: number;
+  /** Installations that checked in from the area on `seen`, each once. */
+  readonly installations: number;
+  /** Null when the area has no place of 1,000 people. */
+  readonly area: UsageArea | null;
+}
+
+/** A country 2.x installations were active in. */
+export interface UsageCountry {
+  /** ISO 3166-1 alpha-2. */
+  readonly code: string;
+  /** Installations active in the country in the 30 days to `day`. */
+  readonly installations: number;
 }
 
 export interface UsageShare {
@@ -31,8 +53,8 @@ export interface UsageSummary {
    *  1970, UTC. */
   readonly day: number;
   readonly active: { readonly day: number; readonly week: number; readonly month: number };
-  /** ISO 3166-1 alpha-2 codes, sorted. */
-  readonly countries: readonly string[];
+  /** Most installations first; countries with as many by code. */
+  readonly countries: readonly UsageCountry[];
   readonly versions: readonly UsageShare[];
   readonly systems: readonly UsageShare[];
   readonly places: readonly UsagePlace[];
@@ -49,23 +71,44 @@ export class UsageSummaryError extends Error {
 const SUMMARY_FIELDS = ['day', 'active', 'countries', 'versions', 'systems', 'places', 'legacyChecks', 'trend'];
 const ACTIVE_FIELDS = ['day', 'week', 'month'];
 const SHARE_FIELDS = ['name', 'share'];
-const PLACE_FIELDS = ['lat', 'lon', 'pulse'];
+const COUNTRY_FIELDS = ['code', 'installations'];
+const PLACE_FIELDS = ['lat', 'lon', 'seen', 'installations', 'area'];
+const AREA_FIELDS = ['name', 'country'];
 const TREND_FIELDS = ['start', 'counts'];
 
-/** The largest summary accepted, in bytes. A real one is a few kilobytes. */
-export const SUMMARY_MAX_BYTES = 4 * 1024 * 1024;
+/** The largest summary accepted, in bytes: more than a summary with
+ *  every one-degree area of the Earth in it. */
+export const SUMMARY_MAX_BYTES = 8 * 1024 * 1024;
 
 /** Bounds that no real summary comes near; anything past them is not one. */
 export const LIMITS = {
   countries: 250,
   shares: 64,
-  places: 65_000,
+  /** One for each one-degree area of the Earth: 180 by 360. */
+  places: 64_800,
+  /** Characters in an area's name. GeoNames' longest is under 60. */
+  areaName: 100,
+  /** The days before the summary's day a place can have been seen. */
+  placeDays: 29,
   trendDays: 366,
   count: 1_000_000_000,
   day: 1_000_000,
 } as const;
 
 const COUNTRY = /^[A-Z]{2}$/;
+/** The C0 controls end before this code point; the C1 controls are
+ *  `DELETE_CHAR` to `C1_LAST`. No place name holds one. */
+const C0_END = 0x20;
+const DELETE_CHAR = 0x7f;
+const C1_LAST = 0x9f;
+
+function hasControl(text: string): boolean {
+  for (const char of text) {
+    const point = char.codePointAt(0) as number;
+    if (point < C0_END || (point >= DELETE_CHAR && point <= C1_LAST)) return true;
+  }
+  return false;
+}
 /** A version (`2.0.0`), a system (`windows`), or `other`. */
 const SHARE_NAME = /^[a-z0-9][a-z0-9._-]{0,31}$/;
 
@@ -95,6 +138,13 @@ function count(value: unknown, what: string, most: number = LIMITS.count): numbe
   return value;
 }
 
+function code(value: unknown, what: string): string {
+  if (typeof value !== 'string' || !COUNTRY.test(value)) {
+    throw new UsageSummaryError(`${what} is not a country code`);
+  }
+  return value;
+}
+
 function between(value: unknown, low: number, high: number, what: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < low || value > high) {
     throw new UsageSummaryError(`${what} is not a number from ${low} to ${high}`);
@@ -112,6 +162,21 @@ function shares(value: unknown, what: string): UsageShare[] {
   });
 }
 
+function areaOf(value: unknown, what: string): UsageArea {
+  const area = object(value, AREA_FIELDS, what);
+  const name = area.name;
+  if (
+    typeof name !== 'string' ||
+    name.trim() !== name ||
+    name === '' ||
+    [...name].length > LIMITS.areaName ||
+    hasControl(name)
+  ) {
+    throw new UsageSummaryError(`${what}.name is not the name of a place`);
+  }
+  return { name, country: code(area.country, `${what}.country`) };
+}
+
 /**
  * The summary in `value`, checked field by field.
  *
@@ -120,26 +185,44 @@ function shares(value: unknown, what: string): UsageShare[] {
 export function readUsageSummary(value: unknown): UsageSummary {
   const summary = object(value, SUMMARY_FIELDS, 'the summary');
   const active = object(summary.active, ACTIVE_FIELDS, 'active');
-  const countries = list(summary.countries, LIMITS.countries, 'countries').map((code, i) => {
-    if (typeof code !== 'string' || !COUNTRY.test(code)) {
-      throw new UsageSummaryError(`countries[${i}] is not a country code`);
+  const day = count(summary.day, 'day', LIMITS.day);
+  const month = count(active.month, 'active.month');
+  const countries = list(summary.countries, LIMITS.countries, 'countries').map((item, i): UsageCountry => {
+    const country = object(item, COUNTRY_FIELDS, `countries[${i}]`);
+    const installations = count(country.installations, `countries[${i}].installations`);
+    if (installations === 0) {
+      throw new UsageSummaryError(`countries[${i}] has no installations`);
     }
-    return code;
+    return { code: code(country.code, `countries[${i}].code`), installations };
   });
-  const places = list(summary.places, LIMITS.places, 'places').map((item, i) => {
+  if (new Set(countries.map((country) => country.code)).size !== countries.length) {
+    throw new UsageSummaryError('a country is given twice');
+  }
+  // The update server counts each installation once in the 30 days, in
+  // one country, and leaves out those it could not place.
+  if (countries.reduce((total, country) => total + country.installations, 0) > month) {
+    throw new UsageSummaryError("the countries' installations add up to more than active.month");
+  }
+  const places = list(summary.places, LIMITS.places, 'places').map((item, i): UsagePlace => {
     const place = object(item, PLACE_FIELDS, `places[${i}]`);
-    if (typeof place.pulse !== 'boolean') {
-      throw new UsageSummaryError(`places[${i}].pulse is not true or false`);
+    const seen = count(place.seen, `places[${i}].seen`, LIMITS.day);
+    if (seen < day - LIMITS.placeDays || seen > day + 1) {
+      throw new UsageSummaryError(`places[${i}].seen is not within the days a summary of its day covers`);
+    }
+    const installations = count(place.installations, `places[${i}].installations`);
+    if (installations === 0) {
+      throw new UsageSummaryError(`places[${i}] has no installations`);
     }
     return {
       lat: between(place.lat, -90, 90, `places[${i}].lat`),
       lon: between(place.lon, -180, 180, `places[${i}].lon`),
-      pulse: place.pulse,
+      seen,
+      installations,
+      area: place.area === null ? null : areaOf(place.area, `places[${i}].area`),
     };
   });
   const trend = object(summary.trend, TREND_FIELDS, 'trend');
   const counts = list(trend.counts, LIMITS.trendDays, 'trend.counts').map((n, i) => count(n, `trend.counts[${i}]`));
-  const day = count(summary.day, 'day', LIMITS.day);
   const start = count(trend.start, 'trend.start', LIMITS.day);
   if (counts.length > 0 && start + counts.length - 1 > day) {
     throw new UsageSummaryError('the trend runs past the day the summary covers');
@@ -155,15 +238,26 @@ export function readUsageSummary(value: unknown): UsageSummary {
     active: {
       day: activeDay,
       week: count(active.week, 'active.week'),
-      month: count(active.month, 'active.month'),
+      month,
     },
-    countries: [...new Set(countries)].sort(),
+    countries: countries.sort(
+      (a, b) => b.installations - a.installations || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0)
+    ),
     versions: shares(summary.versions, 'versions'),
     systems: shares(summary.systems, 'systems'),
     places,
     legacyChecks: count(summary.legacyChecks, 'legacyChecks'),
     trend: { start, counts },
   };
+}
+
+/** Every country code `summary` names, of countries and of areas, sorted. */
+export function countryCodes(summary: UsageSummary): string[] {
+  const codes = new Set(summary.countries.map((country) => country.code));
+  for (const place of summary.places) {
+    if (place.area) codes.add(place.area.country);
+  }
+  return [...codes].sort();
 }
 
 const MS_PER_DAY = 86_400_000;

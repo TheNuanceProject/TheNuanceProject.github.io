@@ -6,6 +6,7 @@ import { Container } from '~/components/Container';
 import { Section } from '~/components/Section';
 import { P, A, B, UL, LI } from '~/components/writing-prose';
 import { pageMeta } from '~/lib/page-meta';
+import { BUBBLE_FROM } from '~/lib/usage/clusters';
 import { breadcrumbSchema } from '~/lib/structured-data';
 
 /**
@@ -222,15 +223,17 @@ export default function Privacy() {
 
       <Part label="6. What is published">
         <P>
-          The WireTrace usage page of this website shows totals made from the update checks: the
-          number of installations active in the last day, week and 30 days, and on each of the
-          last 90 days; the countries they
-          are in; the shares of versions and operating systems; the number of update checks
-          made on the latest day by WireTrace 1.x, which cannot be counted as installations; and
-          a map with a mark for each area of about 100 km from which an update check came in the
-          last 30 days, highlighted when one came in the last two days. Each mark is placed at a
-          fixed point inside its area, never at the place a check came from, and no count is
-          shown for any area. Nothing else is published.
+          The WireTrace usage page of this website shows totals made from the update checks of
+          WireTrace 2.x: the number of installations active in the last day, week and 30 days,
+          and on each of the last 90 days; the countries they are in, with the number of
+          installations active in each in the last 30 days; the shares of versions and operating
+          systems; the number of update checks made on the latest day by WireTrace 1.x, which
+          cannot be counted as installations; and a map of each area of about 100 km from which
+          an update check came in the last 30 days or today. For each area, the map shows the
+          number of installations that checked in from it on the last of those days, as one dot
+          for each installation, or as a number where there are {BUBBLE_FROM} or more or areas lie
+          close together, and the name of the area&rsquo;s largest town or city. Each area is drawn at a fixed point inside
+          it, never at the place a check came from. Nothing else is published.
         </P>
         <P>
           When the usage page opens, your browser asks the update server for these totals. The
