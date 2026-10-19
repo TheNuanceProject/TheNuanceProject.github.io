@@ -175,6 +175,12 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
               </span>
               <span>Arrow keys turn it, + and &minus; zoom</span>
             </div>
+            {/* The marks come from the server's places, which run to today;
+                the counts from complete days only (the summary's day). */}
+            <p className="mt-3 text-center font-sans text-ui text-text-secondary">
+              Marks include today. The counts cover complete days (UTC), up to{' '}
+              {formatIsoDate(dayDate(summary.day))}.
+            </p>
           </section>
 
           {summary.trend.counts.length > 1 && (
