@@ -147,7 +147,8 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
           areas lie close together, one marker gives their number, and zooming in shows them apart.
           Drag the globe to turn it, scroll or use the buttons to zoom, and point at a marker or a
           country to see its figures. Markers that pulse checked in today or yesterday; steady ones
-          within the last 30 days.
+          within the last 30 days. Hollow markers are update checks from {wtMeta.title} 1.x, which
+          cannot be counted as installations.
         </p>
       </section>
 
@@ -186,13 +187,17 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
                 <span aria-hidden="true" className="h-2 w-2 rounded-full bg-text-secondary" />
                 Within the last 30 days
               </span>
+              <span className="inline-flex items-center gap-2">
+                <span aria-hidden="true" className="h-2 w-2 rounded-full border border-text-secondary" />
+                {wtMeta.title} 1.x update checks
+              </span>
               <span>Arrow keys turn it; scroll, + and &minus; zoom</span>
             </div>
             {/* The dots come from the server's places, which run to today;
                 the other counts from complete days only (the summary's day). */}
             <p className="mt-3 mx-auto max-w-narrow text-center font-sans text-ui text-text-secondary">
-              An area shows the installations that checked in from it on the last day it was seen,
-              today included. The other counts cover complete days (UTC), up to{' '}
+              An area shows the installations that checked in from it on the last day they did, and
+              the 1.x update checks from it on the last day they came, today included. The other counts cover complete days (UTC), up to{' '}
               {formatIsoDate(dayDate(summary.day))}.
             </p>
           </section>

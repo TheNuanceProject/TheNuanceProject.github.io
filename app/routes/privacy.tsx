@@ -232,8 +232,10 @@ export default function Privacy() {
           an update check came in the last 30 days or today. For each area, the map shows the
           number of installations that checked in from it on the last of those days, as one dot
           for each installation, or as a number where there are {BUBBLE_FROM} or more or areas lie
-          close together, and the name of the area&rsquo;s largest town or city. Each area is drawn at a fixed point inside
-          it, never at the place a check came from. Nothing else is published.
+          close together; the number of update checks WireTrace 1.x made from it on the last of
+          those days it made one, drawn apart, since they cannot be counted as installations; and
+          the name of the area&rsquo;s largest town or city. Each area is drawn at a fixed point
+          inside it, never at the place a check came from. Nothing else is published.
         </P>
         <P>
           When the usage page opens, your browser asks the update server for these totals. The

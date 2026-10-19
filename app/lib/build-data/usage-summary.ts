@@ -19,19 +19,28 @@ export interface UsageArea {
   readonly country: string;
 }
 
-/** A one-degree area 2.x installations checked in from. */
+/** What came from an area on the last day it came. */
+export interface UsageSeen {
+  /** A day number, from 29 days before the summary's `day` to the day
+   *  after it (the day the summary was made, which may still be in
+   *  progress). */
+  readonly seen: number;
+  /** A whole number from 1. */
+  readonly count: number;
+}
+
+/** A one-degree area WireTrace checked for updates from. */
 export interface UsagePlace {
   /** A fixed point inside the area. */
   readonly lat: number;
   readonly lon: number;
-  /** The last day installations checked in from the area: a day number,
-   *  from 29 days before the summary's `day` to the day after it (the
-   *  day the summary was made, which may still be in progress). */
-  readonly seen: number;
-  /** Installations that checked in from the area on `seen`, each once. */
-  readonly installations: number;
   /** Null when the area has no place of 1,000 people. */
   readonly area: UsageArea | null;
+  /** 2.x installations that checked in from the area, each once. */
+  readonly installations: UsageSeen | null;
+  /** WireTrace 1.x update checks from the area: checks, never
+   *  installations, since 1.x does not say when it last checked. */
+  readonly legacy: UsageSeen | null;
 }
 
 /** A country 2.x installations were active in. */
@@ -72,7 +81,8 @@ const SUMMARY_FIELDS = ['day', 'active', 'countries', 'versions', 'systems', 'pl
 const ACTIVE_FIELDS = ['day', 'week', 'month'];
 const SHARE_FIELDS = ['name', 'share'];
 const COUNTRY_FIELDS = ['code', 'installations'];
-const PLACE_FIELDS = ['lat', 'lon', 'seen', 'installations', 'area'];
+const PLACE_FIELDS = ['lat', 'lon', 'area', 'installations', 'legacy'];
+const SEEN_FIELDS = ['seen', 'count'];
 const AREA_FIELDS = ['name', 'country'];
 const TREND_FIELDS = ['start', 'counts'];
 
@@ -203,22 +213,32 @@ export function readUsageSummary(value: unknown): UsageSummary {
   if (countries.reduce((total, country) => total + country.installations, 0) > month) {
     throw new UsageSummaryError("the countries' installations add up to more than active.month");
   }
+  const seenOf = (value: unknown, what: string): UsageSeen | null => {
+    if (value === null) return null;
+    const part = object(value, SEEN_FIELDS, what);
+    const seen = count(part.seen, `${what}.seen`, LIMITS.day);
+    if (seen < day - LIMITS.placeDays || seen > day + 1) {
+      throw new UsageSummaryError(`${what}.seen is not within the days a summary of its day covers`);
+    }
+    const n = count(part.count, `${what}.count`);
+    if (n === 0) {
+      throw new UsageSummaryError(`${what}.count is not from 1`);
+    }
+    return { seen, count: n };
+  };
   const places = list(summary.places, LIMITS.places, 'places').map((item, i): UsagePlace => {
     const place = object(item, PLACE_FIELDS, `places[${i}]`);
-    const seen = count(place.seen, `places[${i}].seen`, LIMITS.day);
-    if (seen < day - LIMITS.placeDays || seen > day + 1) {
-      throw new UsageSummaryError(`places[${i}].seen is not within the days a summary of its day covers`);
-    }
-    const installations = count(place.installations, `places[${i}].installations`);
-    if (installations === 0) {
-      throw new UsageSummaryError(`places[${i}] has no installations`);
+    const installations = seenOf(place.installations, `places[${i}].installations`);
+    const legacy = seenOf(place.legacy, `places[${i}].legacy`);
+    if (installations === null && legacy === null) {
+      throw new UsageSummaryError(`places[${i}] has neither installations nor 1.x checks`);
     }
     return {
       lat: between(place.lat, -90, 90, `places[${i}].lat`),
       lon: between(place.lon, -180, 180, `places[${i}].lon`),
-      seen,
-      installations,
       area: place.area === null ? null : areaOf(place.area, `places[${i}].area`),
+      installations,
+      legacy,
     };
   });
   const trend = object(summary.trend, TREND_FIELDS, 'trend');

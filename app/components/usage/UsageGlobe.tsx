@@ -13,9 +13,9 @@ import type { Feature, Geometry, MultiLineString } from 'geojson';
 import { feature as toFeatures, mesh } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 
-import { type UsagePlace, dayDate } from '~/lib/build-data/usage-summary';
+import { type UsagePlace, type UsageSeen, dayDate } from '~/lib/build-data/usage-summary';
 import { formatIsoDate } from '~/lib/content/dates';
-import { DOT_RADIUS, type Marker, clusterMarkers, dotsOf, BUBBLE_FROM } from '~/lib/usage/clusters';
+import { BUBBLE_FROM, DOT_RADIUS, RING_GAP, RING_WIDTH, type Marker, clusterMarkers, dotsOf } from '~/lib/usage/clusters';
 import { Minus, Plus } from 'lucide-react';
 import { Icon } from '~/components/icons/Icon';
 
@@ -104,11 +104,28 @@ function installationsText(count: number): string {
   return `${number.format(count)} ${count === 1 ? 'installation' : 'installations'}`;
 }
 
+function checksText(count: number): string {
+  return `${number.format(count)} update ${count === 1 ? 'check' : 'checks'}`;
+}
+
+const countOf = (seen: UsageSeen | null): number => seen?.count ?? 0;
+
+/** The last day anything came from an area. */
+function lastSeen(place: UsagePlace): number {
+  return Math.max(place.installations?.seen ?? -Infinity, place.legacy?.seen ?? -Infinity);
+}
+
 /** Most installations first, so a merged marker names its largest areas
  *  first and the largest areas gather the others; the rest in a fixed
  *  order. */
 function layoutOrder(a: UsagePlace, b: UsagePlace): number {
-  return b.installations - a.installations || b.seen - a.seen || a.lat - b.lat || a.lon - b.lon;
+  return (
+    countOf(b.installations) - countOf(a.installations) ||
+    countOf(b.legacy) - countOf(a.legacy) ||
+    lastSeen(b) - lastSeen(a) ||
+    a.lat - b.lat ||
+    a.lon - b.lon
+  );
 }
 
 function clampTilt(value: number): number {
@@ -194,7 +211,7 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
     const sphere: GeoPermissibleObjects = { type: 'Sphere' };
     const graticule = geoGraticule10();
     const ordered = [...places].sort(layoutOrder);
-    const recent = (place: UsagePlace) => place.seen >= day;
+    const recent = (place: UsagePlace) => lastSeen(place) >= day;
     let size = 0;
     let frame = 0;
     /** The markers as last laid out, and the view they were laid out for. */
@@ -247,7 +264,14 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
         const point = projection([place.lon, place.lat]);
         if (point) seen.push({ place, x: point[0], y: point[1] });
       }
-      const markers = clusterMarkers(seen.map(({ x, y, place }) => ({ x, y, count: place.installations })));
+      const markers = clusterMarkers(
+        seen.map(({ x, y, place }) => ({
+          x,
+          y,
+          installations: countOf(place.installations),
+          legacy: countOf(place.legacy),
+        }))
+      );
       laidOut = markers.map((marker) => {
         const members = marker.members.map((i) => (seen[i] as (typeof seen)[number]).place);
         return {
@@ -262,11 +286,11 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
     };
 
     /** A bubble's number, as large as fits inside it. */
-    const bubbleText = (marker: Marker) => {
-      const text = marker.count >= BUBBLE_SHORT_FROM ? shortNumber.format(marker.count) : number.format(marker.count);
-      let fontSize = marker.radius * BUBBLE_FONT_PER_RADIUS;
+    const bubbleText = (count: number, body: number) => {
+      const text = count >= BUBBLE_SHORT_FROM ? shortNumber.format(count) : number.format(count);
+      let fontSize = body * BUBBLE_FONT_PER_RADIUS;
       context.font = `500 ${fontSize}px ${colours.font}`;
-      const room = 2 * (marker.radius - BUBBLE_TEXT_PADDING);
+      const room = 2 * (body - BUBBLE_TEXT_PADDING);
       const width = context.measureText(text).width;
       if (width > room) {
         fontSize *= room / width;
@@ -323,25 +347,37 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
           context.globalAlpha = 1;
         }
         const hovered = shown.key === state.hoverKey;
+        const colour = shown.recent ? colours.accent : colours.steady;
+        // The body: installations filled; 1.x checks alone hollow.
+        const hollow = marker.installations === 0;
+        const count = hollow ? marker.legacy : marker.installations;
         const circles: [number, number, number][] =
-          marker.count < BUBBLE_FROM
-            ? dotsOf(marker.count).map(([dx, dy]) => [marker.x + dx, marker.y + dy, DOT_RADIUS])
-            : [[marker.x, marker.y, marker.radius]];
+          count < BUBBLE_FROM
+            ? dotsOf(count).map(([dx, dy]) => [marker.x + dx, marker.y + dy, DOT_RADIUS])
+            : [[marker.x, marker.y, marker.body]];
         for (const [x, y, r] of circles) {
           context.beginPath();
           context.arc(x, y, r, 0, 2 * Math.PI);
-          context.fillStyle = shown.recent ? colours.accent : colours.steady;
+          context.fillStyle = hollow ? colours.paper : colour;
           context.fill();
-          context.lineWidth = hovered ? MARKER_OUTLINE_HOVER : MARKER_OUTLINE;
-          context.strokeStyle = hovered ? colours.text : colours.paper;
+          context.lineWidth = hollow ? RING_WIDTH : hovered ? MARKER_OUTLINE_HOVER : MARKER_OUTLINE;
+          context.strokeStyle = hollow ? (hovered ? colours.text : colour) : hovered ? colours.text : colours.paper;
           context.stroke();
         }
-        if (marker.count >= BUBBLE_FROM) {
-          const text = bubbleText(marker);
-          context.fillStyle = colours.paper;
+        if (count >= BUBBLE_FROM) {
+          const text = bubbleText(count, marker.body);
+          context.fillStyle = hollow ? colour : colours.paper;
           context.textAlign = 'center';
           context.textBaseline = 'middle';
           context.fillText(text, marker.x, marker.y);
+        }
+        // Installations with 1.x checks among them: a ring round the body.
+        if (!hollow && marker.legacy > 0) {
+          context.beginPath();
+          context.arc(marker.x, marker.y, marker.body + RING_GAP + RING_WIDTH / 2, 0, 2 * Math.PI);
+          context.lineWidth = RING_WIDTH;
+          context.strokeStyle = hovered ? colours.text : colour;
+          context.stroke();
         }
       }
       context.restore();
@@ -420,23 +456,38 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
     };
 
     /** What the tooltip says of a marker. */
+    const onDay = (seen: number) => `${formatIsoDate(dayDate(seen))}${seen > day ? ' (today, so far)' : ''}`;
+    /** What came from one area, in short, for a merged marker's list. */
+    const counts = (place: UsagePlace) =>
+      [
+        place.installations ? installationsText(place.installations.count) : null,
+        place.legacy ? `1.x: ${checksText(place.legacy.count)}` : null,
+      ]
+        .filter((part) => part !== null)
+        .join(', ');
     const describe = (shown: Shown): Omit<Hover, 'x' | 'y'> => {
       const [only] = shown.places;
       if (only && shown.places.length === 1) {
         const { name, named } = areaName(only);
-        const date = formatIsoDate(dayDate(only.seen));
-        const today = only.seen > day ? ' (today, so far)' : '';
         return {
           title: named ? `Around ${name}` : name,
-          lines: [`${installationsText(only.installations)} checked in on ${date}${today}`],
+          lines: [
+            ...(only.installations
+              ? [`${installationsText(only.installations.count)} checked in on ${onDay(only.installations.seen)}`]
+              : []),
+            ...(only.legacy ? [`WireTrace 1.x: ${checksText(only.legacy.count)} on ${onDay(only.legacy.seen)}`] : []),
+          ],
         };
       }
       const listed = shown.places.slice(0, MERGED_AREAS_LISTED);
       const rest = shown.places.length - listed.length;
+      const { installations: total, legacy } = shown.marker;
       return {
-        title: `${installationsText(shown.marker.count)} in ${number.format(shown.places.length)} areas`,
+        title: `${number.format(shown.places.length)} areas`,
         lines: [
-          ...listed.map((place) => `${areaName(place).name}: ${number.format(place.installations)}`),
+          ...(total > 0 ? [installationsText(total)] : []),
+          ...(legacy > 0 ? [`WireTrace 1.x: ${checksText(legacy)}`] : []),
+          ...listed.map((place) => `${areaName(place).name}: ${counts(place)}`),
           ...(rest > 0 ? [`and ${number.format(rest)} more ${rest === 1 ? 'area' : 'areas'}; zoom in to see them`] : []),
         ],
       };
@@ -603,7 +654,7 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
         ref={canvasRef}
         tabIndex={0}
         role="img"
-        aria-label="A globe with the WireTrace installations of each area of about 100 km they checked in from, as dots or as a number. The countries and their installations are listed below."
+        aria-label="A globe with the WireTrace installations of each area of about 100 km they checked in from, as dots or as a number, and, drawn hollow, the WireTrace 1.x update checks from each area. The countries and their installations are listed below."
         className="block h-full w-full cursor-grab rounded-full active:cursor-grabbing"
       />
       {failed && (

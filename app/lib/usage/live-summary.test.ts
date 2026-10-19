@@ -15,7 +15,7 @@ function written(changes: Record<string, unknown> = {}): Record<string, unknown>
     countries: [{ code: 'IN', installations: 2 }],
     versions: [{ name: '2.0.0', share: 1 }],
     systems: [{ name: 'windows', share: 1 }],
-    places: [{ lat: 12.5, lon: 77.5, seen: 20_744, installations: 2, area: { name: 'Bengaluru', country: 'IN' } }],
+    places: [{ lat: 12.5, lon: 77.5, area: { name: 'Bengaluru', country: 'IN' }, installations: { seen: 20_744, count: 2 }, legacy: null }],
     legacyChecks: 0,
     trend: { start: 20_654, counts: [...Array.from({ length: 89 }, () => 0), 2] },
     ...changes,
@@ -106,8 +106,8 @@ describe('laterSummary', () => {
     const next = readUsageSummary(
       written({
         places: [
-          { lat: 12.5, lon: 77.5, seen: 20_744, installations: 2, area: { name: 'Bengaluru', country: 'IN' } },
-          { lat: 48.5, lon: 2.5, seen: 20_744, installations: 1, area: { name: 'Paris', country: 'FR' } },
+          { lat: 12.5, lon: 77.5, area: { name: 'Bengaluru', country: 'IN' }, installations: { seen: 20_744, count: 2 }, legacy: null },
+          { lat: 48.5, lon: 2.5, area: { name: 'Paris', country: 'FR' }, installations: { seen: 20_744, count: 1 }, legacy: null },
         ],
       })
     );
@@ -119,7 +119,7 @@ describe('laterSummary', () => {
     const earlier = readUsageSummary(
       written({
         day: 20_742,
-        places: [{ lat: 12.5, lon: 77.5, seen: 20_743, installations: 2, area: { name: 'Bengaluru', country: 'IN' } }],
+        places: [{ lat: 12.5, lon: 77.5, area: { name: 'Bengaluru', country: 'IN' }, installations: { seen: 20_743, count: 2 }, legacy: null }],
         trend: { start: 20_653, counts: [...Array.from({ length: 89 }, () => 0), 2] },
       })
     );

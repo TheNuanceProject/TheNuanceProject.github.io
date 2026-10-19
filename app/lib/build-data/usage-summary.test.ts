@@ -9,9 +9,9 @@ function place(changes: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     lat: 12.402,
     lon: 77.596,
-    seen: DAY + 1,
-    installations: 3,
     area: { name: 'Bengaluru', country: 'IN' },
+    installations: { seen: DAY + 1, count: 3 },
+    legacy: null,
     ...changes,
   };
 }
@@ -50,7 +50,20 @@ describe('readUsageSummary', () => {
   });
 
   it('reads an area with no name, and areas seen from 29 days before its day to the day after', () => {
-    const places = [place({ area: null }), place({ seen: DAY - LIMITS.placeDays }), place({ seen: DAY })];
+    const places = [
+      place({ area: null }),
+      place({ installations: { seen: DAY - LIMITS.placeDays, count: 1 } }),
+      place({ installations: { seen: DAY, count: 1 } }),
+    ];
+
+    expect(readUsageSummary(summary({ places })).places).toEqual(places);
+  });
+
+  it('reads an area with 1.x checks only, and one with both, each on its own day', () => {
+    const places = [
+      place({ installations: null, legacy: { seen: DAY - 3, count: 2 } }),
+      place({ installations: { seen: DAY + 1, count: 1 }, legacy: { seen: DAY, count: 5 } }),
+    ];
 
     expect(readUsageSummary(summary({ places })).places).toEqual(places);
   });
@@ -79,12 +92,17 @@ describe('readUsageSummary', () => {
     ['markup in a version', summary({ versions: [{ name: '<script>', share: 1 }] })],
     ['a share above one', summary({ systems: [{ name: 'windows', share: 1.2 }] })],
     ['a place off the globe', summary({ places: [place({ lat: 91 })] })],
-    ['a place in the old form', summary({ places: [{ lat: 1, lon: 1, pulse: true }] })],
+    ['a place in the first form', summary({ places: [{ lat: 1, lon: 1, pulse: true }] })],
+    ['a place in the second form', summary({ places: [{ lat: 1, lon: 1, seen: DAY, installations: 1, area: null }] })],
     ['a place with a field too many', summary({ places: [{ ...place(), pulse: true }] })],
-    ['a place seen before the 30 days', summary({ places: [place({ seen: DAY - LIMITS.placeDays - 1 })] })],
-    ['a place seen after the day it was made', summary({ places: [place({ seen: DAY + 2 })] })],
-    ['a place with no installations', summary({ places: [place({ installations: 0 })] })],
-    ['a place with part of an installation', summary({ places: [place({ installations: 1.5 })] })],
+    ['a place with neither installations nor checks', summary({ places: [place({ installations: null })] })],
+    ['installations seen before the 30 days', summary({ places: [place({ installations: { seen: DAY - LIMITS.placeDays - 1, count: 1 } })] })],
+    ['installations seen after the day it was made', summary({ places: [place({ installations: { seen: DAY + 2, count: 1 } })] })],
+    ['1.x checks seen after the day it was made', summary({ places: [place({ legacy: { seen: DAY + 2, count: 1 } })] })],
+    ['no installations given as a count', summary({ places: [place({ installations: { seen: DAY, count: 0 } })] })],
+    ['part of an installation', summary({ places: [place({ installations: { seen: DAY, count: 1.5 } })] })],
+    ['installations given as a number alone', summary({ places: [place({ installations: 3 })] })],
+    ['1.x checks with a field too many', summary({ places: [place({ legacy: { seen: DAY, count: 1, extra: 1 } })] })],
     ['an area with no name', summary({ places: [place({ area: { name: '', country: 'IN' } })] })],
     ['an area name with spaces around it', summary({ places: [place({ area: { name: ' Pune', country: 'IN' } })] })],
     ['an area name with a control character', summary({ places: [place({ area: { name: 'Pu\u0000ne', country: 'IN' } })] })],
