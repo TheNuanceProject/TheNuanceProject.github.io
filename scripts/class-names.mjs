@@ -65,7 +65,17 @@ function strings(node, constants, out) {
   return out;
 }
 
-/** Every class name of one file: { name, line }. */
+/** The tag of the element a `className` attribute belongs to, or null. */
+function elementOf(attribute) {
+  const opening = attribute.parent?.parent;
+  return opening && (ts.isJsxOpeningElement(opening) || ts.isJsxSelfClosingElement(opening))
+    ? opening.tagName.getText()
+    : null;
+}
+
+/** Every class name of one file: { name, line, element }, where `element`
+ *  is the tag it is given to when it is written in a `className`
+ *  attribute, and null when it is only in a `cn()` call. */
 export function classNamesOf(path, text) {
   const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const constants = new Map();
@@ -78,16 +88,18 @@ export function classNamesOf(path, text) {
   visitConstants(source);
 
   const found = [];
-  const add = (node) => {
+  const add = (node, element) => {
     const line = source.getLineAndCharacterOfPosition(node.getStart()).line + 1;
     for (const value of strings(node, constants, [])) {
-      for (const name of value.split(/\s+/)) if (name) found.push({ name, line });
+      for (const name of value.split(/\s+/)) if (name) found.push({ name, line, element });
     }
   };
   const visit = (node) => {
-    if (ts.isJsxAttribute(node) && node.name.getText() === 'className' && node.initializer) add(node.initializer);
+    if (ts.isJsxAttribute(node) && node.name.getText() === 'className' && node.initializer) {
+      add(node.initializer, elementOf(node));
+    }
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'cn') {
-      add(node);
+      add(node, null);
       return;
     }
     ts.forEachChild(node, visit);
@@ -96,7 +108,7 @@ export function classNamesOf(path, text) {
   return found;
 }
 
-/** Every class name of the site: { name, file, line }. */
+/** Every class name of the site: { name, file, line, element }. */
 export function classNames(root) {
   return SOURCE_DIRS.flatMap((dir) => walk(join(root, dir)))
     .filter((path) => SOURCE_FILE.test(path) && !SKIPPED.test(path))

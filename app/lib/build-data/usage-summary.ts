@@ -4,10 +4,12 @@
  * reads it.
  *
  * The summary is made by the update server (`wiretrace-updates`, its
- * `src/summary.ts`) and fetched when the site is built. Nothing in it is
+ * `src/summary.ts`). The site reads it when it is built, and the usage
+ * page reads it again when it opens in a browser. Nothing in it is
  * trusted: `readUsageSummary` accepts only exactly the fields and values
- * that server writes, and refuses the whole summary otherwise, so the
- * build stops instead of publishing anything unexpected.
+ * that server writes, and refuses the whole summary otherwise: the build
+ * stops instead of publishing anything unexpected, and the page keeps the
+ * figures it was built with.
  */
 
 /** A place: a fixed point inside a one-degree area. */
@@ -49,6 +51,9 @@ const ACTIVE_FIELDS = ['day', 'week', 'month'];
 const SHARE_FIELDS = ['name', 'share'];
 const PLACE_FIELDS = ['lat', 'lon', 'pulse'];
 const TREND_FIELDS = ['start', 'counts'];
+
+/** The largest summary accepted, in bytes. A real one is a few kilobytes. */
+export const SUMMARY_MAX_BYTES = 4 * 1024 * 1024;
 
 /** Bounds that no real summary comes near; anything past them is not one. */
 export const LIMITS = {

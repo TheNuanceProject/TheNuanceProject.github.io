@@ -5,7 +5,9 @@
  *
  * Each is fetched once per build, however many pages use it, and checked
  * before any page sees it. The site is built again every 12 hours, so the
- * pages show data at most that old.
+ * data built into the pages is at most that old. The usage page also
+ * reads the summary again when it opens in a browser
+ * (`~/lib/usage/live-summary`), so the figures it shows are current.
  *
  * Building without the network: set `BUILD_DATA_DIR` to a folder holding
  * `releases/<owner>/<repository>.json` (GitHub's answer) for each project
@@ -17,11 +19,10 @@ import { join } from 'node:path';
 
 import { BuildDataError, fetchJson } from './fetch-json.server';
 import { type Release, readReleases, releasesApi, repositoryOf } from './releases';
-import { type UsageSummary, readUsageSummary } from './usage-summary';
+import { SUMMARY_MAX_BYTES, type UsageSummary, readUsageSummary } from './usage-summary';
 
 const TIMEOUT_MS = 30_000;
 const RELEASES_MAX_BYTES = 4 * 1024 * 1024;
-const SUMMARY_MAX_BYTES = 4 * 1024 * 1024;
 
 /** The folder to read the data from instead of the network, if set. */
 function localFolder(): string | null {

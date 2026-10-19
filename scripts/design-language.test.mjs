@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { compile } from '@tailwindcss/node';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { classNames } from './class-names.mjs';
+import { classNames, classNamesOf } from './class-names.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const STYLES = join(ROOT, 'app', 'styles', 'globals.css');
@@ -36,6 +36,7 @@ function arbitrary(name) {
 const LENGTH = /\d(?:px|rem|em|pt|pc|cm|mm|in|q|ms|s)\b/i;
 const COLOUR = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i;
 const TYPE_UTILITY = /^(?:[a-z-]+:)*-?(?:text|leading|tracking|font)-\[/;
+const TABLE_PARTS = new Set(['table', 'caption', 'colgroup', 'col', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td']);
 const OFF_GRID_STEP = /^(?:[a-z-]+:)*-?(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|gap-x|gap-y|space-x|space-y|w|h|size|top|right|bottom|left|inset|translate-x|translate-y)-([1-9]\d*)\.5$/;
 
 describe('the classes of the site', () => {
@@ -83,5 +84,24 @@ describe('the classes of the site', () => {
 
   it('keep to the 4-pixel grid', () => {
     expect(found.filter((item) => OFF_GRID_STEP.test(item.name)).map(where)).toEqual([]);
+  });
+
+  it('hide no part of a table with sr-only, which a table ignores', () => {
+    // `sr-only` hides by making its element one pixel high. A table, and
+    // each of its parts, is as high as its rows whatever it is given, so
+    // it would still take room below the page. A wrapper is hidden instead.
+    const hidden = /^(?:[a-z-]+:)*sr-only$/;
+    const bad = found.filter((item) => hidden.test(item.name) && TABLE_PARTS.has(item.element));
+    expect(bad.map(where)).toEqual([]);
+  });
+
+  it('are read with the element each is given to', () => {
+    const read = classNamesOf('x.tsx', '<div className="sr-only"><table className="w-full" /><td className={cn("p-2")} /></div>');
+    expect(read.map(({ name, element }) => [name, element])).toEqual([
+      ['sr-only', 'div'],
+      ['w-full', 'table'],
+      ['p-2', 'td'],
+      ['p-2', null],
+    ]);
   });
 });

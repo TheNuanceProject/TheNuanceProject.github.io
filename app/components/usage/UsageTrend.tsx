@@ -138,23 +138,27 @@ export function UsageTrend({ start, counts }: UsageTrendProps) {
           ))}
         </div>
       </div>
-      <table className="sr-only">
-        <caption>Installations active each day, {dayDate(start)} to {dayDate(start + last)}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Day</th>
-            <th scope="col">Active installations</th>
-          </tr>
-        </thead>
-        <tbody>
-          {counts.map((n, i) => (
-            <tr key={i}>
-              <th scope="row">{dayDate(start + i)}</th>
-              <td>{n}</td>
+      {/* Hidden by its wrapper: a table grows to fit its rows whatever its
+          own height, so hidden itself it would still take room below. */}
+      <div className="sr-only">
+        <table>
+          <caption>Installations active each day, {dayDate(start)} to {dayDate(start + last)}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Day</th>
+              <th scope="col">Active installations</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {counts.map((n, i) => (
+              <tr key={i}>
+                <th scope="row">{dayDate(start + i)}</th>
+                <td>{n}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

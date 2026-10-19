@@ -21,7 +21,7 @@ import { breadcrumbSchema } from '~/lib/structured-data';
  */
 
 /** When this policy last changed. Updated with every change to it. */
-const LAST_UPDATED = '18 October 2026';
+const LAST_UPDATED = '19 October 2026';
 
 /** How long the update server keeps what it keeps. They match the
  *  update server (wiretrace-updates/src/fold.ts) and WireTrace. */
@@ -231,6 +231,10 @@ export default function Privacy() {
           last 30 days, highlighted when one came in the last two days. Each mark is placed at a
           fixed point inside its area, never at the place a check came from, and no count is
           shown for any area. Nothing else is published.
+        </P>
+        <P>
+          When the usage page opens, your browser asks the update server for these totals. The
+          update server does not count that request, and keeps nothing from it.
         </P>
       </Part>
 

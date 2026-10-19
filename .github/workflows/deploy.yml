@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
-# Trigger: every push to main, every 12 hours (so the WireTrace usage
-# page and the releases shown are at most that old), and manual dispatch
-# from the Actions UI.
+# Trigger: every push to main, every 12 hours (so the releases and the
+# usage figures built into the pages are at most that old; the usage page
+# also reads the current figures when it opens), and manual dispatch from
+# the Actions UI.
 on:
   push:
     branches: [main]

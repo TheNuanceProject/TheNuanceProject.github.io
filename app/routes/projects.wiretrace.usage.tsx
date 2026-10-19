@@ -10,6 +10,8 @@ import { UsageTrend } from '~/components/usage/UsageTrend';
 import { countryNames, mapCodes } from '~/lib/build-data/country-names.server';
 import { getUsageSummary } from '~/lib/build-data/data.server';
 import { type UsageShare, dayDate } from '~/lib/build-data/usage-summary';
+import { useLiveSummary } from '~/lib/usage/live-summary';
+import { withRegionNames } from '~/lib/usage/region-names';
 import { formatIsoDate } from '~/lib/content/dates';
 import { pageMeta } from '~/lib/page-meta';
 import { breadcrumbSchema } from '~/lib/structured-data';
@@ -21,10 +23,12 @@ import { usage } from '../../content/projects/wiretrace/content';
 /**
  * Where WireTrace is used: the public usage page.
  *
- * Made from the update server's public summary, read when the site is
- * built (every 12 hours). It holds totals only: no count is published
- * for any area or country. Before the server has made its first summary
- * the page says so, and shows no figures.
+ * Made from the update server's public summary. The page is built with
+ * the summary of that moment, and when it opens in a browser it reads the
+ * current one, which the server makes every hour (`useLiveSummary`). It
+ * holds totals only: no count is published for any area or country.
+ * Until the server has made its first summary the page says so, and shows
+ * no figures.
  */
 
 const TITLE = 'Where WireTrace is used';
@@ -100,7 +104,14 @@ function Shares({ title, rows, name }: { title: string; rows: readonly UsageShar
 }
 
 export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
-  const { summary, names, onMap } = loaderData;
+  const { onMap } = loaderData;
+  const summary = useLiveSummary(loaderData.summary, usage.summaryUrl);
+  // The built names cover every country on the map and in the built
+  // summary; one that only the current summary holds is named here.
+  const names = useMemo(
+    () => withRegionNames(loaderData.names, summary?.countries ?? []),
+    [loaderData.names, summary]
+  );
   const outlined = useMemo(() => new Set(onMap), [onMap]);
   const [chosen, setChosen] = useState<string | null>(null);
   const used = useMemo(() => new Set(summary?.countries ?? []), [summary]);
@@ -215,7 +226,8 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
             <Prose className="text-ui-lg text-text-secondary">
               <p>
                 Totals up to {formatIsoDate(dayDate(summary.day))}, made from the update checks of{' '}
-                {wtMeta.title} 2.x and updated every 12 hours. A mark sits at a fixed point inside its
+                {wtMeta.title} 2.x. The update server makes them every hour, and this page reads them
+                when it opens. A mark sits at a fixed point inside its
                 one-degree area, never where a computer is, and no count is shown for any area or country.
                 The map is drawn in your browser from{' '}
                 <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
