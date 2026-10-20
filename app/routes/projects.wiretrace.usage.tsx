@@ -26,7 +26,7 @@ import { usage } from '../../content/projects/wiretrace/content';
  *
  * Made from the update server's public summary. The page is built with
  * the summary of that moment, and when it opens in a browser it reads the
- * current one, which the server makes every hour (`useLiveSummary`). It
+ * current one, which the server makes every 15 minutes (`useLiveSummary`). It
  * holds totals only: the installations of each country, and of each area
  * of about 100 km on the last day it was seen. Until the server has made
  * its first summary the page says so, and shows no figures.
@@ -259,7 +259,7 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
             <Prose className="text-ui-lg text-text-secondary">
               <p>
                 Totals up to {formatIsoDate(dayDate(summary.day))}, made from the update checks of{' '}
-                {wtMeta.title} 2.x. The update server makes them every hour, and this page reads them
+                {wtMeta.title} 2.x. The update server makes them every 15 minutes, and this page reads them
                 when it opens. The marker of an area is drawn at a fixed point inside its
                 one-degree area, never where a computer is. An area is named after its largest place,
                 from{' '}

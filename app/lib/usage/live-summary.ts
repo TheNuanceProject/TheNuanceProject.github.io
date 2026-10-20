@@ -5,7 +5,7 @@
  * The page is built with the update server's public summary as it was at
  * build time, so it shows figures at once and without JavaScript. When it
  * opens in a browser it reads the summary again from the update server,
- * which makes a new one every hour, and shows that one instead. The
+ * which makes a new one every 15 minutes, and shows that one instead. The
  * summary read in the browser is checked exactly as the build checks it
  * (`readUsageSummary`). If it cannot be read, or is not exactly a
  * summary, or is older than the one the page was built with, the page
@@ -71,7 +71,7 @@ export async function fetchLiveSummary(
 /**
  * The summary to show: `next` unless it covers an earlier day than
  * `current`. A summary of the same day is newer: the server makes one
- * every hour, and the day's places change through the day.
+ * every 15 minutes, and the day's places change through the day.
  */
 export function laterSummary(current: UsageSummary | null, next: UsageSummary): UsageSummary {
   return current === null || next.day >= current.day ? next : current;
