@@ -7,13 +7,11 @@ import {
   BUBBLE_RADIUS_MIN,
   BUBBLE_RADIUS_PER_DOUBLING,
   DOT_RADIUS,
-  DOT_SPACING,
   MARKER_GAP,
   RING_GAP,
   RING_WIDTH,
   type Marker,
   clusterMarkers,
-  dotsOf,
   markerRadius,
 } from './clusters';
 
@@ -28,9 +26,9 @@ describe('markerRadius', () => {
     expect(markerRadius(1)).toBe(DOT_RADIUS);
   });
 
-  it('reaches round the dots of fewer than a bubble', () => {
-    expect(markerRadius(BUBBLE_FROM - 1)).toBeCloseTo(DOT_SPACING + DOT_RADIUS);
-    expect(dotsOf(BUBBLE_FROM - 1)).toHaveLength(BUBBLE_FROM - 1);
+  it('shows two or more as a bubble', () => {
+    expect(BUBBLE_FROM).toBe(2);
+    expect(markerRadius(2)).toBeGreaterThan(markerRadius(1));
   });
 
   it('grows a bubble with the logarithm of its number, up to its largest', () => {
@@ -88,6 +86,19 @@ describe('clusterMarkers', () => {
     );
     expect(markers.reduce((total, marker) => total + marker.legacy, 0)).toBe(points.reduce((t, p) => t + p.legacy, 0));
     expect(markers.flatMap((marker) => marker.members).sort((a, b) => a - b)).toEqual(points.map((_, i) => i));
+  });
+
+  it('keeps places at the same position one marker, however far apart the rest are', () => {
+    const markers = clusterMarkers([
+      { x: 100, y: 100, installations: 3, legacy: 0 },
+      { x: 100, y: 100, installations: 1, legacy: 2 },
+      { x: 400, y: 100, installations: 1, legacy: 0 },
+    ]);
+
+    expect(markers.map(({ installations, legacy, members }) => [installations, legacy, members])).toEqual([
+      [4, 2, [0, 1]],
+      [1, 0, [2]],
+    ]);
   });
 
   it('gives the same markers every time', () => {

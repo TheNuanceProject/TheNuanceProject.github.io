@@ -1,27 +1,23 @@
 // SPDX-License-Identifier: MIT
 /**
- * The markers the usage globe draws: an area's installations as dots, or
- * as one bubble with their number, and areas close together on the
+ * The markers the usage globe draws: one installation as a dot, two or
+ * more as one bubble with their number, and areas close together on the
  * screen merged into one marker until zooming in leaves them room.
  *
  * A marker counts two things apart: 2.x installations and WireTrace 1.x
  * update checks, which are never installations. Its body shows the
- * installations: fewer than `BUBBLE_FROM` are that many dots
- * (`~/lib/usage/dot-layout`), more are a bubble whose size grows with the
- * logarithm of its number. A marker with 1.x checks only shows those the
- * same way, drawn hollow; one with both has a ring round its body.
- * Markers are merged while any two would come closer than `MARKER_GAP`,
- * so no two markers ever overlap, and every installation and every check
- * is in exactly one marker.
+ * installations; a bubble's size grows with the logarithm of its number.
+ * A marker with 1.x checks only shows those the same way, drawn hollow;
+ * one with both has a ring round its body. Markers are merged while any
+ * two would come closer than `MARKER_GAP`, so no two markers ever
+ * overlap, every installation and every check is in exactly one marker,
+ * and places at the same position are always one marker, at every zoom.
  */
-import { type Dot, layoutDots } from './dot-layout';
 
 /** The fewest installations a marker shows as a bubble with its number. */
-export const BUBBLE_FROM = 5;
-/** A dot's radius and the space between two dots, in pixels. */
+export const BUBBLE_FROM = 2;
+/** The radius of a marker of one, in pixels. */
 export const DOT_RADIUS = 3.5;
-export const DOT_GAP = 1.5;
-export const DOT_SPACING = 2 * DOT_RADIUS + DOT_GAP;
 /** A bubble's radius for `BUBBLE_FROM` installations, the radius it gains
  *  each time its number doubles, and the most it reaches, in pixels. */
 export const BUBBLE_RADIUS_MIN = 11;
@@ -60,22 +56,10 @@ export interface Marker {
   readonly members: readonly number[];
 }
 
-const dotOffsets = new Map<number, readonly Dot[]>();
-
-/** Where the dots of a marker of `count` dots sit, from its centre. */
-export function dotsOf(count: number): readonly Dot[] {
-  let offsets = dotOffsets.get(count);
-  if (!offsets) {
-    offsets = layoutDots([{ x: 0, y: 0, count }], DOT_SPACING)[0] ?? [];
-    dotOffsets.set(count, offsets);
-  }
-  return offsets;
-}
-
-/** How far a body of `count` dots, or a bubble of `count`, reaches. */
+/** How far the body of a marker of `count` reaches: a dot, or a bubble. */
 export function markerRadius(count: number): number {
   if (count < BUBBLE_FROM) {
-    return dotsOf(count).reduce((most, [x, y]) => Math.max(most, Math.hypot(x, y)), 0) + DOT_RADIUS;
+    return DOT_RADIUS;
   }
   const radius = BUBBLE_RADIUS_MIN + BUBBLE_RADIUS_PER_DOUBLING * Math.log2(count / BUBBLE_FROM);
   return Math.min(BUBBLE_RADIUS_MAX, radius);

@@ -7,17 +7,30 @@ import { LiveSummaryError, type SummaryFetch, fetchLiveSummary, laterSummary } f
 
 const URL = 'https://example.org/updates/wiretrace/summary.json';
 
-/** A summary exactly as the update server writes it. */
-function written(changes: Record<string, unknown> = {}): Record<string, unknown> {
+const MS_PER_DAY = 86_400_000;
+/** 2026-10-18, 09:30 UTC. */
+const MADE_AT = Date.UTC(2026, 9, 18, 9, 30);
+
+/** A summary exactly as the update server writes it, made at `madeAt`. */
+function written(changes: Record<string, unknown> = {}, madeAt = MADE_AT): Record<string, unknown> {
+  const day = Math.floor(madeAt / MS_PER_DAY);
   return {
-    day: 20_743,
-    active: { day: 2, week: 2, month: 2 },
-    countries: [{ code: 'IN', installations: 2 }],
+    madeAt: new Date(madeAt).toISOString(),
+    day,
+    active: { today: 2, week: 2, month: 2, halfYear: 2, sinceLaunch: 2 },
+    downloads: { total: 0, packages: [{ format: 'exe', count: 0 }, { format: 'appimage', count: 0 }, { format: 'deb', count: 0 }] },
+    countries: [{ code: 'IN', installations: 2, withoutArea: 0 }],
+    withoutCountry: 0,
+    legacyChecks: 0,
     versions: [{ name: '2.0.0', share: 1 }],
     systems: [{ name: 'windows', share: 1 }],
-    places: [{ lat: 12.5, lon: 77.5, area: { name: 'Bengaluru', country: 'IN' }, installations: { seen: 20_744, count: 2 }, legacy: null }],
-    legacyChecks: 0,
-    trend: { start: 20_654, counts: [...Array.from({ length: 89 }, () => 0), 2] },
+    places: [
+      {
+        lat: 12.972, lon: 77.594, area: { name: 'Bengaluru', country: 'IN' }, country: 'IN',
+        installations: { count: 2, lastSeen: day }, legacy: null,
+      },
+    ],
+    trend: { start: day - 89, counts: [...Array.from({ length: 89 }, () => 0), 2] },
     ...changes,
   };
 }
@@ -96,33 +109,20 @@ describe('laterSummary', () => {
     expect(laterSummary(null, built)).toBe(built);
   });
 
-  it('takes a summary of a later day', () => {
-    const next = readUsageSummary(written({ day: 20_744, trend: { start: 20_655, counts: [...Array.from({ length: 89 }, () => 0), 2] } }));
+  it('takes a summary made later, on a later day', () => {
+    const next = readUsageSummary(written({}, MADE_AT + MS_PER_DAY));
 
     expect(laterSummary(built, next)).toBe(next);
   });
 
-  it('takes a summary of the same day, made later in it', () => {
-    const next = readUsageSummary(
-      written({
-        places: [
-          { lat: 12.5, lon: 77.5, area: { name: 'Bengaluru', country: 'IN' }, installations: { seen: 20_744, count: 2 }, legacy: null },
-          { lat: 48.5, lon: 2.5, area: { name: 'Paris', country: 'FR' }, installations: { seen: 20_744, count: 1 }, legacy: null },
-        ],
-      })
-    );
+  it('takes a summary made later on the same day', () => {
+    const next = readUsageSummary(written({}, MADE_AT + 15 * 60_000));
 
     expect(laterSummary(built, next)).toBe(next);
   });
 
-  it('keeps the summary it has over one of an earlier day', () => {
-    const earlier = readUsageSummary(
-      written({
-        day: 20_742,
-        places: [{ lat: 12.5, lon: 77.5, area: { name: 'Bengaluru', country: 'IN' }, installations: { seen: 20_743, count: 2 }, legacy: null }],
-        trend: { start: 20_653, counts: [...Array.from({ length: 89 }, () => 0), 2] },
-      })
-    );
+  it('keeps the summary it has over one made before it', () => {
+    const earlier = readUsageSummary(written({}, MADE_AT - 15 * 60_000));
 
     expect(laterSummary(built, earlier)).toBe(built);
   });

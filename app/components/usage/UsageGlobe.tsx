@@ -13,9 +13,9 @@ import type { Feature, Geometry, MultiLineString } from 'geojson';
 import { feature as toFeatures, mesh } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 
-import { type UsagePlace, type UsageSeen, dayDate } from '~/lib/build-data/usage-summary';
+import { MAP_PERIOD_DAYS, type UsageCount, type UsagePlace, dayDate } from '~/lib/build-data/usage-summary';
 import { formatIsoDate } from '~/lib/content/dates';
-import { BUBBLE_FROM, DOT_RADIUS, RING_GAP, RING_WIDTH, type Marker, clusterMarkers, dotsOf } from '~/lib/usage/clusters';
+import { BUBBLE_FROM, RING_GAP, RING_WIDTH, type Marker, clusterMarkers } from '~/lib/usage/clusters';
 import { Minus, Plus } from 'lucide-react';
 import { Icon } from '~/components/icons/Icon';
 
@@ -33,10 +33,10 @@ type World = Topology<{ countries: GeometryCollection<CountryProperties> }>;
 
 interface UsageGlobeProps {
   readonly places: readonly UsagePlace[];
-  /** The last complete day the summary covers: an area seen on it or
-   *  later pulses. */
+  /** The summary's day, the UTC day it was made: an area that checked in
+   *  on it or the day before pulses. */
   readonly day: number;
-  /** Installations active in the last 30 days, by country code. */
+  /** Installations active in the map period, by country code. */
   readonly installations: ReadonlyMap<string, number>;
   /** The English name of each country code. */
   readonly names: Readonly<Record<string, string>>;
@@ -45,8 +45,8 @@ interface UsageGlobeProps {
 }
 
 const ZOOM_MIN = 1;
-/** Close enough for neighbouring areas to show apart. A marker stays at
- *  its fixed point inside its area, so zooming shows nothing finer. */
+/** Close enough for neighbouring areas to show apart. A marker sits on
+ *  its area's named place, so zooming shows nothing finer. */
 const ZOOM_MAX = 8;
 const ZOOM_STEP = 1.5;
 const TILT_LIMIT = 80;
@@ -58,6 +58,9 @@ const WHEEL_LINE_PIXELS = 16;
 /** Zoom changes by e^(-k·pixels) for a wheel turn of that many pixels. */
 const WHEEL_ZOOM_PER_PIXEL = 0.002;
 const PULSE_MS = 2400;
+/** A marker pulses when something in it checked in on the summary's day
+ *  or the days just before it, this many days in all. */
+const RECENT_DAYS = 2;
 const MARKER_OUTLINE = 1;
 const MARKER_OUTLINE_HOVER = 1.5;
 /** A bubble's number is set this high for each pixel of its radius, and
@@ -91,7 +94,7 @@ interface Shown {
   readonly marker: Marker;
   /** Its areas, most installations first. */
   readonly places: readonly UsagePlace[];
-  /** Whether an area in it was seen on the summary's day or later. */
+  /** Whether an area in it checked in within the last `RECENT_DAYS`. */
   readonly recent: boolean;
   /** Names the marker by its areas, so a hovered one is found again. */
   readonly key: string;
@@ -108,11 +111,11 @@ function checksText(count: number): string {
   return `${number.format(count)} update ${count === 1 ? 'check' : 'checks'}`;
 }
 
-const countOf = (seen: UsageSeen | null): number => seen?.count ?? 0;
+const countOf = (part: UsageCount | null): number => part?.count ?? 0;
 
 /** The last day anything came from an area. */
 function lastSeen(place: UsagePlace): number {
-  return Math.max(place.installations?.seen ?? -Infinity, place.legacy?.seen ?? -Infinity);
+  return Math.max(place.installations?.lastSeen ?? -Infinity, place.legacy?.lastSeen ?? -Infinity);
 }
 
 /** Most installations first, so a merged marker names its largest areas
@@ -142,9 +145,10 @@ function token(name: string): string {
 
 /**
  * UsageGlobe: a globe drawn in the visitor's browser from public-domain
- * map data served by this site, with the installations of each area as
- * dots, or as a bubble with their number, merged with nearby areas until
- * zooming in leaves them room (`~/lib/usage/clusters`). It can be turned by dragging or with the arrow keys, zoomed with the mouse
+ * map data served by this site, with the installations of each area as a
+ * dot, or as a bubble with their number, merged with nearby areas until
+ * zooming in leaves them room (`~/lib/usage/clusters`). It can be turned
+ * by dragging or with the arrow keys, zoomed with the mouse
  * wheel, its buttons or + and -, and gives the figures of an area or a
  * country under the pointer. Nothing is loaded from anywhere else.
  */
@@ -211,7 +215,7 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
     const sphere: GeoPermissibleObjects = { type: 'Sphere' };
     const graticule = geoGraticule10();
     const ordered = [...places].sort(layoutOrder);
-    const recent = (place: UsagePlace) => lastSeen(place) >= day;
+    const recent = (place: UsagePlace) => lastSeen(place) > day - RECENT_DAYS;
     let size = 0;
     let frame = 0;
     /** The markers as last laid out, and the view they were laid out for. */
@@ -348,22 +352,17 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
         }
         const hovered = shown.key === state.hoverKey;
         const colour = shown.recent ? colours.accent : colours.steady;
-        // The body: installations filled; 1.x checks alone hollow.
+        // The body: installations filled; 1.x checks alone hollow. One is
+        // a dot; more are a bubble with their number.
         const hollow = marker.installations === 0;
         const count = hollow ? marker.legacy : marker.installations;
-        const circles: [number, number, number][] =
-          count < BUBBLE_FROM
-            ? dotsOf(count).map(([dx, dy]) => [marker.x + dx, marker.y + dy, DOT_RADIUS])
-            : [[marker.x, marker.y, marker.body]];
-        for (const [x, y, r] of circles) {
-          context.beginPath();
-          context.arc(x, y, r, 0, 2 * Math.PI);
-          context.fillStyle = hollow ? colours.paper : colour;
-          context.fill();
-          context.lineWidth = hollow ? RING_WIDTH : hovered ? MARKER_OUTLINE_HOVER : MARKER_OUTLINE;
-          context.strokeStyle = hollow ? (hovered ? colours.text : colour) : hovered ? colours.text : colours.paper;
-          context.stroke();
-        }
+        context.beginPath();
+        context.arc(marker.x, marker.y, marker.body, 0, 2 * Math.PI);
+        context.fillStyle = hollow ? colours.paper : colour;
+        context.fill();
+        context.lineWidth = hollow ? RING_WIDTH : hovered ? MARKER_OUTLINE_HOVER : MARKER_OUTLINE;
+        context.strokeStyle = hollow ? (hovered ? colours.text : colour) : hovered ? colours.text : colours.paper;
+        context.stroke();
         if (count >= BUBBLE_FROM) {
           const text = bubbleText(count, marker.body);
           context.fillStyle = hollow ? colour : colours.paper;
@@ -455,8 +454,9 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
       return { name: home ? `An area in ${nameOf(home)}` : 'An area at sea', named: false };
     };
 
-    /** What the tooltip says of a marker. */
-    const onDay = (seen: number) => `${formatIsoDate(dayDate(seen))}${seen > day ? ' (today, so far)' : ''}`;
+    /** The day something was last seen, as the tooltip says it. */
+    const onDay = (seen: number) => (seen === day ? 'today' : formatIsoDate(dayDate(seen)));
+    const period = `in the last ${MAP_PERIOD_DAYS} days`;
     /** What came from one area, in short, for a merged marker's list. */
     const counts = (place: UsagePlace) =>
       [
@@ -473,9 +473,14 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
           title: named ? `Around ${name}` : name,
           lines: [
             ...(only.installations
-              ? [`${installationsText(only.installations.count)} checked in on ${onDay(only.installations.seen)}`]
+              ? [
+                  `${installationsText(only.installations.count)} active ${period}`,
+                  `Last check-in ${onDay(only.installations.lastSeen)}`,
+                ]
               : []),
-            ...(only.legacy ? [`WireTrace 1.x: ${checksText(only.legacy.count)} on ${onDay(only.legacy.seen)}`] : []),
+            ...(only.legacy
+              ? [`WireTrace 1.x: ${checksText(only.legacy.count)} ${period}, the last ${onDay(only.legacy.lastSeen)}`]
+              : []),
           ],
         };
       }
@@ -485,8 +490,8 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
       return {
         title: `${number.format(shown.places.length)} areas`,
         lines: [
-          ...(total > 0 ? [installationsText(total)] : []),
-          ...(legacy > 0 ? [`WireTrace 1.x: ${checksText(legacy)}`] : []),
+          ...(total > 0 ? [`${installationsText(total)} active ${period}`] : []),
+          ...(legacy > 0 ? [`WireTrace 1.x: ${checksText(legacy)} ${period}`] : []),
           ...listed.map((place) => `${areaName(place).name}: ${counts(place)}`),
           ...(rest > 0 ? [`and ${number.format(rest)} more ${rest === 1 ? 'area' : 'areas'}; zoom in to see them`] : []),
         ],
@@ -529,7 +534,7 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
         x: px,
         y: py,
         title: nameOf(country),
-        lines: [active ? `${installationsText(active)} active in the last 30 days` : 'No installation seen in 30 days'],
+        lines: [active ? `${installationsText(active)} active ${period}` : `No installation active ${period}`],
       });
     };
 
@@ -654,7 +659,7 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
         ref={canvasRef}
         tabIndex={0}
         role="img"
-        aria-label="A globe with the WireTrace installations of each area of about 100 km they checked in from, as dots or as a number, and, drawn hollow, the WireTrace 1.x update checks from each area. The countries and their installations are listed below."
+        aria-label="A globe with the WireTrace installations active in the last 30 days in each area of about 100 km they checked in from, as a dot for one or a number for more, and, drawn hollow, the WireTrace 1.x update checks from each area. The countries and their installations are listed below."
         className="block h-full w-full cursor-grab rounded-full active:cursor-grabbing"
       />
       {failed && (
