@@ -292,6 +292,10 @@ export default function ProjectWireTrace({ loaderData }: Route.ComponentProps) {
             <strong className="font-semibold">macOS.</strong> Clone the repository and run from
             source.
           </p>
+          <p>
+            <strong className="font-semibold">Code signing.</strong> {wt.title} is applying to the
+            SignPath Foundation for code signing. Current releases are not signed.
+          </p>
         </Prose>
         <div className="mt-10 max-w-narrow">
           <ReleaseCard
