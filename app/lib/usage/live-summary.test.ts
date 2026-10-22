@@ -17,7 +17,7 @@ function written(changes: Record<string, unknown> = {}, madeAt = MADE_AT): Recor
   return {
     madeAt: new Date(madeAt).toISOString(),
     day,
-    active: { today: 2, week: 2, month: 2, halfYear: 2, sinceLaunch: 2 },
+    active: { today: 2, week: 2, month: 2, halfYear: 2 },
     downloads: { total: 0, packages: [{ format: 'exe', count: 0 }, { format: 'appimage', count: 0 }, { format: 'deb', count: 0 }] },
     countries: [{ code: 'IN', installations: 2, withoutArea: 0 }],
     withoutCountry: 0,

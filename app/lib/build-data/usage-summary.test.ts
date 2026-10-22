@@ -42,7 +42,7 @@ function summary(changes: Record<string, unknown> = {}): Record<string, unknown>
   return {
     madeAt: MADE_AT,
     day: DAY,
-    active: { today: 41, week: 118, month: 263, halfYear: 400, sinceLaunch: 512 },
+    active: { today: 41, week: 118, month: 263, halfYear: 400 },
     downloads: {
       total: 104,
       packages: [{ format: 'exe', count: 84 }, { format: 'appimage', count: 17 }, { format: 'deb', count: 3 }],
@@ -64,7 +64,7 @@ describe('readUsageSummary', () => {
 
     expect(read.madeAt).toBe(Date.parse(MADE_AT));
     expect(read.day).toBe(DAY);
-    expect(read.active).toEqual({ today: 41, week: 118, month: 263, halfYear: 400, sinceLaunch: 512 });
+    expect(read.active).toEqual({ today: 41, week: 118, month: 263, halfYear: 400 });
     expect(read.downloads.total).toBe(104);
     expect(read.countries.map((country) => country.code)).toEqual(['IN', 'DE']);
     expect(read.trend.counts).toHaveLength(TREND_DAYS);
@@ -73,7 +73,7 @@ describe('readUsageSummary', () => {
 
   it('orders countries with as many installations by code', () => {
     const read = readUsageSummary(summary({
-      active: { today: 0, week: 2, month: 2, halfYear: 2, sinceLaunch: 2 },
+      active: { today: 0, week: 2, month: 2, halfYear: 2 },
       countries: [{ code: 'IN', installations: 1, withoutArea: 1 }, { code: 'DE', installations: 1, withoutArea: 1 }],
       withoutCountry: 0,
       places: [place({ installations: null, legacy: { count: 1, lastSeen: DAY } })],
@@ -119,8 +119,9 @@ describe('readUsageSummary', () => {
     ['a time that is not a real one', summary({ madeAt: '2026-02-30T09:30:00.000Z' })],
     ['a day that is not the day it was made', summary({ day: DAY + 1 })],
     ['a count below zero', summary({ legacyChecks: -1 })],
-    ['a count that is not whole', summary({ active: { today: 1.5, week: 118, month: 263, halfYear: 400, sinceLaunch: 512 } })],
-    ['a longer period with fewer installations', summary({ active: { today: 41, week: 300, month: 263, halfYear: 400, sinceLaunch: 512 } })],
+    ['a count that is not whole', summary({ active: { today: 1.5, week: 118, month: 263, halfYear: 400 } })],
+    ['a field of an earlier form', summary({ active: { today: 41, week: 118, month: 263, halfYear: 400, sinceLaunch: 512 } })],
+    ['a longer period with fewer installations', summary({ active: { today: 41, week: 300, month: 263, halfYear: 400 } })],
     ['a package WireTrace is not made in', summary({ downloads: { total: 1, packages: [{ format: 'dmg', count: 1 }] } })],
     ['a package given twice', summary({ downloads: { total: 2, packages: [{ format: 'exe', count: 1 }, { format: 'exe', count: 1 }] } })],
     ['downloads that do not add up', summary({ downloads: { total: 105, packages: [{ format: 'exe', count: 104 }] } })],

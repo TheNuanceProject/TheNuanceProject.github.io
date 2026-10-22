@@ -116,6 +116,10 @@ function Downloads({ summary }: { summary: UsageSummary }) {
             <span className="shrink-0 font-mono text-ui text-text-secondary tabular-nums">{number.format(item.count)}</span>
           </li>
         ))}
+        <li className="flex min-w-0 items-baseline justify-between gap-3 border-t border-divider pt-3 font-sans text-ui-lg">
+          <span className="truncate text-text">All packages</span>
+          <span className="shrink-0 font-mono text-ui text-text tabular-nums">{number.format(summary.downloads.total)}</span>
+        </li>
       </ul>
     </div>
   );
@@ -214,9 +218,7 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
             <Figure value={summary.active.month} label={`in the last ${MAP_PERIOD_DAYS} days`} />
             <Figure value={summary.active.halfYear} label="in the last 180 days" />
           </section>
-          <section aria-label="Totals" className="grid grid-cols-2 sm:grid-cols-4 border-y border-divider">
-            <Figure value={summary.active.sinceLaunch} label="installations since launch" />
-            <Figure value={summary.downloads.total} label="downloads" />
+          <section aria-label="Countries and 1.x update checks" className="grid grid-cols-2 sm:grid-cols-4 border-y border-divider">
             <Figure value={summary.countries.length} label={summary.countries.length === 1 ? 'country' : 'countries'} />
             <Figure value={summary.legacyChecks} label={`1.x update checks, ${MAP_PERIOD_DAYS} days`} />
           </section>
@@ -263,8 +265,8 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
             </div>
             <p className="mt-8 font-sans text-ui-lg text-text-secondary max-w-narrow">
               Versions and systems are shares of the installations active in the last {MAP_PERIOD_DAYS} days.
-              Downloads are GitHub&rsquo;s counts of {wtMeta.title}&rsquo;s packages from every release; a
-              download is a file fetched, not a person.
+              Downloads are GitHub&rsquo;s count of package downloads for every release of{' '}
+              {wtMeta.title}, including updates. A download is not an installation.
             </p>
           </Section>
 

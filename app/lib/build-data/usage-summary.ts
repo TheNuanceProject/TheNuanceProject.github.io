@@ -79,14 +79,12 @@ export interface UsageSummary {
   /** The UTC day of `madeAt`, as days since 1 January 1970. Every period
    *  ends with it and includes it. */
   readonly day: number;
-  /** 2.x installations active in each period, each counted once, and
-   *  every installation seen since the first day. */
+  /** 2.x installations active in each period, each counted once. */
   readonly active: {
     readonly today: number;
     readonly week: number;
     readonly month: number;
     readonly halfYear: number;
-    readonly sinceLaunch: number;
   };
   /** Downloads of WireTrace's packages, as GitHub counts them. */
   readonly downloads: {
@@ -120,7 +118,7 @@ const SUMMARY_FIELDS = [
   'madeAt', 'day', 'active', 'downloads', 'countries', 'withoutCountry', 'legacyChecks',
   'versions', 'systems', 'places', 'trend',
 ];
-const ACTIVE_FIELDS = ['today', 'week', 'month', 'halfYear', 'sinceLaunch'];
+const ACTIVE_FIELDS = ['today', 'week', 'month', 'halfYear'];
 const DOWNLOADS_FIELDS = ['total', 'packages'];
 const PACKAGE_FIELDS = ['format', 'count'];
 const SHARE_FIELDS = ['name', 'share'];
@@ -272,7 +270,6 @@ export function readUsageSummary(value: unknown): UsageSummary {
     week: count(activePart.week, 'active.week'),
     month: count(activePart.month, 'active.month'),
     halfYear: count(activePart.halfYear, 'active.halfYear'),
-    sinceLaunch: count(activePart.sinceLaunch, 'active.sinceLaunch'),
   };
   // A longer period ending the same day holds every installation of a
   // shorter one.
