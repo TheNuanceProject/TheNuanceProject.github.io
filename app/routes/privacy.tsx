@@ -21,7 +21,7 @@ import { breadcrumbSchema } from '~/lib/structured-data';
  */
 
 /** When this policy last changed. Updated with every change to it. */
-const LAST_UPDATED = '22 October 2026';
+const LAST_UPDATED = '17 November 2026';
 
 /** How long the update server keeps what it keeps. They match the
  *  update server (wiretrace-updates/src/fold.ts) and WireTrace. */
@@ -131,7 +131,7 @@ export default function Privacy() {
         </P>
         <P>
           From the IP address of the check, our server derives your country and an approximate
-          area of about 100 km. The IP address is used only briefly to protect the service against
+          city. The IP address is used only briefly to protect the service against
           abuse and is never stored. Checks are kept only as daily totals; no record of an
           individual check is kept. You can turn the update check off in the installer, or at any
           time in WireTrace&rsquo;s Preferences.
@@ -160,10 +160,10 @@ export default function Privacy() {
       <Part label="4. What we publish">
         <P>
           The WireTrace usage page shows totals only: the number of active installations over
-          recent periods, the countries and areas of about 100 km they are in, the versions and
-          operating systems in use, update checks from WireTrace 1.x, and the number of downloads.
-          No figure identifies an installation or a person, and a map marker is placed at the
-          largest town of its area, never at the location a check came from.
+          recent periods, the countries and cities they are in, the versions and operating systems
+          in use, update checks from WireTrace 1.x, and the number of downloads. No figure
+          identifies an installation or a person, and a map marker sits on the city of a check,
+          rounded to about 11 km, never on the location of a computer.
         </P>
       </Part>
 
@@ -228,8 +228,8 @@ export default function Privacy() {
         <UL>
           <LI><B>IP addresses:</B> not stored by us.</LI>
           <LI>
-            <B>Update checks, as daily totals by country and area:</B> {CHECKS_KEPT_YEARS} years; after
-            that only totals without the area remain.
+            <B>Update checks, as daily totals by country and city:</B> {CHECKS_KEPT_YEARS} years; after
+            that only totals without the city remain.
           </LI>
           <LI>
             <B>Usage statistics reports:</B> {REPORTS_KEPT_MONTHS} months; after that only totals that

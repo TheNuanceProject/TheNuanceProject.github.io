@@ -33,14 +33,14 @@ import { usage } from '../../content/projects/wiretrace/content';
  * current one, which the server makes every 15 minutes (`useLiveSummary`).
  * It holds totals only. Every figure covers a period ending with the UTC
  * day the summary was made, and counts each installation once in it, so
- * the areas add up to their countries and the countries to the total.
+ * the places add up to their countries and the countries to the total.
  * Until the server has made its first summary the page says so, and shows
  * no figures.
  */
 
 const TITLE = 'Where WireTrace is used';
 const DESCRIPTION =
-  'Active WireTrace installations, the countries and areas they are in, and the versions and systems they run, from the update checks.';
+  'Active WireTrace installations, the countries and cities they are in, and the versions and systems they run, from the update checks.';
 const PATH = `${usage.path}/`;
 
 /** How the summary names systems, and how the page writes them. */
@@ -191,9 +191,9 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
           {TITLE}
         </h1>
         <p className="mt-6 md:mt-8 font-serif text-lead text-text-secondary max-w-narrow">
-          Installations of {wtMeta.title} that checked for updates, and the areas of about 100 km
-          they checked from. The globe shows each area's installations active in the last{' '}
-          {MAP_PERIOD_DAYS} days: a dot for one, a number for more. Areas close together are joined
+          Installations of {wtMeta.title} that checked for updates, and the cities they checked
+          from. The globe shows each city's installations active in the last{' '}
+          {MAP_PERIOD_DAYS} days: a dot for one, a number for more. Places close together are joined
           into one marker until zooming in shows them apart. Drag the globe to turn it, scroll or use
           the buttons to zoom, and point at a marker or a country to see its figures. Markers that
           pulse checked in today or yesterday. Hollow markers are update checks from {wtMeta.title}{' '}
@@ -317,9 +317,11 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
               <p>
                 Made from the update checks of {wtMeta.title} 2.x, as of {madeAtText(summary)}. The update
                 server makes them every 15 minutes, and this page reads them when it opens. Every period
-                ends with the current day (UTC) and counts each installation once, in the area it first
-                checked in from in that period. An area is about 100 km across; its marker sits on its
-                largest place, never where a computer is, and is named after it, from{' '}
+                ends with the current day (UTC) and counts each installation once, in the place it first
+                checked in from in that period. A place is the city Cloudflare gives for the address of a
+                check; its marker sits on that city, rounded to about 11 km, never where a computer is.
+                Checks counted before places were named by city stay in their area of about 100 km, whose
+                marker sits on its largest place and is named after it, from{' '}
                 <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
                   GeoNames
                 </a>{' '}

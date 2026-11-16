@@ -5,7 +5,7 @@
  * What appears only on the WireTrace pages: how it works, features,
  * specifications, keyboard shortcuts, the pictures, the one-line summary
  * of each release, and where the usage page reads its figures. Every
- * value is read from the WireTrace 2.0 code (`app/constants.py`,
+ * value is read from the WireTrace 2.1 code (`app/constants.py`,
  * `ui/shortcuts.py`) and every claim is held by one of its tests.
  *
  * Cross-page metadata (name, version, links, taglines) lives in
@@ -36,7 +36,7 @@ export interface HowItWorksItem {
 }
 
 /**
- * The pictures of WireTrace 2.0, each made in a light and a dark version
+ * The pictures of WireTrace 2.1, each made in a light and a dark version
  * by WireTrace's own `tools/make_site_screenshots.py`, and shown in the
  * version that matches the site's theme.
  */
@@ -67,8 +67,8 @@ export function screenshotPath(name: ScreenshotName, theme: 'light' | 'dark'): s
 
 export const howItWorks: readonly HowItWorksItem[] = [
   {
-    title: 'Three jobs, kept apart',
-    text: 'Reading the port, writing the log and drawing the window run separately. The log goes straight from the port to the disk and never waits for the screen.',
+    title: 'The log comes first',
+    text: 'Every line goes from the port to the log without waiting for the screen, so a busy window never slows a capture.',
   },
   {
     title: 'One timestamp',
@@ -84,7 +84,7 @@ export const howItWorks: readonly HowItWorksItem[] = [
   },
   {
     title: 'Proven on every change',
-    text: 'A test sends 200,000 lines from port to log file and requires all of them, in order, at ten thousand lines a second or faster. More than 2,700 automated tests run before anything is released.',
+    text: 'A test sends 200,000 lines from port to log file and requires all of them, in order, at ten thousand lines a second or faster. More than 3,600 automated tests run before anything is released.',
   },
 ];
 
@@ -92,13 +92,23 @@ export const features: readonly FeatureItem[] = [
   {
     title: 'Multi-device tabs',
     description:
-      'One tab per device, each with its own connection, console, log and plot. Switching tabs interrupts nothing. Each port remembers its baud rate, line ending, plot profile and tab name.',
+      'One tab per device, each with its own connection, console, log and plot. Switching tabs interrupts nothing. Each port remembers its baud rate, line settings, line ending, plot profile, where its plot window was and its tab name.',
   },
   {
     title: 'Automatic port list',
     description:
       'A new tab opens on a list of serial ports that updates by itself. Plug a device in and it appears.',
     screenshot: 'first-screen',
+  },
+  {
+    title: 'Reconnect',
+    description:
+      'When a board is unplugged or resets its USB connection, the tab waits for the same board and carries on with the same session and the same log once it is back.',
+  },
+  {
+    title: 'Port settings and control lines',
+    description:
+      'Data bits, parity, stop bits and flow control for each port, used each time it connects. While connected, set DTR and RTS, send a break, and watch CTS, DSR, DCD and RI in the status bar.',
   },
   {
     title: 'Reliable logging',
@@ -126,9 +136,19 @@ export const features: readonly FeatureItem[] = [
       'Every line is given a level: Critical, Error, Warning, Info, Debug, Command or Data. ESP-IDF, Zephyr and bracketed level markers are recognised exactly. One click filters by level, with a count on each.',
   },
   {
+    title: 'Highlights and ANSI colours',
+    description:
+      "Draw the lines you are watching for in a colour of their own, and show text the device colours with ANSI codes in the theme's own colours. Logs stay plain.",
+  },
+  {
     title: 'Filter and find',
     description:
       'Show only the lines that contain a text, or search and step through the matches. Neither changes what is written to disk.',
+  },
+  {
+    title: 'Timestamps',
+    description:
+      'Each line shows the date and time it arrived, to the millisecond, exactly as the log writes it; or the time of day, or the time since the previous line.',
   },
   {
     title: 'Text and HEX',
@@ -138,8 +158,18 @@ export const features: readonly FeatureItem[] = [
   {
     title: 'Live plot',
     description:
-      'WireTrace finds the numbers in JSON, key: value pairs and delimited values and draws them as they arrive. For any other format, describe the line with a pattern and save it as a profile. Point at a chart to read the values at that moment. Measure between two cursors that stop on samples, with the time between them and the change in each value; group values into panels by scale, or move the plot to its own window.',
+      'WireTrace finds the numbers in JSON, key: value pairs and delimited values and draws them as they arrive, in a window of its own or under the console. For any other format, describe the line with a pattern and save it as a profile. The plot holds the whole session. Measure between two cursors that stop on samples, group values into panels by scale, and save the chart as PNG or SVG or its values as CSV.',
     screenshot: 'plot',
+  },
+  {
+    title: 'Restart detection and the session report',
+    description:
+      "ESP32 resets and Zephyr boot banners are recognised and marked in the console, the log and exports. The session report counts a session's lines, errors, lost connections and restarts exactly.",
+  },
+  {
+    title: 'Alerts',
+    description:
+      "A banner, the system's sound and, if you choose, a desktop notification on new error lines, a lost connection or a board gone quiet. Alerts from several tabs at once give one sound.",
   },
   {
     title: 'Commands',
@@ -151,6 +181,11 @@ export const features: readonly FeatureItem[] = [
     description:
       'A lost connection or a disk problem is reported in a bar across the tab that stays until it is dealt with.',
     screenshot: 'connection-lost',
+  },
+  {
+    title: 'Features you choose',
+    description:
+      'The live plot, restart detection, the session report, alerts, highlights and ANSI colours can each be switched off in Preferences. A feature that is off adds nothing to the window.',
   },
   {
     title: 'Light, Dark and System themes',
@@ -166,9 +201,14 @@ export const features: readonly FeatureItem[] = [
 export const specs: readonly SpecRow[] = [
   { property: 'Throughput, port to log file', value: '10,000 lines per second, held by test' },
   { property: 'Baud rates', value: '50 to 4,000,000, any whole number' },
-  { property: 'Connection', value: '8 data bits, no parity, 1 stop bit' },
+  {
+    property: 'Connection',
+    value:
+      '5 to 8 data bits; no, even or odd parity (mark and space on Windows and Linux); 1 or 2 stop bits (1.5 on Windows); no flow control, RTS/CTS or XON/XOFF. 8N1 by default',
+  },
   { property: 'Display modes', value: 'Text, HEX' },
   { property: 'Log and export formats', value: 'Text, CSV' },
+  { property: 'Plot export', value: 'PNG, SVG, CSV' },
   { property: 'Session recording', value: 'Up to 1 GB a tab' },
   { property: 'Maximum log file size', value: '100 MB by default, up to 4,096 MB, or off' },
   {
@@ -206,6 +246,8 @@ export const shortcuts: readonly ShortcutRow[] = [
 /** One line on each release, shown in the releases timeline beside the
  *  date GitHub gives. A release without one shows its date alone. */
 export const releaseSummaries: Readonly<Record<string, string>> = {
+  '2.1.0':
+    'Reconnect to the same board, the whole session in the plot, alerts, restart detection and the session report, line settings. Every new feature can be switched off.',
   '2.0.0':
     'Rebuilt from the port to the disk. Nothing lost on disconnect, sessions that can always be exported, a new interface, verified updates.',
   '1.2.0': 'Linux builds, safer saving of preferences, disconnect fixes.',

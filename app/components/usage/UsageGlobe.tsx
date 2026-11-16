@@ -13,7 +13,13 @@ import type { Feature, Geometry, MultiLineString } from 'geojson';
 import { feature as toFeatures, mesh } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 
-import { MAP_PERIOD_DAYS, type UsageCount, type UsagePlace, dayDate } from '~/lib/build-data/usage-summary';
+import {
+  MAP_PERIOD_DAYS,
+  UNKNOWN_COUNTRY,
+  type UsageCount,
+  type UsagePlace,
+  dayDate,
+} from '~/lib/build-data/usage-summary';
 import { formatIsoDate } from '~/lib/content/dates';
 import { BUBBLE_FROM, RING_GAP, RING_WIDTH, type Marker, clusterMarkers } from '~/lib/usage/clusters';
 import { Minus, Plus } from 'lucide-react';
@@ -33,7 +39,7 @@ type World = Topology<{ countries: GeometryCollection<CountryProperties> }>;
 
 interface UsageGlobeProps {
   readonly places: readonly UsagePlace[];
-  /** The summary's day, the UTC day it was made: an area that checked in
+  /** The summary's day, the UTC day it was made: a place that checked in
    *  on it or the day before pulses. */
   readonly day: number;
   /** Installations active in the map period, by country code. */
@@ -45,8 +51,9 @@ interface UsageGlobeProps {
 }
 
 const ZOOM_MIN = 1;
-/** Close enough for neighbouring areas to show apart. A marker sits on
- *  its area's named place, so zooming shows nothing finer. */
+/** Close enough for neighbouring places to show apart. A marker sits on
+ *  its city, to a tenth of a degree, or on its area's named place, so
+ *  zooming shows nothing finer. */
 const ZOOM_MAX = 8;
 const ZOOM_STEP = 1.5;
 const TILT_LIMIT = 80;
@@ -69,8 +76,8 @@ const BUBBLE_FONT_PER_RADIUS = 0.95;
 const BUBBLE_TEXT_PADDING = 3;
 /** From this many installations, a bubble writes its number in short. */
 const BUBBLE_SHORT_FROM = 1000;
-/** The areas a merged marker names, largest first; the rest are counted. */
-const MERGED_AREAS_LISTED = 5;
+/** The places a merged marker names, largest first; the rest are counted. */
+const MERGED_PLACES_LISTED = 5;
 const PULSE_GROWTH = 14;
 /** How far outside a marker the pointer still picks it, in pixels. */
 const PICK_MARGIN = 6;
@@ -89,14 +96,14 @@ interface Hover {
   readonly lines: readonly string[];
 }
 
-/** A marker as the globe draws it this frame, with its areas. */
+/** A marker as the globe draws it this frame, with its places. */
 interface Shown {
   readonly marker: Marker;
-  /** Its areas, most installations first. */
+  /** Its places, most installations first. */
   readonly places: readonly UsagePlace[];
-  /** Whether an area in it checked in within the last `RECENT_DAYS`. */
+  /** Whether a place in it checked in within the last `RECENT_DAYS`. */
   readonly recent: boolean;
-  /** Names the marker by its areas, so a hovered one is found again. */
+  /** Names the marker by its places, so a hovered one is found again. */
   readonly key: string;
 }
 
@@ -113,13 +120,13 @@ function checksText(count: number): string {
 
 const countOf = (part: UsageCount | null): number => part?.count ?? 0;
 
-/** The last day anything came from an area. */
+/** The last day anything came from a place. */
 function lastSeen(place: UsagePlace): number {
   return Math.max(place.installations?.lastSeen ?? -Infinity, place.legacy?.lastSeen ?? -Infinity);
 }
 
-/** Most installations first, so a merged marker names its largest areas
- *  first and the largest areas gather the others; the rest in a fixed
+/** Most installations first, so a merged marker names its largest places
+ *  first and the largest places gather the others; the rest in a fixed
  *  order. */
 function layoutOrder(a: UsagePlace, b: UsagePlace): number {
   return (
@@ -145,11 +152,11 @@ function token(name: string): string {
 
 /**
  * UsageGlobe: a globe drawn in the visitor's browser from public-domain
- * map data served by this site, with the installations of each area as a
- * dot, or as a bubble with their number, merged with nearby areas until
+ * map data served by this site, with the installations of each place as a
+ * dot, or as a bubble with their number, merged with nearby places until
  * zooming in leaves them room (`~/lib/usage/clusters`). It can be turned
  * by dragging or with the arrow keys, zoomed with the mouse
- * wheel, its buttons or + and -, and gives the figures of an area or a
+ * wheel, its buttons or + and -, and gives the figures of a place or a
  * country under the pointer. Nothing is loaded from anywhere else.
  */
 export function UsageGlobe({ places, day, installations, names, chosen }: UsageGlobeProps) {
@@ -257,7 +264,7 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
     /** Whether a point on the canvas lies on the globe's disc. */
     const onDisc = (x: number, y: number) => Math.hypot(x - size / 2, y - size / 2) <= size / 2 - EDGE_MARGIN;
 
-    /** The markers of the areas on the visible half, for the current
+    /** The markers of the places on the visible half, for the current
      *  view. The projection must already be set for it. */
     const layout = (): Shown[] => {
       const key = [state.rotation.join(','), state.zoom, size].join('|');
@@ -444,20 +451,28 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
       return best;
     };
 
-    /** An area's name: its largest place and country, else the country
-     *  it lies in. */
-    const areaName = (place: UsagePlace): { name: string; named: boolean } => {
-      if (place.area) {
-        return { name: `${place.area.name}, ${names[place.area.country] ?? place.area.country}`, named: true };
+    /** A place's name with its country: a city by its name, an area as
+     *  around its named place, so the two kinds read apart wherever they
+     *  are listed. A city with no name is named by its country, and an
+     *  area with no named place by the country it lies in. */
+    const placeName = (place: UsagePlace): string => {
+      if (place.name) {
+        const named = `${place.name.name}, ${names[place.name.country] ?? place.name.country}`;
+        return place.kind === 'area' ? `Around ${named}` : named;
+      }
+      if (place.kind === 'city') {
+        if (place.country !== UNKNOWN_COUNTRY) return `A place in ${names[place.country] ?? place.country}`;
+        const lyingIn = countries.find((c) => geoContains(c, [place.lon, place.lat]));
+        return lyingIn ? `A place in ${nameOf(lyingIn)}` : 'A place at sea';
       }
       const home = countries.find((c) => geoContains(c, [place.lon, place.lat])) ?? countryOfArea(place);
-      return { name: home ? `An area in ${nameOf(home)}` : 'An area at sea', named: false };
+      return home ? `An area in ${nameOf(home)}` : 'An area at sea';
     };
 
     /** The day something was last seen, as the tooltip says it. */
     const onDay = (seen: number) => (seen === day ? 'today' : formatIsoDate(dayDate(seen)));
     const period = `in the last ${MAP_PERIOD_DAYS} days`;
-    /** What came from one area, in short, for a merged marker's list. */
+    /** What came from one place, in short, for a merged marker's list. */
     const counts = (place: UsagePlace) =>
       [
         place.installations ? installationsText(place.installations.count) : null,
@@ -468,9 +483,8 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
     const describe = (shown: Shown): Omit<Hover, 'x' | 'y'> => {
       const [only] = shown.places;
       if (only && shown.places.length === 1) {
-        const { name, named } = areaName(only);
         return {
-          title: named ? `Around ${name}` : name,
+          title: placeName(only),
           lines: [
             ...(only.installations
               ? [
@@ -484,16 +498,16 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
           ],
         };
       }
-      const listed = shown.places.slice(0, MERGED_AREAS_LISTED);
+      const listed = shown.places.slice(0, MERGED_PLACES_LISTED);
       const rest = shown.places.length - listed.length;
       const { installations: total, legacy } = shown.marker;
       return {
-        title: `${number.format(shown.places.length)} areas`,
+        title: `${number.format(shown.places.length)} places`,
         lines: [
           ...(total > 0 ? [`${installationsText(total)} active ${period}`] : []),
           ...(legacy > 0 ? [`WireTrace 1.x: ${checksText(legacy)} ${period}`] : []),
-          ...listed.map((place) => `${areaName(place).name}: ${counts(place)}`),
-          ...(rest > 0 ? [`and ${number.format(rest)} more ${rest === 1 ? 'area' : 'areas'}; zoom in to see them`] : []),
+          ...listed.map((place) => `${placeName(place)}: ${counts(place)}`),
+          ...(rest > 0 ? [`and ${number.format(rest)} more ${rest === 1 ? 'place' : 'places'}; zoom in to see them`] : []),
         ],
       };
     };
@@ -659,7 +673,7 @@ export function UsageGlobe({ places, day, installations, names, chosen }: UsageG
         ref={canvasRef}
         tabIndex={0}
         role="img"
-        aria-label="A globe with the WireTrace installations active in the last 30 days in each area of about 100 km they checked in from, as a dot for one or a number for more, and, drawn hollow, the WireTrace 1.x update checks from each area. The countries and their installations are listed below."
+        aria-label="A globe with the WireTrace installations active in the last 30 days in each city they checked in from, as a dot for one or a number for more, and, drawn hollow, the WireTrace 1.x update checks from each city. The countries and their installations are listed below."
         className="block h-full w-full cursor-grab rounded-full active:cursor-grabbing"
       />
       {failed && (

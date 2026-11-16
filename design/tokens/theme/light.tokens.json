@@ -505,6 +505,254 @@
             "hex": "#666666"
           }
         }
+      },
+      "ansi": {
+        "0": {
+          "$description": "ANSI colours 0 to 15 as the console shows them; each is readable on paper and on the row tints",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.078431,
+              0.078431,
+              0.07451
+            ],
+            "hex": "#141413"
+          }
+        },
+        "1": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8,
+              0.184314,
+              0.141176
+            ],
+            "hex": "#cc2f24"
+          }
+        },
+        "2": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.141176,
+              0.482353,
+              0.254902
+            ],
+            "hex": "#247b41"
+          }
+        },
+        "3": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.521569,
+              0.407843,
+              0.07451
+            ],
+            "hex": "#856813"
+          }
+        },
+        "4": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.141176,
+              0.415686,
+              0.8
+            ],
+            "hex": "#246acc"
+          }
+        },
+        "5": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.678431,
+              0.227451,
+              0.678431
+            ],
+            "hex": "#ad3aad"
+          }
+        },
+        "6": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.109804,
+              0.462745,
+              0.517647
+            ],
+            "hex": "#1c7684"
+          }
+        },
+        "7": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.435294,
+              0.423529,
+              0.396078
+            ],
+            "hex": "#6f6c65"
+          }
+        },
+        "8": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.403922,
+              0.423529,
+              0.470588
+            ],
+            "hex": "#676c78"
+          }
+        },
+        "9": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.831373,
+              0.117647,
+              0.066667
+            ],
+            "hex": "#d41e11"
+          }
+        },
+        "10": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.086275,
+              0.486275,
+              0.219608
+            ],
+            "hex": "#167c38"
+          }
+        },
+        "11": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.498039,
+              0.419608,
+              0.027451
+            ],
+            "hex": "#7f6b07"
+          }
+        },
+        "12": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.070588,
+              0.4,
+              0.866667
+            ],
+            "hex": "#1266dd"
+          }
+        },
+        "13": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.717647,
+              0.152941,
+              0.717647
+            ],
+            "hex": "#b727b7"
+          }
+        },
+        "14": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.058824,
+              0.466667,
+              0.52549
+            ],
+            "hex": "#0f7786"
+          }
+        },
+        "15": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.443137,
+              0.419608,
+              0.376471
+            ],
+            "hex": "#716b60"
+          }
+        }
+      },
+      "highlight": {
+        "1": {
+          "$description": "Highlight rules, in order: red, amber, green, teal, blue, purple. A line's text, and the mark beside it",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.803922,
+              0.176471,
+              0.129412
+            ],
+            "hex": "#cd2d21"
+          }
+        },
+        "2": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6,
+              0.372549,
+              0.047059
+            ],
+            "hex": "#995f0c"
+          }
+        },
+        "3": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.121569,
+              0.482353,
+              0.270588
+            ],
+            "hex": "#1f7b45"
+          }
+        },
+        "4": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.082353,
+              0.470588,
+              0.470588
+            ],
+            "hex": "#157878"
+          }
+        },
+        "5": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.133333,
+              0.411765,
+              0.807843
+            ],
+            "hex": "#2269ce"
+          }
+        },
+        "6": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.545098,
+              0.298039,
+              0.796078
+            ],
+            "hex": "#8b4ccb"
+          }
+        }
       }
     }
   }

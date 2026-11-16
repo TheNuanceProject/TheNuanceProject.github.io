@@ -294,6 +294,11 @@ function contrastRules(c) {
   add('wiretrace.error', ['wiretrace.error-row'], TEXT, 'an error line');
   add('wiretrace.warning', ['wiretrace.warning-row'], TEXT, 'a warning line');
   add('text', ['wiretrace.error-row', 'wiretrace.warning-row'], TEXT, 'text on a row tint');
+  // The console's ANSI colours and highlight rules colour a line's text,
+  // which may sit on paper or on a row tint.
+  const consoleGrounds = ['paper', 'wiretrace.error-row', 'wiretrace.warning-row'];
+  for (let n = 0; n < 16; n += 1) add(`wiretrace.ansi.${n}`, consoleGrounds, TEXT, 'an ANSI colour in the console');
+  for (let n = 1; n <= 6; n += 1) add(`wiretrace.highlight.${n}`, consoleGrounds, TEXT, 'a highlighted line');
   return rules.map((rule) => {
     const fg = c.get(`color.${rule.fg}`);
     const bg = c.get(`color.${rule.bg}`);

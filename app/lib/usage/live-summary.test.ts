@@ -19,14 +19,14 @@ function written(changes: Record<string, unknown> = {}, madeAt = MADE_AT): Recor
     day,
     active: { today: 2, week: 2, month: 2, halfYear: 2 },
     downloads: { total: 0, packages: [{ format: 'exe', count: 0 }, { format: 'appimage', count: 0 }, { format: 'deb', count: 0 }] },
-    countries: [{ code: 'IN', installations: 2, withoutArea: 0 }],
+    countries: [{ code: 'IN', installations: 2, withoutPlace: 0 }],
     withoutCountry: 0,
     legacyChecks: 0,
     versions: [{ name: '2.0.0', share: 1 }],
     systems: [{ name: 'windows', share: 1 }],
     places: [
       {
-        lat: 12.972, lon: 77.594, area: { name: 'Bengaluru', country: 'IN' }, country: 'IN',
+        kind: 'city', lat: 13, lon: 77.6, name: { name: 'Bengaluru', country: 'IN' }, country: 'IN',
         installations: { count: 2, lastSeen: day }, legacy: null,
       },
     ],

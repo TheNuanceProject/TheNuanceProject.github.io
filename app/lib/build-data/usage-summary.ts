@@ -14,13 +14,24 @@
  *
  * Every figure covers a period that ends with the summary's `day`, the
  * UTC day of `madeAt`, and includes it. A 2.x installation is counted
- * once in a period, in the country and area of its first check in it, so
- * the areas of a country add up to the country, and the countries, with
- * the installations of no known country, add up to the period's total.
+ * once in a period, in the country and place of its first check in it,
+ * so the places of a country add up to the country, and the countries,
+ * with the installations of no known country, add up to the period's
+ * total.
+ *
+ * A place is the city Cloudflare gives for the checks, at its position
+ * rounded to a tenth of a degree. Checks from before the update server
+ * placed them by city stay in their one-degree area, named after its
+ * place with the most people.
  */
 
-/** The named place of a one-degree area: its place with the most people. */
-export interface UsageArea {
+/** The kinds of place, as the update server names them. */
+export const PLACE_KINDS = ['city', 'area'] as const;
+export type PlaceKind = (typeof PLACE_KINDS)[number];
+
+/** The name of a place: a city as Cloudflare names it, or an area's
+ *  place with the most people. */
+export interface UsagePlaceName {
   readonly name: string;
   /** ISO 3166-1 alpha-2 code of that place's country. */
   readonly country: string;
@@ -35,18 +46,21 @@ export interface UsageCount {
   readonly lastSeen: number;
 }
 
-/** A one-degree area and country WireTrace checked for updates from. */
+/** A place and country WireTrace checked for updates from. */
 export interface UsagePlace {
-  /** Where its marker sits: the area's named place, or its middle. */
+  readonly kind: PlaceKind;
+  /** Where its marker sits: a city's position; an area's named place,
+   *  or its middle. */
   readonly lat: number;
   readonly lon: number;
-  /** Null when the area has no place of 1,000 people. */
-  readonly area: UsageArea | null;
+  /** Null when Cloudflare names no city, or the area has no place of
+   *  1,000 people. */
+  readonly name: UsagePlaceName | null;
   /** The country the checks came from; `XX` when Cloudflare gave none. */
   readonly country: string;
-  /** 2.x installations counted in the area in the map period. */
+  /** 2.x installations counted in the place in the map period. */
   readonly installations: UsageCount | null;
-  /** WireTrace 1.x update checks from the area in the map period:
+  /** WireTrace 1.x update checks from the place in the map period:
    *  checks, never installations, since 1.x does not say when it last
    *  checked. */
   readonly legacy: UsageCount | null;
@@ -58,8 +72,8 @@ export interface UsageCountry {
   readonly code: string;
   /** Installations active in the country in the map period. */
   readonly installations: number;
-  /** Of those, the installations whose area Cloudflare did not give. */
-  readonly withoutArea: number;
+  /** Of those, the installations Cloudflare gave no position for. */
+  readonly withoutPlace: number;
 }
 
 export interface UsageShare {
@@ -108,7 +122,7 @@ export class UsageSummaryError extends Error {
   override readonly name = 'UsageSummaryError';
 }
 
-/** The days the countries, areas, versions and systems cover, ending
+/** The days the countries, places, versions and systems cover, ending
  *  with the summary's day. */
 export const MAP_PERIOD_DAYS = 30;
 /** The days the trend covers, ending with the summary's day. */
@@ -122,26 +136,28 @@ const ACTIVE_FIELDS = ['today', 'week', 'month', 'halfYear'];
 const DOWNLOADS_FIELDS = ['total', 'packages'];
 const PACKAGE_FIELDS = ['format', 'count'];
 const SHARE_FIELDS = ['name', 'share'];
-const COUNTRY_FIELDS = ['code', 'installations', 'withoutArea'];
-const PLACE_FIELDS = ['lat', 'lon', 'area', 'country', 'installations', 'legacy'];
+const COUNTRY_FIELDS = ['code', 'installations', 'withoutPlace'];
+const PLACE_FIELDS = ['kind', 'lat', 'lon', 'name', 'country', 'installations', 'legacy'];
 const COUNT_FIELDS = ['count', 'lastSeen'];
-const AREA_FIELDS = ['name', 'country'];
+const NAME_FIELDS = ['name', 'country'];
 const TREND_FIELDS = ['start', 'counts'];
 /** The country Cloudflare gives no code for. */
 export const UNKNOWN_COUNTRY = 'XX';
 
-/** The largest summary accepted, in bytes: more than a summary with
- *  every one-degree area of the Earth in it. */
+/** The largest summary accepted, in bytes: more than a summary with a
+ *  place for every one-degree area of the Earth in it. */
 export const SUMMARY_MAX_BYTES = 8 * 1024 * 1024;
 
 /** Bounds that no real summary comes near; anything past them is not one. */
 export const LIMITS = {
   countries: 250,
   shares: 64,
-  /** Each one-degree area of the Earth, 180 by 360, from a few countries. */
+  /** Each one-degree area of the Earth, 180 by 360, from a few
+   *  countries: no real summary's places, cities or areas, come near it. */
   places: 4 * 64_800,
-  /** Characters in an area's name. GeoNames' longest is under 60. */
-  areaName: 100,
+  /** Characters in a place's name: the most the update server keeps of
+   *  a city's name. GeoNames' longest area name is under 60. */
+  placeName: 100,
   count: 1_000_000_000,
   day: 1_000_000,
 } as const;
@@ -217,19 +233,27 @@ function shares(value: unknown, what: string): UsageShare[] {
   });
 }
 
-function areaOf(value: unknown, what: string): UsageArea {
-  const area = object(value, AREA_FIELDS, what);
-  const name = area.name;
+function placeNameOf(value: unknown, what: string): UsagePlaceName {
+  const named = object(value, NAME_FIELDS, what);
+  const name = named.name;
   if (
     typeof name !== 'string' ||
     name.trim() !== name ||
     name === '' ||
-    [...name].length > LIMITS.areaName ||
+    [...name].length > LIMITS.placeName ||
     hasControl(name)
   ) {
     throw new UsageSummaryError(`${what}.name is not the name of a place`);
   }
-  return { name, country: code(area.country, `${what}.country`) };
+  return { name, country: code(named.country, `${what}.country`) };
+}
+
+function placeKind(value: unknown, what: string): PlaceKind {
+  const kind = PLACE_KINDS.find((known) => known === value);
+  if (kind === undefined) {
+    throw new UsageSummaryError(`${what} is not a kind of place the update server gives`);
+  }
+  return kind;
 }
 
 function madeAtOf(value: unknown): number {
@@ -299,12 +323,12 @@ export function readUsageSummary(value: unknown): UsageSummary {
     if (installations === 0) {
       throw new UsageSummaryError(`countries[${i}] has no installations`);
     }
-    const withoutArea = count(country.withoutArea, `countries[${i}].withoutArea`, installations);
+    const withoutPlace = count(country.withoutPlace, `countries[${i}].withoutPlace`, installations);
     const countryCode = code(country.code, `countries[${i}].code`);
     if (countryCode === UNKNOWN_COUNTRY) {
       throw new UsageSummaryError(`countries[${i}] is the country Cloudflare gives no code for`);
     }
-    return { code: countryCode, installations, withoutArea };
+    return { code: countryCode, installations, withoutPlace };
   });
   if (new Set(countries.map((country) => country.code)).size !== countries.length) {
     throw new UsageSummaryError('a country is given twice');
@@ -336,9 +360,10 @@ export function readUsageSummary(value: unknown): UsageSummary {
       throw new UsageSummaryError(`places[${i}] has neither installations nor 1.x checks`);
     }
     return {
+      kind: placeKind(place.kind, `places[${i}].kind`),
       lat: between(place.lat, -90, 90, `places[${i}].lat`),
       lon: between(place.lon, -180, 180, `places[${i}].lon`),
-      area: place.area === null ? null : areaOf(place.area, `places[${i}].area`),
+      name: place.name === null ? null : placeNameOf(place.name, `places[${i}].name`),
       country: code(place.country, `places[${i}].country`),
       installations,
       legacy,
@@ -349,14 +374,14 @@ export function readUsageSummary(value: unknown): UsageSummary {
     placed.set(place.country, (placed.get(place.country) ?? 0) + (place.installations?.count ?? 0));
   }
   for (const country of countries) {
-    if ((placed.get(country.code) ?? 0) + country.withoutArea !== country.installations) {
-      throw new UsageSummaryError(`the areas of ${country.code} do not add up to its installations`);
+    if ((placed.get(country.code) ?? 0) + country.withoutPlace !== country.installations) {
+      throw new UsageSummaryError(`the places of ${country.code} do not add up to its installations`);
     }
   }
   const listed = new Set(countries.map((country) => country.code));
   for (const [placeCountry, installations] of placed) {
     if (placeCountry === UNKNOWN_COUNTRY ? installations > withoutCountry : installations > 0 && !listed.has(placeCountry)) {
-      throw new UsageSummaryError(`the areas of ${placeCountry} hold installations its country does not have`);
+      throw new UsageSummaryError(`the places of ${placeCountry} hold installations its country does not have`);
     }
   }
 
@@ -388,13 +413,13 @@ export function readUsageSummary(value: unknown): UsageSummary {
   };
 }
 
-/** Every country code `summary` names, of countries and of areas, sorted,
- *  without the one Cloudflare gives no code for. */
+/** Every country code `summary` names, of countries and of places,
+ *  sorted, without the one Cloudflare gives no code for. */
 export function countryCodes(summary: UsageSummary): string[] {
   const codes = new Set(summary.countries.map((country) => country.code));
   for (const place of summary.places) {
     if (place.country !== UNKNOWN_COUNTRY) codes.add(place.country);
-    if (place.area) codes.add(place.area.country);
+    if (place.name && place.name.country !== UNKNOWN_COUNTRY) codes.add(place.name.country);
   }
   return [...codes].sort();
 }

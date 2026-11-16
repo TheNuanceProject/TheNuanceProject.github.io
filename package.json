@@ -1,7 +1,7 @@
 {
   "name": "nuance-site",
   "private": true,
-  "version": "0.8.2",
+  "version": "0.9.0",
   "type": "module",
   "scripts": {
     "dev": "react-router dev",
@@ -58,8 +58,8 @@
     "topojson-simplify": "3.0.3",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
-    "vite": "^8.0.4",
-    "vitest": "^4.1.4"
+    "vite": "^8.3.5",
+    "vitest": "^4.1.12"
   },
   "overrides": {
     "esbuild": "0.28.2"
