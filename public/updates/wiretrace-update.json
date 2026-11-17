@@ -1,17 +1,17 @@
 {
-  "latest_version": "2.0.0",
-  "release_notes": "WireTrace v2.0.0\n\nA rebuilt WireTrace. The path from the serial port to the disk is new, and so is the interface.\n\nChanged\n- The log is written straight from the port to the disk and never waits for the window. On disconnect, an unplugged device or closing, everything waiting is written before the result is reported.\n- Every session is recorded from the moment of connection, the most recent 1 GB of each tab, so it can be exported without a log running and after the device has gone.\n- If the disk cannot keep up or fails, WireTrace says how many lines were not written and marks the place in the file.\n- A new interface: a list of ports that updates by itself, a toolbar in every tab, level filters with counts, and Light, Dark and System themes.\n- One design with thenuanceproject.com: the same colours, sizes and type, with the Poppins font included, so WireTrace looks the same on every computer and no text is cut off.\n- Updates are verified by signature, and checked every 12 hours while WireTrace is open.\n- Licence: GNU General Public License, version 3 or later. Versions 1.0.0 to 1.2.0 remain under the MIT License.\n\nAdded\n- Maximum log file size, a remembered log folder, saved commands, a HEX view, and firmware log levels (ESP-IDF, Zephyr).\n- The plot: point at it to read the values at any moment, measure between two cursors, and group values into panels by scale.\n- Usage statistics, off unless you switch them on.\n\nWhen updating from 1.x\n- Ctrl+S opens Export session (it was Quick Save), and the live plot is Ctrl+P.\n- Log files end lines with LF on every system. A preference restores CR LF.\n- On the first start, the theme is set to System and the console font and its size to the new defaults, once. The console text size is now in pixels. Every other setting is kept.\n\nEvery change: CHANGELOG.md in the repository. Privacy: https://thenuanceproject.com/privacy/",
+  "latest_version": "2.1.0",
+  "release_notes": "WireTrace v2.1.0\n\nLeave your boards running. When one is unplugged or resets its USB connection, WireTrace waits for the same board and carries on with the same session and the same log.\n\nAdded\n- Reconnect: when WireTrace cannot be sure the board that came back is the same one, it asks. On by default; switched per tab in the Device menu.\n- Line settings: data bits, parity, stop bits and flow control per port. While connected, set DTR and RTS and send a break; the status bar shows CTS, DSR, DCD and RI.\n- The plot in a window of its own, back to the start of the session, saved as PNG or SVG, with its values as CSV.\n- Restart detection for ESP32 and Zephyr boards, and a session report with exact counts of lines, errors, warnings, lost connections and restarts.\n- Alerts on new error lines, a lost connection or a quiet board, with the system's sound and, if chosen, a desktop notification. Off by default.\n- The console shows each line's date and time by default, as the log writes it.\n- Highlight rules, and ANSI colours from the device on screen. Logs stay plain text.\n- A Features page in Preferences: switch off what you do not use.\n\nFixed\n- On Windows, an unplugged CH340 adapter could leave the session open, repeating \"Access is denied\". An error that leaves a port unusable now ends the connection at once.\n- No part of a window appears on its own for a moment as it opens.\n\nEvery change: CHANGELOG.md in the repository. Privacy: https://thenuanceproject.com/privacy/",
   "min_version": "1.0.0",
   "platforms": {
     "linux": {
-      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v2.0.0/WireTrace-v2.0.0-x86_64.AppImage",
-      "file_size": 93297144,
-      "sha256_hash": "2113d661c0980d04dd6339fbd41838e987595d71815e02c89aac247814f31160"
+      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v2.1.0/WireTrace-v2.1.0-x86_64.AppImage",
+      "file_size": 94738936,
+      "sha256_hash": "8cfbfe45ad28f6b3bc57fda06ac1f945700879abc2d6dbcb3fb16508c64cf1a1"
     },
     "windows": {
-      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v2.0.0/WireTrace-Setup-v2.0.0.exe",
-      "file_size": 41915958,
-      "sha256_hash": "ecd0233b9ef4521792f7f7471016608559744d30d8e07fd40f24eebc936e12cd"
+      "download_url": "https://github.com/TheNuanceProject/WireTrace/releases/download/v2.1.0/WireTrace-Setup-v2.1.0.exe",
+      "file_size": 42844351,
+      "sha256_hash": "1e4bb77c8b42976be52836c5fe88b7da3d21547d65d61f026d051a48a8427afd"
     }
   }
 }
