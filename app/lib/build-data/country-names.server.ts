@@ -18,15 +18,6 @@ interface MapCountry {
 const geometries = (world as { objects: { countries: { geometries: readonly MapCountry[] } } }).objects.countries
   .geometries;
 
-/** The country codes the globe's map has an outline for. */
-export function mapCodes(): string[] {
-  const codes = new Set<string>();
-  for (const { properties } of geometries) {
-    if (typeof properties?.code === 'string' && properties.code !== '') codes.add(properties.code);
-  }
-  return [...codes].sort();
-}
-
 export function countryNames(extraCodes: readonly string[]): Record<string, string> {
   const names: Record<string, string> = {};
   for (const { properties } of geometries) {

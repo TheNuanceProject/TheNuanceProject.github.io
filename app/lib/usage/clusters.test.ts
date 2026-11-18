@@ -2,14 +2,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  BUBBLE_FROM,
-  BUBBLE_RADIUS_MAX,
-  BUBBLE_RADIUS_MIN,
-  BUBBLE_RADIUS_PER_DOUBLING,
-  DOT_RADIUS,
+  GROUP_RADIUS,
   MARKER_GAP,
-  RING_GAP,
-  RING_WIDTH,
+  PIN_RADIUS,
+  RADIUS_GROWTH_MAX,
+  RADIUS_PER_DOUBLING,
   type Marker,
   clusterMarkers,
   markerRadius,
@@ -22,114 +19,92 @@ function apartEnough(markers: readonly Marker[]): boolean {
 }
 
 describe('markerRadius', () => {
-  it('is one dot for one installation', () => {
-    expect(markerRadius(1)).toBe(DOT_RADIUS);
+  it('is a pin for one place with a count of one', () => {
+    expect(markerRadius(1, 1)).toBe(PIN_RADIUS);
   });
 
-  it('shows two or more as a bubble', () => {
-    expect(BUBBLE_FROM).toBe(2);
-    expect(markerRadius(2)).toBeGreaterThan(markerRadius(1));
+  it('draws a group larger than a single place with the same count', () => {
+    expect(markerRadius(1, 2)).toBe(GROUP_RADIUS);
+    expect(markerRadius(8, 2)).toBeGreaterThan(markerRadius(8, 1));
   });
 
-  it('grows a bubble with the logarithm of its number, up to its largest', () => {
-    expect(markerRadius(BUBBLE_FROM)).toBe(BUBBLE_RADIUS_MIN);
-    expect(markerRadius(BUBBLE_FROM * 2)).toBe(BUBBLE_RADIUS_MIN + BUBBLE_RADIUS_PER_DOUBLING);
-    expect(markerRadius(1_000_000_000)).toBe(BUBBLE_RADIUS_MAX);
+  it('grows with the logarithm of the count, up to its largest', () => {
+    expect(markerRadius(2, 1)).toBe(PIN_RADIUS + RADIUS_PER_DOUBLING);
+    expect(markerRadius(4, 1)).toBe(PIN_RADIUS + 2 * RADIUS_PER_DOUBLING);
+    expect(markerRadius(1_000_000_000, 3)).toBe(GROUP_RADIUS + RADIUS_GROWTH_MAX);
   });
 });
 
 describe('clusterMarkers', () => {
   it('keeps points far apart as markers of their own', () => {
-    const markers = clusterMarkers([{ x: 0, y: 0, installations: 41, legacy: 0 }, { x: 300, y: 0, installations: 1, legacy: 0 }]);
+    const markers = clusterMarkers([{ x: 0, y: 0, count: 41 }, { x: 300, y: 0, count: 1 }]);
 
-    expect(markers.map(({ installations, members }) => [installations, members])).toEqual([[41, [0]], [1, [1]]]);
-    expect(markers[0]).toMatchObject({ x: 0, y: 0, radius: markerRadius(41) });
+    expect(markers.map(({ count, members }) => [count, members])).toEqual([[41, [0]], [1, [1]]]);
+    expect(markers[0]).toMatchObject({ x: 0, y: 0, radius: markerRadius(41, 1) });
   });
 
-  it('merges points that would overlap, at their installations-weighted centre', () => {
-    const [marker, ...rest] = clusterMarkers([{ x: 0, y: 0, installations: 30, legacy: 0 }, { x: 10, y: 0, installations: 10, legacy: 0 }]);
+  it('merges points that would overlap, at their count-weighted centre', () => {
+    const [marker, ...rest] = clusterMarkers([{ x: 0, y: 0, count: 30 }, { x: 10, y: 0, count: 10 }]);
 
     expect(rest).toEqual([]);
-    expect(marker).toMatchObject({ x: 2.5, y: 0, installations: 40, members: [0, 1], radius: markerRadius(40), legacy: 0 });
+    expect(marker).toMatchObject({ x: 2.5, y: 0, count: 40, members: [0, 1], radius: markerRadius(40, 2) });
   });
 
   it('merges again when a marker grows into another', () => {
-    // The third point is clear of the first, but not of the first and
-    // second merged, which is larger and nearer to it.
-    const points = [
-      { x: 0, y: 0, installations: 200, legacy: 0 },
-      { x: 44, y: 0, installations: 1, legacy: 0 },
-      { x: 20, y: 0, installations: 200, legacy: 0 },
-    ];
-    expect(Math.hypot(44, 0)).toBeGreaterThan(markerRadius(200) + markerRadius(1) + MARKER_GAP);
-    expect(44 - 10).toBeLessThan(markerRadius(400) + markerRadius(1) + MARKER_GAP);
+    // The third point is clear of the first alone, but not of the first
+    // and second merged, which is larger and nearer to it.
+    const first = { x: 0, y: 0, count: 200 };
+    const third = { x: 0, y: 0, count: 1 };
+    third.x = markerRadius(200, 1) + markerRadius(1, 1) + MARKER_GAP + 1;
+    const second = { x: third.x / 2, y: 0, count: 200 };
+    // The first and second merged sit halfway between them.
+    const mergedAt = second.x / 2;
+    expect(third.x - mergedAt).toBeLessThan(markerRadius(400, 2) + markerRadius(1, 1) + MARKER_GAP);
 
-    const markers = clusterMarkers(points);
+    const markers = clusterMarkers([first, third, second]);
 
     expect(markers).toHaveLength(1);
-    expect(markers[0]?.installations).toBe(401);
+    expect(markers[0]?.count).toBe(401);
   });
 
-  it('leaves no two markers overlapping, and every installation in one marker', () => {
+  it('leaves no two markers overlapping, and every count in one marker', () => {
     const points = Array.from({ length: 400 }, (_, i) => ({
       x: (i * 37) % 300,
       y: (i * 61) % 200,
-      installations: i % 3 === 0 ? 0 : (i % 9) + 1,
-      legacy: i % 3 === 0 || i % 4 === 0 ? (i % 7) + 1 : 0,
+      count: (i % 9) + 1,
     }));
 
     const markers = clusterMarkers(points);
 
     expect(apartEnough(markers)).toBe(true);
-    expect(markers.reduce((total, marker) => total + marker.installations, 0)).toBe(
-      points.reduce((t, p) => t + p.installations, 0)
-    );
-    expect(markers.reduce((total, marker) => total + marker.legacy, 0)).toBe(points.reduce((t, p) => t + p.legacy, 0));
+    expect(markers.reduce((total, marker) => total + marker.count, 0)).toBe(points.reduce((t, p) => t + p.count, 0));
     expect(markers.flatMap((marker) => marker.members).sort((a, b) => a - b)).toEqual(points.map((_, i) => i));
   });
 
   it('keeps places at the same position one marker, however far apart the rest are', () => {
     const markers = clusterMarkers([
-      { x: 100, y: 100, installations: 3, legacy: 0 },
-      { x: 100, y: 100, installations: 1, legacy: 2 },
-      { x: 400, y: 100, installations: 1, legacy: 0 },
+      { x: 100, y: 100, count: 3 },
+      { x: 100, y: 100, count: 1 },
+      { x: 400, y: 100, count: 1 },
     ]);
 
-    expect(markers.map(({ installations, legacy, members }) => [installations, legacy, members])).toEqual([
-      [4, 2, [0, 1]],
-      [1, 0, [2]],
+    expect(markers.map(({ count, members }) => [count, members])).toEqual([
+      [4, [0, 1]],
+      [1, [2]],
     ]);
   });
 
   it('gives the same markers every time', () => {
-    const points = [{ x: 0, y: 0, installations: 3, legacy: 0 }, { x: 6, y: 4, installations: 2, legacy: 0 }, { x: 40, y: 0, installations: 7, legacy: 0 }];
+    const points = [{ x: 0, y: 0, count: 3 }, { x: 6, y: 4, count: 2 }, { x: 40, y: 0, count: 7 }];
 
     expect(clusterMarkers(points)).toEqual(clusterMarkers(points));
   });
 
-  it('gives a point with 1.x checks only a body of its checks and no ring', () => {
-    const [marker] = clusterMarkers([{ x: 0, y: 0, installations: 0, legacy: 7 }]);
-
-    expect(marker).toMatchObject({ installations: 0, legacy: 7, body: markerRadius(7), radius: markerRadius(7) });
-  });
-
-  it('rings the body of installations when 1.x checks are in the marker too', () => {
-    const [marker] = clusterMarkers([{ x: 0, y: 0, installations: 3, legacy: 0 }, { x: 4, y: 0, installations: 0, legacy: 9 }]);
-
-    expect(marker).toMatchObject({ installations: 3, legacy: 9, x: 3, body: markerRadius(3) });
-    expect(marker?.radius).toBe(markerRadius(3) + RING_GAP + RING_WIDTH);
-  });
-
-  it.each([
-    [0, 0],
-    [-1, 1],
-    [1.5, 0],
-    [1, -2],
-  ])('refuses a point with %d installations and %d checks', (installations, legacy) => {
-    expect(() => clusterMarkers([{ x: 0, y: 0, installations, legacy }])).toThrow(RangeError);
+  it.each([0, -1, 1.5, Number.NaN])('refuses a point with a count of %d', (count) => {
+    expect(() => clusterMarkers([{ x: 0, y: 0, count }])).toThrow(RangeError);
   });
 
   it('refuses a point with no position', () => {
-    expect(() => clusterMarkers([{ x: Number.NaN, y: 0, installations: 1, legacy: 0 }])).toThrow(RangeError);
+    expect(() => clusterMarkers([{ x: Number.NaN, y: 0, count: 1 }])).toThrow(RangeError);
   });
 });

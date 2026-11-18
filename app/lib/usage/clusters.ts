@@ -1,130 +1,95 @@
 // SPDX-License-Identifier: MIT
 /**
- * The markers the usage globe draws: one installation as a dot, two or
- * more as one bubble with their number, and areas close together on the
- * screen merged into one marker until zooming in leaves them room.
+ * The markers the usage globe draws: a pin with its number for each
+ * place, and places close together on the screen merged into one group
+ * marker until zooming in leaves them room.
  *
- * A marker counts two things apart: 2.x installations and WireTrace 1.x
- * update checks, which are never installations. Its body shows the
- * installations; a bubble's size grows with the logarithm of its number.
- * A marker with 1.x checks only shows those the same way, drawn hollow;
- * one with both has a ring round its body. Markers are merged while any
- * two would come closer than `MARKER_GAP`, so no two markers ever
- * overlap, every installation and every check is in exactly one marker,
- * and places at the same position are always one marker, at every zoom.
+ * The globe shows one count at a time: 2.x installations, or WireTrace
+ * 1.x update checks, which are never installations. A marker's size grows
+ * a little with the logarithm of its number, and a group is drawn larger
+ * than a single place. Markers are merged while any two would come closer
+ * than `MARKER_GAP`, so no two markers ever overlap, every count is in
+ * exactly one marker, and places at the same position are always one
+ * marker, at every zoom.
  */
 
-/** The fewest installations a marker shows as a bubble with its number. */
-export const BUBBLE_FROM = 2;
-/** The radius of a marker of one, in pixels. */
-export const DOT_RADIUS = 3.5;
-/** A bubble's radius for `BUBBLE_FROM` installations, the radius it gains
- *  each time its number doubles, and the most it reaches, in pixels. */
-export const BUBBLE_RADIUS_MIN = 11;
-export const BUBBLE_RADIUS_PER_DOUBLING = 3;
-export const BUBBLE_RADIUS_MAX = 30;
+/** The radius of a place's pin and of a group, for a count of one, in
+ *  pixels: large enough to hold a number in the language's smallest
+ *  figure size. */
+export const PIN_RADIUS = 11;
+export const GROUP_RADIUS = 14;
+/** The radius a marker gains each time its number doubles, and the most
+ *  it gains, in pixels. */
+export const RADIUS_PER_DOUBLING = 1.5;
+export const RADIUS_GROWTH_MAX = 6;
 /** The least space between two markers, in pixels. */
-export const MARKER_GAP = 2;
-/** The space between a body and the ring of 1.x checks round it, and the
- *  ring's width, in pixels. */
-export const RING_GAP = 2;
-export const RING_WIDTH = 1.5;
+export const MARKER_GAP = 4;
 
 export interface MarkerPoint {
   /** Where the point is on the screen, in pixels. */
   readonly x: number;
   readonly y: number;
-  /** Its 2.x installations and its 1.x checks: whole numbers from 0, not
-   *  both 0. */
-  readonly installations: number;
-  readonly legacy: number;
+  /** What it counts: a whole number from 1. */
+  readonly count: number;
 }
 
 export interface Marker {
-  /** The centre of its points, weighted by installations and checks
-   *  together, in pixels. */
+  /** The centre of its points, weighted by their counts, in pixels. */
   readonly x: number;
   readonly y: number;
-  readonly installations: number;
-  readonly legacy: number;
-  /** The radius of its body: of its installations, or of its 1.x checks
-   *  when it has no installations. */
-  readonly body: number;
-  /** How far it reaches from its centre, its ring included. */
+  readonly count: number;
   readonly radius: number;
   /** The indexes of its points in the list given, in that list's order. */
   readonly members: readonly number[];
 }
 
-/** How far the body of a marker of `count` reaches: a dot, or a bubble. */
-export function markerRadius(count: number): number {
-  if (count < BUBBLE_FROM) {
-    return DOT_RADIUS;
-  }
-  const radius = BUBBLE_RADIUS_MIN + BUBBLE_RADIUS_PER_DOUBLING * Math.log2(count / BUBBLE_FROM);
-  return Math.min(BUBBLE_RADIUS_MAX, radius);
-}
-
-/** The radius of a marker's body, and how far the whole marker reaches. */
-export function markerShape(installations: number, legacy: number): { body: number; radius: number } {
-  if (installations === 0) {
-    const body = markerRadius(legacy);
-    return { body, radius: body };
-  }
-  const body = markerRadius(installations);
-  return { body, radius: legacy === 0 ? body : body + RING_GAP + RING_WIDTH };
+/** How far a marker of `count`, holding `places` places, reaches. */
+export function markerRadius(count: number, places: number): number {
+  const growth = Math.min(RADIUS_GROWTH_MAX, RADIUS_PER_DOUBLING * Math.log2(count));
+  return (places > 1 ? GROUP_RADIUS : PIN_RADIUS) + growth;
 }
 
 interface Building {
   x: number;
   y: number;
-  installations: number;
-  legacy: number;
+  count: number;
   members: number[];
   square: string;
 }
 
 /** The side of a grid square: two markers in squares that are not
  *  neighbours are too far apart to overlap. */
-const SQUARE = 2 * (BUBBLE_RADIUS_MAX + RING_GAP + RING_WIDTH) + MARKER_GAP;
+const SQUARE = 2 * (GROUP_RADIUS + RADIUS_GROWTH_MAX) + MARKER_GAP;
 
 function squareOf(x: number, y: number): [number, number] {
   return [Math.floor(x / SQUARE), Math.floor(y / SQUARE)];
 }
 
-type Counted = { x: number; y: number; installations: number; legacy: number };
+const reach = (m: Building) => markerRadius(m.count, m.members.length);
 
-function tooClose(a: Counted, b: Counted): boolean {
-  const reach = (m: Counted) => markerShape(m.installations, m.legacy).radius;
+function tooClose(a: Building, b: Building): boolean {
   return Math.hypot(a.x - b.x, a.y - b.y) < reach(a) + reach(b) + MARKER_GAP;
 }
 
 /**
  * The markers of `points`. Earlier points are taken first, so a point
- * joins the first marker it would overlap. Merging moves a marker and
- * makes it larger, so the points are merged again until no two markers
- * overlap.
+ * joins the first marker it would overlap; give the largest first, so
+ * they gather the smaller ones. Merging moves a marker and makes it
+ * larger, so the points are merged again until no two markers overlap.
  *
- * @throws RangeError when a count is not a whole number from 0, both
- *   counts of a point are 0, or a point is not on the screen's plane.
+ * @throws RangeError when a count is not a whole number from 1, or a
+ *   point is not on the screen's plane.
  */
 export function clusterMarkers(points: readonly MarkerPoint[]): Marker[] {
-  for (const { x, y, installations, legacy } of points) {
-    for (const n of [installations, legacy]) {
-      if (!Number.isSafeInteger(n) || n < 0) {
-        throw new RangeError('the counts of a point are whole numbers from 0');
-      }
-    }
-    if (installations + legacy === 0) {
-      throw new RangeError('a point has installations or checks');
+  for (const { x, y, count } of points) {
+    if (!Number.isSafeInteger(count) || count < 1) {
+      throw new RangeError('the count of a point is a whole number from 1');
     }
     if (!Number.isFinite(x) || !Number.isFinite(y)) {
       throw new RangeError('a point has a finite position');
     }
   }
-  let markers: Building[] = points.map(({ x, y, installations, legacy }, i) => ({
-    x, y, installations, legacy, members: [i], square: '',
-  }));
+  let markers: Building[] = points.map(({ x, y, count }, i) => ({ x, y, count, members: [i], square: '' }));
   for (let merged = true; merged; ) {
     merged = false;
     const squares = new Map<string, Building[]>();
@@ -154,24 +119,21 @@ export function clusterMarkers(points: readonly MarkerPoint[]): Marker[] {
         continue;
       }
       unfile(into);
-      const weight = (m: Building) => m.installations + m.legacy;
-      const total = weight(into) + weight(marker);
-      into.x = (into.x * weight(into) + marker.x * weight(marker)) / total;
-      into.y = (into.y * weight(into) + marker.y * weight(marker)) / total;
-      into.installations += marker.installations;
-      into.legacy += marker.legacy;
+      const total = into.count + marker.count;
+      into.x = (into.x * into.count + marker.x * marker.count) / total;
+      into.y = (into.y * into.count + marker.y * marker.count) / total;
+      into.count = total;
       into.members.push(...marker.members);
       file(into);
       merged = true;
     }
     markers = kept;
   }
-  return markers.map(({ x, y, installations, legacy, members }) => ({
+  return markers.map(({ x, y, count, members }) => ({
     x,
     y,
-    installations,
-    legacy,
-    ...markerShape(installations, legacy),
+    count,
+    radius: markerRadius(count, members.length),
     members: [...members].sort((a, b) => a - b),
   }));
 }

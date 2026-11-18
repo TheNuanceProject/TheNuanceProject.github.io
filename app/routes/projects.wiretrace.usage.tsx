@@ -1,23 +1,26 @@
 // SPDX-License-Identifier: MIT
-import { useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Container } from '~/components/Container';
-import { Section } from '~/components/Section';
 import { Prose } from '~/components/Prose';
 import { Breadcrumbs } from '~/components/Breadcrumbs';
-import { UsageGlobe } from '~/components/usage/UsageGlobe';
+import { type GlobeHandle, UsageGlobe } from '~/components/usage/UsageGlobe';
 import { UsageTrend } from '~/components/usage/UsageTrend';
-import { countryNames, mapCodes } from '~/lib/build-data/country-names.server';
+import { countryNames } from '~/lib/build-data/country-names.server';
 import { getUsageSummary } from '~/lib/build-data/data.server';
 import {
   MAP_PERIOD_DAYS,
   type PackageFormat,
+  UNKNOWN_COUNTRY,
   type UsageShare,
   type UsageSummary,
   countryCodes,
+  dayDate,
 } from '~/lib/build-data/usage-summary';
 import { useLiveSummary } from '~/lib/usage/live-summary';
+import { type CountKind, type Locate, countOf, lastSeen, placeTitle } from '~/lib/usage/places';
 import { withRegionNames } from '~/lib/usage/region-names';
+import { loadLevel, locator } from '~/lib/usage/world';
 import { pageMeta } from '~/lib/page-meta';
 import { breadcrumbSchema } from '~/lib/structured-data';
 import type { Route } from './+types/projects.wiretrace.usage';
@@ -42,6 +45,7 @@ const TITLE = 'Where WireTrace is used';
 const DESCRIPTION =
   'Active WireTrace installations, the countries and cities they are in, and the versions and systems they run, from the update checks.';
 const PATH = `${usage.path}/`;
+const period = `${MAP_PERIOD_DAYS} days`;
 
 /** How the summary names systems, and how the page writes them. */
 const SYSTEM_NAMES: Readonly<Record<string, string>> = {
@@ -69,14 +73,21 @@ const madeAtFormat = new Intl.DateTimeFormat('en-US', {
   hourCycle: 'h23',
   timeZone: 'UTC',
 });
+const shortDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const number = new Intl.NumberFormat('en-US');
+const percent = new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 0 });
 
 function madeAtText(summary: UsageSummary): string {
   return `${madeAtFormat.format(summary.madeAt)} UTC`;
 }
 
+function dayText(seen: number, today: number): string {
+  return seen === today ? 'Today' : shortDay.format(new Date(`${dayDate(seen)}T12:00:00Z`));
+}
+
 export async function loader() {
   const summary = await getUsageSummary(usage.summaryUrl);
-  return { summary, names: countryNames(summary === null ? [] : countryCodes(summary)), onMap: mapCodes() };
+  return { summary, names: countryNames(summary === null ? [] : countryCodes(summary)) };
 }
 
 export const meta = () =>
@@ -94,57 +105,66 @@ export const meta = () =>
     ],
   });
 
-const number = new Intl.NumberFormat('en-US');
-
-function Figure({ value, label }: { value: number; label: string }) {
+function Card({ children, labelledBy, label }: { children: ReactNode; labelledBy?: string; label?: string }) {
   return (
-    <div className="min-w-0 py-5 pr-4 sm:[&:not(:first-child)]:pl-4 sm:[&:not(:first-child)]:border-l border-divider">
-      <p className="font-serif text-title text-text tabular-nums">{number.format(value)}</p>
-      <p className="mt-1 font-sans text-ui-lg text-text-secondary">{label}</p>
+    <section
+      aria-labelledby={labelledBy}
+      aria-label={label}
+      className="flex min-w-0 flex-col gap-6 rounded-lg border border-divider bg-surface p-5 md:p-6"
+    >
+      {children}
+    </section>
+  );
+}
+
+function CardHeading({ id, title, note }: { id: string; title: string; note: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <h2 id={id} className="font-sans text-title-sm text-text">
+        {title}
+      </h2>
+      <p className="font-sans text-caption text-text-tertiary">{note}</p>
     </div>
   );
 }
 
-function Downloads({ summary }: { summary: UsageSummary }) {
+function Figure({ label, value, note }: { label: string; value: number; note: string }) {
   return (
-    <div className="min-w-0">
-      <h2 className="mb-4 font-serif text-title-sm text-text">Downloads</h2>
-      <ul className="m-0 list-none space-y-3 p-0">
-        {summary.downloads.packages.map((item) => (
-          <li key={item.format} className="flex min-w-0 items-baseline justify-between gap-3 font-sans text-ui-lg">
-            <span className="truncate text-text">{PACKAGE_NAMES[item.format]}</span>
-            <span className="shrink-0 font-mono text-ui text-text-secondary tabular-nums">{number.format(item.count)}</span>
-          </li>
-        ))}
-        <li className="flex min-w-0 items-baseline justify-between gap-3 border-t border-divider pt-3 font-sans text-ui-lg">
-          <span className="truncate text-text">All packages</span>
-          <span className="shrink-0 font-mono text-ui text-text tabular-nums">{number.format(summary.downloads.total)}</span>
-        </li>
-      </ul>
+    <div className="flex min-w-0 flex-col gap-1 py-5">
+      <dt className="font-sans text-label uppercase text-text-tertiary">{label}</dt>
+      <dd className="m-0 font-sans text-title text-text tabular-nums">{number.format(value)}</dd>
+      <dd className="m-0 font-sans text-caption text-text-tertiary">{note}</dd>
     </div>
   );
+}
+
+/** A bar of a share of something, in the language's progress bar. */
+function Bar({ share }: { share: number }) {
+  return (
+    <span className="block h-(--size-progress) min-w-0 rounded-xs bg-divider" aria-hidden="true">
+      <span className="block h-(--size-progress) rounded-xs bg-accent" style={{ width: `${share * 100}%` }} />
+    </span>
+  );
+}
+
+/** A count that may be none: written as 0, quieter than the others. */
+function Count({ value }: { value: number }) {
+  return <span className={value === 0 ? 'text-text-tertiary' : undefined}>{number.format(value)}</span>;
 }
 
 function Shares({ title, rows, name }: { title: string; rows: readonly UsageShare[]; name: (value: string) => string }) {
   return (
-    <div className="min-w-0">
-      <h2 className="mb-4 font-serif text-title-sm text-text">{title}</h2>
+    <div className="flex min-w-0 flex-col gap-3">
+      <h3 className="font-sans text-label uppercase text-text-tertiary">{title}</h3>
       {rows.length === 0 ? (
-        <p className="font-sans text-ui-lg text-text-secondary">None in the last {MAP_PERIOD_DAYS} days.</p>
+        <p className="font-sans text-ui-lg text-text-secondary">None in the last {period}.</p>
       ) : (
-        <ul className="m-0 list-none space-y-3 p-0">
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
           {rows.map((row) => (
-            <li key={row.name} className="grid grid-cols-[14ch_minmax(0,1fr)_5ch] items-center gap-3 font-sans text-ui-lg">
+            <li key={row.name} className="grid grid-cols-[minmax(0,18ch)_minmax(0,1fr)_5ch] items-center gap-3 font-sans text-ui-lg">
               <span className="truncate text-text">{name(row.name)}</span>
-              <span className="h-(--size-progress) rounded-xs bg-divider">
-                <span
-                  className={`block h-(--size-progress) rounded-xs ${row.name === 'other' ? 'bg-muted' : 'bg-accent'}`}
-                  style={{ width: `${row.share * 100}%` }}
-                />
-              </span>
-              <span className="text-right font-mono text-ui text-text-secondary tabular-nums">
-                {Math.round(row.share * 100)}%
-              </span>
+              <Bar share={row.share} />
+              <span className="text-right font-mono text-mono text-text-secondary tabular-nums">{percent.format(row.share)}</span>
             </li>
           ))}
         </ul>
@@ -153,8 +173,12 @@ function Shares({ title, rows, name }: { title: string; rows: readonly UsageShar
   );
 }
 
+const TOGGLE: readonly { kind: CountKind; label: string }[] = [
+  { kind: 'installations', label: 'Installations' },
+  { kind: 'legacy', label: '1.x checks' },
+];
+
 export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
-  const { onMap } = loaderData;
   const summary = useLiveSummary(loaderData.summary, usage.summaryUrl);
   // The built names cover every country on the map and in the built
   // summary; one that only the current summary holds is named here.
@@ -162,19 +186,70 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
     () => withRegionNames(loaderData.names, summary === null ? [] : countryCodes(summary)),
     [loaderData.names, summary]
   );
-  const outlined = useMemo(() => new Set(onMap), [onMap]);
-  const [chosen, setChosen] = useState<string | null>(null);
-  const installations = useMemo(
-    () => new Map((summary?.countries ?? []).map((country) => [country.code, country.installations])),
-    [summary]
-  );
-  const countries = useMemo(
+  const [kind, setKind] = useState<CountKind>('installations');
+  const [locate, setLocate] = useState<Locate | null>(null);
+  const globe = useRef<GlobeHandle>(null);
+  const globeFrame = useRef<HTMLDivElement>(null);
+  const ids = { places: useId(), trend: useId(), countries: useId(), versions: useId() };
+
+  // Places without a name are named by the country at their position,
+  // from the globe's coarse map, once it is here.
+  useEffect(() => {
+    let alive = true;
+    loadLevel(0)
+      .then((level) => {
+        if (alive) setLocate(() => locator(level));
+      })
+      .catch(() => {
+        // Such places keep the name of their kind.
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const places = useMemo(() => summary?.places ?? [], [summary]);
+  const titles = useMemo(() => places.map((place) => placeTitle(place, names, locate)), [places, names, locate]);
+  const listed = useMemo(
     () =>
-      (summary?.countries ?? [])
-        .map(({ code, installations }) => ({ code, installations, name: names[code] ?? code }))
-        .sort((a, b) => b.installations - a.installations || a.name.localeCompare(b.name, 'en')),
-    [summary, names]
+      places
+        .map((place, index) => ({ place, index, title: titles[index] }))
+        .filter((row) => countOf(row.place, kind) > 0)
+        .sort(
+          (a, b) =>
+            countOf(b.place, kind) - countOf(a.place, kind) ||
+            lastSeen(b.place) - lastSeen(a.place) ||
+            (a.title?.name ?? '').localeCompare(b.title?.name ?? '', 'en')
+        ),
+    [places, titles, kind]
   );
+  const countries = useMemo(() => {
+    if (!summary) return [];
+    const legacy = new Map<string, number>();
+    const placeCount = new Map<string, number>();
+    for (const place of summary.places) {
+      if (place.legacy) legacy.set(place.country, (legacy.get(place.country) ?? 0) + place.legacy.count);
+      if (place.installations) placeCount.set(place.country, (placeCount.get(place.country) ?? 0) + 1);
+    }
+    const rows = summary.countries.map(({ code, installations }) => ({ code, installations }));
+    for (const code of legacy.keys()) {
+      if (code !== UNKNOWN_COUNTRY && !rows.some((row) => row.code === code)) rows.push({ code, installations: 0 });
+    }
+    return rows
+      .map((row) => ({
+        ...row,
+        name: names[row.code] ?? row.code,
+        places: placeCount.get(row.code) ?? 0,
+        legacy: legacy.get(row.code) ?? 0,
+      }))
+      .sort((a, b) => b.installations - a.installations || b.legacy - a.legacy || a.name.localeCompare(b.name, 'en'));
+  }, [summary, names]);
+
+  const show = (index: number) => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    globeFrame.current?.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+    globe.current?.flyTo(index);
+  };
 
   return (
     <Container width="default">
@@ -187,140 +262,260 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
             { name: TITLE, href: PATH },
           ]}
         />
-        <h1 className="font-sans font-regular text-display-sm md:text-display text-text">
-          {TITLE}
-        </h1>
+        <h1 className="font-sans font-regular text-display-sm md:text-display text-text">{TITLE}</h1>
         <p className="mt-6 md:mt-8 font-serif text-lead text-text-secondary max-w-narrow">
-          Installations of {wtMeta.title} that checked for updates, and the cities they checked
-          from. The globe shows each city's installations active in the last{' '}
-          {MAP_PERIOD_DAYS} days: a dot for one, a number for more. Places close together are joined
-          into one marker until zooming in shows them apart. Drag the globe to turn it, scroll or use
-          the buttons to zoom, and point at a marker or a country to see its figures. Markers that
-          pulse checked in today or yesterday. Hollow markers are update checks from {wtMeta.title}{' '}
-          1.x, which cannot be counted as installations.
+          Installations of {wtMeta.title} that checked for updates, and the places they checked from.
         </p>
+        {summary !== null && (
+          <p className="mt-4 font-sans text-caption text-text-tertiary">
+            Updated {madeAtText(summary)}, every 15 minutes. Days are UTC.
+          </p>
+        )}
       </section>
 
       {summary === null ? (
-        <Section divided>
+        <section className="border-t border-divider py-16 md:py-20">
           <Prose>
             <p>
-              The figures appear here once the update server has counted its first full day of
-              update checks from {wtMeta.title} 2.0.
+              The figures appear here once the update server has counted its first full day of update checks
+              from {wtMeta.title} 2.0.
             </p>
           </Prose>
-        </Section>
+        </section>
       ) : (
-        <>
-          <section aria-label="Active installations" className="grid grid-cols-2 sm:grid-cols-4 border-t border-divider">
-            <Figure value={summary.active.today} label="active today" />
-            <Figure value={summary.active.week} label="in the last 7 days" />
-            <Figure value={summary.active.month} label={`in the last ${MAP_PERIOD_DAYS} days`} />
-            <Figure value={summary.active.halfYear} label="in the last 180 days" />
-          </section>
-          <section aria-label="Countries and 1.x update checks" className="grid grid-cols-2 sm:grid-cols-4 border-y border-divider">
-            <Figure value={summary.countries.length} label={summary.countries.length === 1 ? 'country' : 'countries'} />
-            <Figure value={summary.legacyChecks} label={`1.x update checks, ${MAP_PERIOD_DAYS} days`} />
-          </section>
-          <p className="mt-4 font-sans text-ui text-text-secondary">
-            Updated {madeAtText(summary)}, every 15 minutes. Days are UTC.
-          </p>
+        <div className="flex flex-col gap-8 pb-24 md:pb-32">
+          <Card label="Figures">
+            <dl className="-mt-5 mb-0 grid grid-cols-2 gap-x-6 sm:grid-cols-4">
+              <Figure label="Today" value={summary.active.today} note="Installations active today" />
+              <Figure label="This week" value={summary.active.week} note="Active in the last 7 days" />
+              <Figure label="This month" value={summary.active.month} note={`Active in the last ${period}`} />
+              <Figure label="Six months" value={summary.active.halfYear} note="Active in the last 180 days" />
+            </dl>
+            <dl className="-mt-6 -mb-5 grid grid-cols-2 gap-x-6 border-t border-divider sm:grid-cols-4">
+              <Figure label="Countries" value={summary.countries.length} note={`With an active installation, ${period}`} />
+              <Figure
+                label="Places"
+                value={places.filter((place) => place.installations).length}
+                note={`Cities and areas, ${period}`}
+              />
+              <Figure label="1.x checks" value={summary.legacyChecks} note={`From WireTrace 1.x, ${period}`} />
+              <Figure label="Downloads" value={summary.downloads.total} note="All packages, as GitHub counts them" />
+            </dl>
+          </Card>
 
-          <section className="py-14 md:py-16">
-            <UsageGlobe
-              places={summary.places}
-              day={summary.day}
-              installations={installations}
-              names={names}
-              chosen={chosen}
-            />
-            <div className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-2 font-sans text-ui text-text-secondary">
-              <span className="inline-flex items-center gap-2">
-                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-accent" />
-                Checked in today or yesterday
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-text-secondary" />
-                Within the last {MAP_PERIOD_DAYS} days
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <span aria-hidden="true" className="h-2 w-2 rounded-full border border-text-secondary" />
-                {wtMeta.title} 1.x update checks
-              </span>
-              <span>Arrow keys turn it; scroll, + and &minus; zoom</span>
+          <Card labelledBy={ids.places}>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <CardHeading
+                id={ids.places}
+                title="Places"
+                note={
+                  kind === 'installations'
+                    ? `Installations active in the last ${period}, at the place of their update checks`
+                    : `Update checks from WireTrace 1.x in the last ${period}, at the place they came from`
+                }
+              />
+              <div role="group" aria-label="Count" className="inline-flex gap-1 rounded-md border border-edge p-1">
+                {TOGGLE.map((option) => (
+                  <button
+                    key={option.kind}
+                    type="button"
+                    aria-pressed={kind === option.kind}
+                    onClick={() => setKind(option.kind)}
+                    className="min-h-(--size-control-lg) rounded-sm px-(--size-control-padding-md) font-sans text-ui font-medium text-text-secondary transition-colors duration-(--duration-fast) hover:bg-divider aria-pressed:bg-text aria-pressed:text-paper"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </section>
+            <div className="flex flex-wrap items-stretch gap-6">
+              <div ref={globeFrame} className="flex min-w-0 grow-[999] basis-128 flex-col gap-3">
+                <UsageGlobe ref={globe} places={places} titles={titles} kind={kind} day={summary.day} />
+                <ul className="m-0 flex list-none flex-wrap gap-x-5 gap-y-2 p-0 font-sans text-caption text-text-secondary">
+                  <li className="inline-flex items-center gap-2">
+                    <span aria-hidden="true" className="size-3 rounded-full bg-accent-strong" />
+                    City, placed to about 11 km
+                  </li>
+                  <li className="inline-flex items-center gap-2">
+                    <span aria-hidden="true" className="size-3 rounded-full border border-dashed border-accent-strong" />
+                    Area, about 100 km across, until Dec 17, 2026
+                  </li>
+                  <li className="inline-flex items-center gap-2">
+                    <span aria-hidden="true" className="h-3 w-4 rounded-xs bg-map-land-used" />
+                    {kind === 'installations' ? 'Country with installations' : 'Country with 1.x checks'}
+                  </li>
+                  <li className="text-text-tertiary">
+                    Drag to turn; scroll, pinch or double-click to zoom; arrow keys, + and &minus; work too.
+                  </li>
+                </ul>
+              </div>
+              <div className="min-w-0 grow basis-88 overflow-x-auto">
+                <table className="w-full border-collapse font-sans text-ui">
+                  <caption className="pb-2 text-left font-sans text-caption text-text-tertiary">
+                    {number.format(listed.length)} {listed.length === 1 ? 'place' : 'places'}, last {period}
+                  </caption>
+                  <thead>
+                    <tr className="border-b border-divider">
+                      <th scope="col" className="pb-2 text-left text-caption font-medium text-text-tertiary">Place</th>
+                      <th scope="col" className="pb-2 pl-4 text-right text-caption font-medium text-text-tertiary whitespace-nowrap">
+                        {kind === 'installations' ? 'Installations' : '1.x checks'}
+                      </th>
+                      <th scope="col" className="pb-2 pl-4 text-right text-caption font-medium text-text-tertiary whitespace-nowrap">Last seen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {listed.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-3 text-text-secondary">None in the last {period}.</td>
+                      </tr>
+                    ) : (
+                      listed.map(({ place, index, title }) => (
+                        <tr
+                          key={index}
+                          className="border-b border-divider align-top"
+                          onMouseEnter={() => globe.current?.highlight(index)}
+                          onMouseLeave={() => globe.current?.highlight(null)}
+                        >
+                          <td className="py-2">
+                            <button
+                              type="button"
+                              onClick={() => show(index)}
+                              onFocus={() => globe.current?.highlight(index)}
+                              onBlur={() => globe.current?.highlight(null)}
+                              aria-label={`Show ${title?.name ?? 'this place'} on the globe`}
+                              className="flex min-h-(--size-target-min) cursor-pointer flex-col items-start gap-0.5 text-left"
+                            >
+                              <span className="text-text whitespace-nowrap">{title?.name}</span>
+                              <span className="text-caption text-text-tertiary">
+                                {[title?.country, place.kind === 'area' ? 'Area' : 'City'].filter(Boolean).join(' · ')}
+                              </span>
+                            </button>
+                          </td>
+                          <td className="py-2 pl-4 text-right font-mono text-mono tabular-nums">
+                            <Count value={countOf(place, kind)} />
+                          </td>
+                          <td className="py-2 pl-4 text-right whitespace-nowrap text-text-secondary">{dayText(lastSeen(place), summary.day)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Card>
 
           {summary.trend.counts.length > 1 && (
-            <Section label="Active installations, day by day" divided>
-              <UsageTrend start={summary.trend.start} counts={summary.trend.counts} />
-            </Section>
+            <Card labelledBy={ids.trend}>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <CardHeading
+                  id={ids.trend}
+                  title="Active installations, day by day"
+                  note={`The last ${number.format(summary.trend.counts.length)} days. An installation counts once a day.`}
+                />
+                <p className="flex items-baseline gap-2">
+                  <span className="font-sans text-caption text-text-tertiary">Today</span>
+                  <span className="font-sans text-title-sm text-text tabular-nums">
+                    {number.format(summary.trend.counts[summary.trend.counts.length - 1] ?? 0)}
+                  </span>
+                </p>
+              </div>
+              <UsageTrend start={summary.trend.start} counts={summary.trend.counts} labelledBy={ids.trend} />
+            </Card>
           )}
 
-          <Section label="Versions, systems and downloads" divided>
-            <div className="grid gap-10 sm:grid-cols-3 sm:gap-16">
-              <Shares title="Versions" rows={summary.versions} name={(value) => (value === 'other' ? 'Other' : value)} />
-              <Shares title="Systems" rows={summary.systems} name={(value) => SYSTEM_NAMES[value] ?? value} />
-              <Downloads summary={summary} />
-            </div>
-            <p className="mt-8 font-sans text-ui-lg text-text-secondary max-w-narrow">
-              Versions and systems are shares of the installations active in the last {MAP_PERIOD_DAYS} days.
-              Downloads are GitHub&rsquo;s count of package downloads for every release of{' '}
-              {wtMeta.title}, including updates. A download is not an installation.
-            </p>
-          </Section>
-
-          <Section label="Countries" divided>
-            {countries.length === 0 && summary.withoutCountry === 0 ? (
-              <p className="font-sans text-ui-lg text-text-secondary">None in the last {MAP_PERIOD_DAYS} days.</p>
-            ) : (
-              <>
-                <ul className="m-0 grid list-none gap-x-8 gap-y-2 p-0 sm:grid-cols-2 md:grid-cols-3 font-sans text-ui-lg">
-                  {countries.map(({ code, name, installations: count }) => (
-                    <li key={code} className="flex min-w-0 items-baseline justify-between gap-3">
-                      {/* A country too small for the map's outlines is named, not chosen. */}
-                      {!outlined.has(code) ? (
-                        <span className="min-w-0 truncate text-text-secondary">{name}</span>
-                      ) : (
-                        <button
-                          type="button"
-                          aria-pressed={chosen === code}
-                          onClick={() => setChosen(chosen === code ? null : code)}
-                          className="min-w-0 truncate cursor-pointer border-b border-transparent text-left text-text-secondary hover:text-text aria-pressed:border-accent-strong aria-pressed:text-text"
-                        >
-                          {name}
-                        </button>
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <Card labelledBy={ids.countries}>
+              <CardHeading id={ids.countries} title="Countries" note={`The last ${period}`} />
+              {countries.length === 0 && summary.withoutCountry === 0 ? (
+                <p className="font-sans text-ui-lg text-text-secondary">None in the last {period}.</p>
+              ) : (
+                <div className="min-w-0 overflow-x-auto">
+                  <table className="w-full border-collapse font-sans text-ui">
+                    <thead>
+                      <tr className="border-b border-divider">
+                        <th scope="col" className="pb-2 text-left text-caption font-medium text-text-tertiary">Country</th>
+                        <th scope="col" className="pb-2 pl-4 text-right text-caption font-medium text-text-tertiary">Installations</th>
+                        <th scope="col" className="hidden pb-2 pl-4 text-left text-caption font-medium text-text-tertiary sm:table-cell">Share</th>
+                        <th scope="col" className="pb-2 pl-4 text-right text-caption font-medium text-text-tertiary">Places</th>
+                        <th scope="col" className="pb-2 pl-4 text-right text-caption font-medium text-text-tertiary whitespace-nowrap">1.x</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {countries.map((row) => (
+                        <tr key={row.code} className="border-b border-divider">
+                          <td className="py-2 text-text whitespace-nowrap">{row.name}</td>
+                          <td className="py-2 pl-4 text-right font-mono text-mono tabular-nums"><Count value={row.installations} /></td>
+                          <td className="hidden w-2/5 py-2 pl-4 sm:table-cell">
+                            <span className="grid grid-cols-[minmax(0,1fr)_5ch] items-center gap-2">
+                              <Bar share={row.installations / Math.max(summary.active.month, 1)} />
+                              <span className="text-right font-mono text-mono text-text-secondary tabular-nums">
+                                {percent.format(row.installations / Math.max(summary.active.month, 1))}
+                              </span>
+                            </span>
+                          </td>
+                          <td className="py-2 pl-4 text-right font-mono text-mono tabular-nums"><Count value={row.places} /></td>
+                          <td className="py-2 pl-4 text-right font-mono text-mono tabular-nums"><Count value={row.legacy} /></td>
+                        </tr>
+                      ))}
+                      {summary.withoutCountry > 0 && (
+                        <tr className="border-b border-divider">
+                          <td className="py-2 text-text-secondary">Location unknown</td>
+                          <td className="py-2 pl-4 text-right font-mono text-mono tabular-nums">{number.format(summary.withoutCountry)}</td>
+                          <td className="hidden w-2/5 py-2 pl-4 sm:table-cell">
+                            <span className="grid grid-cols-[minmax(0,1fr)_5ch] items-center gap-2">
+                              <Bar share={summary.withoutCountry / Math.max(summary.active.month, 1)} />
+                              <span className="text-right font-mono text-mono text-text-secondary tabular-nums">
+                                {percent.format(summary.withoutCountry / Math.max(summary.active.month, 1))}
+                              </span>
+                            </span>
+                          </td>
+                          <td className="py-2 pl-4" />
+                          <td className="py-2 pl-4" />
+                        </tr>
                       )}
-                      <span className="shrink-0 font-mono text-ui text-text-secondary tabular-nums">
-                        {number.format(count)}
-                      </span>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+
+            <Card labelledBy={ids.versions}>
+              <CardHeading id={ids.versions} title="Versions and systems" note={`Share of installations, the last ${period}`} />
+              <Shares title="Version" rows={summary.versions} name={(value) => (value === 'other' ? 'Other' : `${wtMeta.title} ${value}`)} />
+              <Shares title="System" rows={summary.systems} name={(value) => SYSTEM_NAMES[value] ?? value} />
+              <div className="flex flex-col gap-3 border-t border-divider pt-5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="font-sans text-label uppercase text-text-tertiary">Downloads by package</h3>
+                  <span className="font-sans text-caption text-text-tertiary">All releases</span>
+                </div>
+                <ul className="m-0 flex list-none flex-col gap-3 p-0">
+                  {summary.downloads.packages.map((item) => (
+                    <li key={item.format} className="grid grid-cols-[minmax(0,18ch)_minmax(0,1fr)_5ch] items-center gap-3 font-sans text-ui-lg">
+                      <span className="truncate text-text">{PACKAGE_NAMES[item.format]}</span>
+                      <Bar share={item.count / Math.max(...summary.downloads.packages.map((p) => p.count), 1)} />
+                      <span className="text-right font-mono text-mono text-text-secondary tabular-nums">{number.format(item.count)}</span>
                     </li>
                   ))}
-                  {summary.withoutCountry > 0 && (
-                    <li className="flex min-w-0 items-baseline justify-between gap-3">
-                      <span className="min-w-0 truncate text-text-secondary">Location unknown</span>
-                      <span className="shrink-0 font-mono text-ui text-text-secondary tabular-nums">
-                        {number.format(summary.withoutCountry)}
-                      </span>
-                    </li>
-                  )}
                 </ul>
-                <p className="mt-6 font-sans text-ui-lg text-text-secondary max-w-narrow">
-                  Installations active in each country in the last {MAP_PERIOD_DAYS} days, each counted once.
+                <p className="font-sans text-caption text-text-tertiary">
+                  GitHub&rsquo;s count of package downloads for every release, updates included. A download is not an installation.
                 </p>
-              </>
-            )}
-          </Section>
+              </div>
+            </Card>
+          </div>
 
-          <Section divided className="pb-24 md:pb-32">
+          <section aria-labelledby="usage-method" className="max-w-narrow">
+            <h2 id="usage-method" className="mb-4 font-sans text-label uppercase text-accent-strong">
+              How these are counted
+            </h2>
             <Prose className="text-ui-lg text-text-secondary">
               <p>
-                Made from the update checks of {wtMeta.title} 2.x, as of {madeAtText(summary)}. The update
-                server makes them every 15 minutes, and this page reads them when it opens. Every period
-                ends with the current day (UTC) and counts each installation once, in the place it first
-                checked in from in that period. A place is the city Cloudflare gives for the address of a
-                check; its marker sits on that city, rounded to about 11 km, never where a computer is.
-                Checks counted before places were named by city stay in their area of about 100 km, whose
+                Made from the update checks of {wtMeta.title} 2.x, as of {madeAtText(summary)}. The update server
+                makes them every 15 minutes, and this page reads them when it opens. Every period ends with the
+                current day (UTC) and counts each installation once, in the place it first checked in from in that
+                period. A place is the city Cloudflare gives for the address of a check; its marker sits on that
+                city, rounded to about 11 km, never where a computer is. Checks counted before places were named by
+                city stay in their area of about 100 km, a square of one degree of latitude and longitude, whose
                 marker sits on its largest place and is named after it, from{' '}
                 <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
                   GeoNames
@@ -329,7 +524,8 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
                 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
                   CC BY 4.0
                 </a>
-                ). The map is drawn in your browser from{' '}
+                ). Update checks from {wtMeta.title} 1.x are counted apart, as checks, since they cannot be counted
+                as installations. The map and its town names are drawn in your browser from{' '}
                 <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
                   Natural Earth
                 </a>{' '}
@@ -340,8 +536,8 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
                 .
               </p>
             </Prose>
-          </Section>
-        </>
+          </section>
+        </div>
       )}
     </Container>
   );
