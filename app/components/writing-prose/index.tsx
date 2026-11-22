@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode, AnchorHTMLAttributes } from 'react';
 import { highlightCode } from '~/lib/highlight';
 import { CopyButton } from '~/components/CopyButton';
+import { PROSE_LINK } from '~/lib/prose-link';
 
 /**
  * Prose components: pre-styled typographic building blocks.
@@ -115,13 +116,7 @@ export function A(
       href={href}
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
-      className="
-        text-text
-        border-b border-divider
-        hover:border-accent-strong
-        transition-colors duration-(--duration-fast)
-        no-underline
-      "
+      className={PROSE_LINK}
       {...rest}
     >
       {children}

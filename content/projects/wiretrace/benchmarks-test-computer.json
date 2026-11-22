@@ -1,0 +1,242 @@
+{
+  "format": 1,
+  "wiretrace": "2.2.0",
+  "commit": "a57a209b9429a4e383f80c43e414286bd90e48ed",
+  "measured_at": "2026-11-22T09:57:15+00:00",
+  "runs": 5,
+  "line": {
+    "example": "I (0) sensor: temp=20.0 rpm=0 status=ok",
+    "format": "I ({number}) sensor: temp={temp:.1f} rpm={rpm} status=ok"
+  },
+  "machine": {
+    "name": "Test computer",
+    "system": "Windows-10-10.0.19045-SP0",
+    "processor": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+    "processors_seen": 8,
+    "processors_usable": null,
+    "container_processor_limit": null,
+    "memory_bytes": 16910159872,
+    "container_memory_limit": null,
+    "runner_image": null,
+    "runner_image_version": null,
+    "python": "3.12.0",
+    "pyside6": "6.11.2",
+    "qt": "6.11.2"
+  },
+  "method": {
+    "capacity_lines": 200000,
+    "lines_through": 100000,
+    "load_tabs": 2,
+    "load_rates": [
+      1000,
+      10000
+    ],
+    "measure_seconds": 10.0,
+    "display": {
+      "width": 2560,
+      "height": 1440
+    }
+  },
+  "measurements": {
+    "capacity_lines": {
+      "title": "Capacity: lines a second",
+      "unit": "lines/s",
+      "values": [
+        133891.8229180239,
+        143857.27978538664,
+        142082.42826240748,
+        141535.31421220629,
+        143047.82559515338
+      ],
+      "median": 142082.42826240748,
+      "lowest": 133891.8229180239,
+      "highest": 143857.27978538664
+    },
+    "capacity_bytes": {
+      "title": "Capacity: bytes a second",
+      "unit": "bytes/s",
+      "values": [
+        6302636.223490972,
+        6771736.188425591,
+        6688189.312625002,
+        6662435.231785501,
+        6733633.075110417
+      ],
+      "median": 6688189.312625002,
+      "lowest": 6302636.223490972,
+      "highest": 6771736.188425591
+    },
+    "pair_lines": {
+      "title": "Through the ports COM14 to COM15: lines a second",
+      "unit": "lines/s",
+      "values": [
+        116101.52893102398,
+        125890.39129602718,
+        126480.48570704501,
+        124145.64519692556,
+        124148.37320869639
+      ],
+      "median": 124148.37320869639,
+      "lowest": 116101.52893102398,
+      "highest": 126480.48570704501
+    },
+    "pair_bytes": {
+      "title": "Through the ports COM14 to COM15: bytes a second",
+      "unit": "bytes/s",
+      "values": [
+        5400056.262875321,
+        5855350.9347651685,
+        5882797.110963224,
+        5774200.1765768025,
+        5774327.060496282
+      ],
+      "median": 5774327.060496282,
+      "lowest": 5400056.262875321,
+      "highest": 5882797.110963224
+    },
+    "idle_processor": {
+      "title": "Idle, 2 tabs: processor",
+      "unit": "% of one processor",
+      "values": [
+        0.6249551844644199,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "median": 0.0,
+      "lowest": 0.0,
+      "highest": 0.6249551844644199
+    },
+    "idle_memory": {
+      "title": "Idle, 2 tabs: memory",
+      "unit": "bytes",
+      "values": [
+        141504512,
+        141709312,
+        141107200,
+        141770752,
+        141766656
+      ],
+      "median": 141709312,
+      "lowest": 141107200,
+      "highest": 141770752
+    },
+    "load_1000_processor": {
+      "title": "1,000 lines a second per tab, 2 tabs: processor",
+      "unit": "% of one processor",
+      "values": [
+        27.966152224198847,
+        25.93652478709271,
+        29.530276386593293,
+        32.811012348831504,
+        30.93649518218827
+      ],
+      "median": 29.530276386593293,
+      "lowest": 25.93652478709271,
+      "highest": 32.811012348831504
+    },
+    "load_1000_memory": {
+      "title": "1,000 lines a second per tab, 2 tabs: memory",
+      "unit": "bytes",
+      "values": [
+        166400000,
+        166084608,
+        166916096,
+        167034880,
+        166887424
+      ],
+      "median": 166887424,
+      "lowest": 166084608,
+      "highest": 167034880
+    },
+    "load_1000_sent": {
+      "title": "1,000 lines a second per tab, 2 tabs: lines sent a second, all tabs, every one logged",
+      "unit": "lines/s",
+      "values": [
+        1998.4316342307009,
+        1998.267032317807,
+        1999.6141584576312,
+        1998.2779545869948,
+        1998.111113363741
+      ],
+      "median": 1998.2779545869948,
+      "lowest": 1998.111113363741,
+      "highest": 1999.6141584576312
+    },
+    "load_10000_processor": {
+      "title": "10,000 lines a second per tab, 2 tabs: processor",
+      "unit": "% of one processor",
+      "values": [
+        71.5580154591785,
+        74.06118171127366,
+        77.65351581968072,
+        78.90283429509536,
+        67.02842341093019
+      ],
+      "median": 74.06118171127366,
+      "lowest": 67.02842341093019,
+      "highest": 78.90283429509536
+    },
+    "load_10000_memory": {
+      "title": "10,000 lines a second per tab, 2 tabs: memory",
+      "unit": "bytes",
+      "values": [
+        224333824,
+        223576064,
+        225177600,
+        224038912,
+        223670272
+      ],
+      "median": 224038912,
+      "lowest": 223576064,
+      "highest": 225177600
+    },
+    "load_10000_sent": {
+      "title": "10,000 lines a second per tab, 2 tabs: lines sent a second, all tabs, every one logged",
+      "unit": "lines/s",
+      "values": [
+        19968.006220021623,
+        19993.72213914601,
+        19975.325437354022,
+        19984.96374995649,
+        19982.092182975608
+      ],
+      "median": 19982.092182975608,
+      "lowest": 19968.006220021623,
+      "highest": 19993.72213914601
+    },
+    "console_full_memory": {
+      "title": "One tab, console full: memory",
+      "unit": "bytes",
+      "values": [
+        161763328,
+        161185792,
+        161918976,
+        162017280,
+        161427456
+      ],
+      "median": 161763328,
+      "lowest": 161185792,
+      "highest": 162017280
+    },
+    "start": {
+      "title": "Start, to the window built",
+      "unit": "s",
+      "values": [
+        3.057204246520996,
+        2.9322597980499268,
+        3.05430269241333,
+        3.0075063705444336,
+        2.9815011024475098
+      ],
+      "median": 3.0075063705444336,
+      "lowest": 2.9322597980499268,
+      "highest": 3.057204246520996
+    }
+  },
+  "not_measured": {
+    "pseudo_terminal": "this system has no pseudo-terminals"
+  },
+  "failures": []
+}

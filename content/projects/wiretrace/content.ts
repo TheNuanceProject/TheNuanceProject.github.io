@@ -33,10 +33,12 @@ export interface ShortcutRow {
 export interface HowItWorksItem {
   readonly title: string;
   readonly text: string;
+  /** A page of the site that shows what the text says, linked after it. */
+  readonly link?: { readonly label: string; readonly path: string };
 }
 
 /**
- * The pictures of WireTrace 2.1, each made in a light and a dark version
+ * The pictures of WireTrace, each made in a light and a dark version
  * by WireTrace's own `tools/make_site_screenshots.py`, and shown in the
  * version that matches the site's theme.
  */
@@ -83,8 +85,9 @@ export const howItWorks: readonly HowItWorksItem[] = [
     text: 'On disconnect, on an unplugged device and on closing, everything waiting is written before the result is reported. If a disk cannot keep up or fails, WireTrace states how many lines were not written and marks the place in the file.',
   },
   {
-    title: 'Proven on every change',
-    text: 'A test sends 200,000 lines from port to log file and requires all of them, in order, at ten thousand lines a second or faster. More than 3,600 automated tests run before anything is released.',
+    title: 'Measured on every release',
+    text: "Each release is measured on GitHub's machines as it is built, and on a test computer through two joined serial ports: how many lines a second WireTrace takes in, the processor and memory it uses, and how long it takes to start. Every line sent is checked to arrive, in order, once.",
+    link: { label: 'The benchmarks', path: '/projects/wiretrace/benchmarks/' },
   },
 ];
 
@@ -194,12 +197,16 @@ export const features: readonly FeatureItem[] = [
   {
     title: 'Verified updates',
     description:
-      "WireTrace checks for a new version when it starts and every 12 hours while it is open. A new version is accepted only if it carries a valid signature, and installed only when you choose.",
+      "WireTrace checks for a new version when it starts and every 12 hours while it is open. A new version is accepted only if it carries a valid signature, and installed only when you choose; until then it stays offered in the status bar. Help returns to the previous version, verified the same way.",
+  },
+  {
+    title: 'Diagnostic log',
+    description:
+      "WireTrace keeps a log of its own events, never device data, on your computer and never sends it. Help copies a summary to paste into a report.",
   },
 ];
 
 export const specs: readonly SpecRow[] = [
-  { property: 'Throughput, port to log file', value: '10,000 lines per second, held by test' },
   { property: 'Baud rates', value: '50 to 4,000,000, any whole number' },
   {
     property: 'Connection',
@@ -260,4 +267,13 @@ export const releaseSummaries: Readonly<Record<string, string>> = {
 export const usage = {
   path: '/projects/wiretrace/usage',
   summaryUrl: `${siteConfig.identity.url}/updates/wiretrace/summary.json`,
+} as const;
+
+/** The benchmarks page: where it is, and the tool, as a path in
+ *  WireTrace's repository, linked at the release the page describes. The
+ *  test computer's own report is kept beside this file
+ *  (`RELEASE_RUNBOOK.md`, stage 3). */
+export const benchmarks = {
+  path: '/projects/wiretrace/benchmarks',
+  script: 'tools/benchmark.py',
 } as const;

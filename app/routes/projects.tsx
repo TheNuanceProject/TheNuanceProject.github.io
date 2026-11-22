@@ -82,6 +82,7 @@ export default function Projects() {
               meta={`v${project.version} · ${project.status}`}
               tags={project.platforms}
               href={`/projects/${project.slug}`}
+              level={2}
             />
           ))
         )}

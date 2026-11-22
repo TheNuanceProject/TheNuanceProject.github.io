@@ -14,12 +14,14 @@ import { getProjectReleases } from '~/lib/build-data/data.server';
 import { deriveDates } from '~/lib/content/dates';
 import { pageMeta } from '~/lib/page-meta';
 import { softwareApplicationSchema, breadcrumbSchema } from '~/lib/structured-data';
+import { PROSE_LINK } from '~/lib/prose-link';
 import type { Route } from './+types/projects.wiretrace';
 
 import { meta as wtMeta } from '../../content/projects/wiretrace/meta';
 import {
   SCREENSHOT_SIZE,
   type ScreenshotName,
+  benchmarks,
   features,
   howItWorks,
   releaseSummaries,
@@ -76,14 +78,6 @@ const LINK = `
   transition-colors
   no-underline
   border-b border-transparent hover:border-accent-strong
-`;
-
-const PROSE_LINK = `
-  text-text
-  border-b border-divider
-  hover:border-accent-strong
-  transition-colors
-  no-underline
 `;
 
 function Screenshot({ name, wide, className }: { name: ScreenshotName; wide?: boolean; className?: string }) {
@@ -172,6 +166,10 @@ export default function ProjectWireTrace({ loaderData }: Route.ComponentProps) {
               Where it is used
             </Link>
             <span aria-hidden="true" className="text-text-tertiary">·</span>
+            <Link to={`${benchmarks.path}/`} className={LINK}>
+              Benchmarks
+            </Link>
+            <span aria-hidden="true" className="text-text-tertiary">·</span>
             <a href={wt.issuesUrl} target="_blank" rel="noopener noreferrer" className={LINK}>
               Report an issue
             </a>
@@ -236,6 +234,12 @@ export default function ProjectWireTrace({ loaderData }: Route.ComponentProps) {
           {howItWorks.map((item) => (
             <p key={item.title} className="font-serif text-reading text-text">
               <strong className="font-semibold">{item.title}.</strong> {item.text}
+              {item.link && (
+                <>
+                  {' '}
+                  <Link to={item.link.path} className={PROSE_LINK}>{item.link.label}</Link>.
+                </>
+              )}
             </p>
           ))}
         </div>

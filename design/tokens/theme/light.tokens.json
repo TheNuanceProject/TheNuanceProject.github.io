@@ -196,6 +196,19 @@
         "hex": "#d97757"
       }
     },
+    "scrim": {
+      "$description": "Behind a dialog, dimming what it covers: the website's dialogs and WireTrace's tour",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "alpha": 0.4,
+        "hex": "#000000"
+      }
+    },
     "site": {
       "shadow-float": {
         "$description": "Shadow of things that float above the page",
@@ -208,19 +221,6 @@
           ],
           "alpha": 0.08,
           "hex": "#141413"
-        }
-      },
-      "scrim": {
-        "$description": "Behind a dialog on the website",
-        "$value": {
-          "colorSpace": "srgb",
-          "components": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "alpha": 0.4,
-          "hex": "#000000"
         }
       },
       "wave-dot": {

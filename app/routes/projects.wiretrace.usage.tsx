@@ -23,6 +23,7 @@ import { withRegionNames } from '~/lib/usage/region-names';
 import { loadLevel, locator } from '~/lib/usage/world';
 import { pageMeta } from '~/lib/page-meta';
 import { breadcrumbSchema } from '~/lib/structured-data';
+import { PROSE_LINK } from '~/lib/prose-link';
 import type { Route } from './+types/projects.wiretrace.usage';
 
 import { meta as wtMeta } from '../../content/projects/wiretrace/meta';
@@ -513,24 +514,25 @@ export default function WireTraceUsage({ loaderData }: Route.ComponentProps) {
                 Made from the update checks of {wtMeta.title} 2.x, as of {madeAtText(summary)}. The update server
                 makes them every 15 minutes, and this page reads them when it opens. Every period ends with the
                 current day (UTC) and counts each installation once, in the place it first checked in from in that
-                period. A place is the city Cloudflare gives for the address of a check; its marker sits on that
+                period. Each installation is counted in the version it runs; an update from {wtMeta.title} 2.1 or
+                earlier shows once the checks made before it have left the period. A place is the city Cloudflare gives for the address of a check; its marker sits on that
                 city, rounded to about 11 km, never where a computer is. Checks counted before places were named by
                 city stay in their area of about 100 km, a square of one degree of latitude and longitude, whose
                 marker sits on its largest place and is named after it, from{' '}
-                <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
+                <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer" className={PROSE_LINK}>
                   GeoNames
                 </a>{' '}
                 (
-                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
+                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className={PROSE_LINK}>
                   CC BY 4.0
                 </a>
                 ). Update checks from {wtMeta.title} 1.x are counted apart, as checks, since they cannot be counted
                 as installations. The map and its town names are drawn in your browser from{' '}
-                <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer" className="border-b border-divider text-text no-underline hover:border-accent-strong">
+                <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer" className={PROSE_LINK}>
                   Natural Earth
                 </a>{' '}
                 data served by this site. How the figures are made is on the{' '}
-                <Link to="/privacy/" className="border-b border-divider text-text no-underline hover:border-accent-strong">
+                <Link to="/privacy/" className={PROSE_LINK}>
                   privacy page
                 </Link>
                 .

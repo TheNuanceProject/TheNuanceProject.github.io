@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 /**
  * The data the site reads when it is built: a project's releases from
- * GitHub, and the public summary of WireTrace's update server.
+ * GitHub, the privacy policy and the benchmarks of the WireTrace release
+ * the site describes, and the public summary of WireTrace's update server.
  *
  * Each is fetched once per build, however many pages use it, and checked
  * before any page sees it. The site is built again every 12 hours, so the
@@ -10,19 +11,32 @@
  * (`~/lib/usage/live-summary`), so the figures it shows are current.
  *
  * Building without the network: set `BUILD_DATA_DIR` to a folder holding
- * `releases/<owner>/<repository>.json` (GitHub's answer) for each project
- * and, once the update server has made one, `summary.json`. They are checked exactly as fetched data is. The
+ * `releases/<owner>/<repository>.json` (GitHub's answer) for each project,
+ * `policy/<owner>/<repository>/PRIVACY.md` and
+ * `benchmarks/<owner>/<repository>.json` for WireTrace and, once the
+ * update server has made one, `summary.json`. They are checked exactly as fetched data is. The
  * deploy workflow never sets it, and a build in CI refuses it.
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { BuildDataError, fetchJson } from './fetch-json.server';
+import { type Policy, PolicyError, parsePolicy } from '../privacy/policy';
+import { BenchmarksError, type ReleaseBenchmarks, readBenchmarks } from './benchmarks';
+import { BuildDataError, fetchJson, fetchText } from './fetch-json.server';
 import { type Release, readReleases, releasesApi, repositoryOf } from './releases';
 import { SUMMARY_MAX_BYTES, type UsageSummary, readUsageSummary } from './usage-summary';
 
 const TIMEOUT_MS = 30_000;
 const RELEASES_MAX_BYTES = 4 * 1024 * 1024;
+/** The privacy policy's file, at the top of the repository it is kept in. */
+const POLICY_FILE = 'PRIVACY.md';
+const POLICY_MAX_BYTES = 256 * 1024;
+/** The benchmarks' file, published with each release. */
+const BENCHMARKS_FILE = 'benchmarks.json';
+const BENCHMARKS_MAX_BYTES = 1024 * 1024;
+/** Where GitHub sends a download of a release's file on to: its hosts
+ *  for release files, the newer and the older. */
+const RELEASE_ASSET_HOSTS = ['release-assets.githubusercontent.com', 'objects.githubusercontent.com'] as const;
 
 /** The folder to read the data from instead of the network, if set. */
 function localFolder(): string | null {
@@ -100,6 +114,57 @@ export async function getProjectReleases(project: { readonly githubUrl: string; 
   return found;
 }
 
+const policies = new Map<string, Promise<Policy>>();
+
+/**
+ * The privacy policy as the release of `project` the site describes
+ * holds it: `PRIVACY.md` at that release's tag, read by the policy's own
+ * rules. The policy is kept in that one file only, so this page always
+ * shows what the released WireTrace and its installer show.
+ *
+ * @throws BuildDataError when that release is not GitHub's latest, or its
+ * policy cannot be fetched or read.
+ */
+export function getReleasedPolicy(project: { readonly githubUrl: string; readonly version: string }): Promise<Policy> {
+  const key = `${project.githubUrl}@${project.version}`;
+  let pending = policies.get(key);
+  if (!pending) {
+    pending = getProjectReleases(project).then(async () => {
+      const repository = repositoryOf(project.githubUrl);
+      let text: string | null;
+      if (localFolder()) {
+        const name = join('policy', repository, POLICY_FILE);
+        try {
+          text = await readFile(join(localFolder() as string, name), 'utf8');
+        } catch {
+          throw new BuildDataError(`${name} could not be read from BUILD_DATA_DIR`);
+        }
+      } else {
+        const url = `https://api.github.com/repos/${repository}/contents/${POLICY_FILE}?ref=v${project.version}`;
+        text = await fetchText(url, {
+          maxBytes: POLICY_MAX_BYTES,
+          timeoutMs: TIMEOUT_MS,
+          headers: { ...githubHeaders(), Accept: 'application/vnd.github.raw' },
+          missingIsNull: true,
+        });
+        if (text === null) {
+          throw new BuildDataError(`WireTrace ${project.version} holds no ${POLICY_FILE}`);
+        }
+      }
+      try {
+        return parsePolicy(text);
+      } catch (error) {
+        if (error instanceof PolicyError) {
+          throw new BuildDataError(`the ${POLICY_FILE} of version ${project.version} cannot be read: ${error.message}`);
+        }
+        throw error;
+      }
+    });
+    policies.set(key, pending);
+  }
+  return pending;
+}
+
 /**
  * The public summary at `url`, or null before the update server has
  * made its first one.
@@ -112,6 +177,46 @@ export function getUsageSummary(url: string): Promise<UsageSummary | null> {
       : fetchJson(url, { maxBytes: SUMMARY_MAX_BYTES, timeoutMs: TIMEOUT_MS, missingIsNull: true });
     pending = answer.then((value) => (value === null ? null : readUsageSummary(value)));
     summaries.set(url, pending);
+  }
+  return pending;
+}
+
+const benchmarks = new Map<string, Promise<ReleaseBenchmarks>>();
+
+/**
+ * The benchmarks published with the release of `project` the site
+ * describes: its `benchmarks.json`, read by the benchmarks' own rules.
+ *
+ * @throws BuildDataError when that release is not GitHub's latest, or its
+ * benchmarks cannot be fetched, are of another version, or hold a failure.
+ */
+export function getReleaseBenchmarks(project: { readonly githubUrl: string; readonly version: string }): Promise<ReleaseBenchmarks> {
+  const key = `${project.githubUrl}@${project.version}`;
+  let pending = benchmarks.get(key);
+  if (!pending) {
+    pending = getProjectReleases(project).then(async () => {
+      const repository = repositoryOf(project.githubUrl);
+      const value = localFolder()
+        ? await readLocal(join('benchmarks', `${repository}.json`), false)
+        : await fetchJson(`https://github.com/${repository}/releases/download/v${project.version}/${BENCHMARKS_FILE}`, {
+            maxBytes: BENCHMARKS_MAX_BYTES,
+            timeoutMs: TIMEOUT_MS,
+            missingIsNull: true,
+            redirectHosts: RELEASE_ASSET_HOSTS,
+          });
+      if (value === null) {
+        throw new BuildDataError(`WireTrace ${project.version} was published without ${BENCHMARKS_FILE}`);
+      }
+      try {
+        return readBenchmarks(value, project.version);
+      } catch (error) {
+        if (error instanceof BenchmarksError) {
+          throw new BuildDataError(`the ${BENCHMARKS_FILE} of version ${project.version} cannot be read: ${error.message}`);
+        }
+        throw error;
+      }
+    });
+    benchmarks.set(key, pending);
   }
   return pending;
 }

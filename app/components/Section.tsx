@@ -4,7 +4,10 @@ import { cn } from '~/lib/cn';
 import { useReveal } from '~/lib/use-reveal';
 
 interface SectionProps {
-  /** Small uppercase label shown above the section (e.g., "WORK", "WRITING") */
+  /** Small uppercase label shown above the section (e.g., "WORK",
+   *  "WRITING"). Without a heading it is the section's heading (h2), so
+   *  the page's sections can be found by their headings; with one, it is
+   *  a line above it. */
   label?: string;
   /** Optional section heading rendered below the label */
   heading?: string;
@@ -49,7 +52,12 @@ export function Section({
         className
       )}
     >
-      {label && (
+      {label && !heading && (
+        <h2 className="text-label font-sans uppercase text-accent-strong mb-6">
+          {label}
+        </h2>
+      )}
+      {label && heading && (
         <p className="text-label font-sans uppercase text-accent-strong mb-6">
           {label}
         </p>

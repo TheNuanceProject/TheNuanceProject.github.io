@@ -37,6 +37,10 @@
   }
 
   html {
+    /* An element scrolled to, by the keyboard's focus or a link to it,
+       stops below the sticky header, its focus ring and the header's edge
+       included, never under it. */
+    scroll-padding-top: calc(var(--header-row) + var(--border-hairline) + var(--size-focus-ring) + var(--size-focus-offset));
     background-color: var(--color-paper);
     color: var(--color-text);
     font-family: var(--font-sans);
@@ -156,6 +160,9 @@
  * block above.
  * ─────────────────────────────────────────────────────────────────────────── */
 :root {
+  /* The height of the header's row (space-16), which the header takes and
+     which a scrolled-to element is kept clear of. */
+  --header-row: calc(var(--spacing) * 16);
   /* The pointer and reading positions, set by AmbientField; off the page
      until it has run. */
   --mx: -1000px;

@@ -18,6 +18,9 @@ interface ProjectCardProps {
   href: string;
   /** Optional explicit "Read more" link label (default: "Read more") */
   ctaLabel?: string;
+  /** The heading level of the name: 3 under a section's heading (the
+   *  default), 2 straight under a page's title, so no level is skipped. */
+  level?: 2 | 3;
 }
 
 /**
@@ -35,7 +38,9 @@ export function ProjectCard({
   availability,
   href,
   ctaLabel = 'Read more',
+  level = 3,
 }: ProjectCardProps) {
+  const Heading = level === 2 ? 'h2' : 'h3';
   return (
     <Link
       to={href}
@@ -54,9 +59,9 @@ export function ProjectCard({
       aria-label={`${name}: ${description}`}
     >
       <div className="flex items-baseline justify-between gap-6 mb-2">
-        <h3 className="font-sans text-title-sm md:text-title text-text font-regular">
+        <Heading className="font-sans text-title-sm md:text-title text-text font-regular">
           {name}
-        </h3>
+        </Heading>
         {meta && (
           <span className="font-sans text-ui-lg text-text-tertiary shrink-0 hidden sm:block">
             {meta}

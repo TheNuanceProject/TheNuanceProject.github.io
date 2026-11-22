@@ -79,7 +79,7 @@ export function Header() {
         transition-colors duration-(--duration-slow)
       "
     >
-      <div className="max-w-wide mx-auto px-(--web-gutter-phone) md:px-(--web-gutter-tablet) h-16 flex items-center justify-between">
+      <div className="max-w-wide mx-auto px-(--web-gutter-phone) md:px-(--web-gutter-tablet) h-(--header-row) flex items-center justify-between">
         <Logo />
 
         {/* Desktop nav: inline links visible at md and above */}
@@ -154,19 +154,22 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile panel: slides down below the header on small screens */}
+      {/* Mobile panel: slides down below the header on small screens.
+          Closed, it is inert: its links can be neither reached from the
+          keyboard nor read out while they cannot be seen. */}
       <div
         id="mobile-nav-panel"
         role="dialog"
         aria-label="Site navigation"
-        aria-hidden={!isMenuOpen}
+        inert={!isMenuOpen}
         className={cn(
           'md:hidden overflow-hidden',
-          'border-b border-divider',
           'bg-paper',
           'transition-[max-height,opacity] duration-(--duration-base) ease-out',
+          // Its edge only while open: closed, the header is its row alone,
+          // the height focused elements are kept clear of.
           isMenuOpen
-            ? 'max-h-96 opacity-100'
+            ? 'max-h-96 opacity-100 border-b border-divider'
             : 'max-h-0 opacity-0 pointer-events-none'
         )}
       >

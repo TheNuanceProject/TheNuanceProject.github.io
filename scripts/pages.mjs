@@ -30,6 +30,13 @@ export const STATIC_PAGES = [
     llms: 'software shipped under the studio.',
   },
   {
+    path: '/projects/wiretrace/benchmarks',
+    title: 'WireTrace benchmarks',
+    sitemap: { priority: '0.6', changefreq: 'monthly' },
+    search: true,
+    llms: 'WireTrace benchmarks: how many lines a second it takes in, its processor and memory use and its start, measured for each release.',
+  },
+  {
     path: '/projects/wiretrace/usage',
     title: 'Where WireTrace is used',
     sitemap: { priority: '0.6', changefreq: 'daily' },
