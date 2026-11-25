@@ -3,8 +3,10 @@ import { defineConfig } from 'vite';
 import { reactRouter } from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
 
+import { documents } from './app/lib/docs/documents-plugin.ts';
+
 export default defineConfig({
-  plugins: [reactRouter(), tailwindcss()],
+  plugins: [documents(), reactRouter(), tailwindcss()],
 
   resolve: {
     tsconfigPaths: true,

@@ -277,3 +277,25 @@ export const benchmarks = {
   path: '/projects/wiretrace/benchmarks',
   script: 'tools/benchmark.py',
 } as const;
+
+/** WireTrace's documents on this site. Each is WireTrace's own file, made
+ *  by its `tools/make_web_documents.py` for the version the site describes
+ *  and kept, with the `SHA256SUMS` the tool's output gives, in
+ *  `content/projects/wiretrace/docs/`. The site gives each its address,
+ *  its name in the breadcrumbs and its description. */
+export const docs = {
+  guide: {
+    path: '/projects/wiretrace/guide',
+    file: 'user-guide',
+    name: 'User guide',
+    description:
+      'How to use WireTrace: connecting a device, the console, logs and CSV files, the plot, commands, restarts, preferences, keyboard shortcuts and where its files are kept.',
+  },
+  formats: {
+    path: '/projects/wiretrace/formats',
+    file: 'line-formats',
+    name: 'Line format reference',
+    description:
+      'How WireTrace reads the lines firmware prints: line endings, levels, plotted values, CSV columns and restarts, with examples for Arduino, ESP-IDF, Zephyr and plain C.',
+  },
+} as const;

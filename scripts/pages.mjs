@@ -30,6 +30,20 @@ export const STATIC_PAGES = [
     llms: 'software shipped under the studio.',
   },
   {
+    path: '/projects/wiretrace/guide',
+    title: 'WireTrace user guide',
+    sitemap: { priority: '0.6', changefreq: 'monthly' },
+    search: true,
+    llms: 'the WireTrace user guide: connecting a device, the console, logs and CSV files, the plot, commands, restarts, preferences, keyboard shortcuts and where its files are kept.',
+  },
+  {
+    path: '/projects/wiretrace/formats',
+    title: 'WireTrace line format reference',
+    sitemap: { priority: '0.6', changefreq: 'monthly' },
+    search: true,
+    llms: 'the WireTrace line format reference: how it reads the lines firmware prints (line endings, levels, plotted values, CSV columns, restarts), with examples for Arduino, ESP-IDF, Zephyr and plain C.',
+  },
+  {
     path: '/projects/wiretrace/benchmarks',
     title: 'WireTrace benchmarks',
     sitemap: { priority: '0.6', changefreq: 'monthly' },

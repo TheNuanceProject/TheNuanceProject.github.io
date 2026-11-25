@@ -16,6 +16,8 @@ export default [
   route('projects/wiretrace', 'routes/projects.wiretrace.tsx'),
   route('projects/wiretrace/benchmarks', 'routes/projects.wiretrace.benchmarks.tsx'),
   route('projects/wiretrace/usage', 'routes/projects.wiretrace.usage.tsx'),
+  route('projects/wiretrace/guide', 'routes/projects.wiretrace.guide.tsx'),
+  route('projects/wiretrace/formats', 'routes/projects.wiretrace.formats.tsx'),
   route('writing', 'routes/writing.tsx'),
   route('writing/:slug', 'routes/writing.$slug.tsx'),
   route('privacy', 'routes/privacy.tsx'),

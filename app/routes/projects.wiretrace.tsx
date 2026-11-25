@@ -22,6 +22,7 @@ import {
   SCREENSHOT_SIZE,
   type ScreenshotName,
   benchmarks,
+  docs,
   features,
   howItWorks,
   releaseSummaries,
@@ -161,6 +162,14 @@ export default function ProjectWireTrace({ loaderData }: Route.ComponentProps) {
             <a href={wt.githubUrl} target="_blank" rel="noopener noreferrer" className={LINK}>
               View on GitHub
             </a>
+            <span aria-hidden="true" className="text-text-tertiary">·</span>
+            <Link to={`${docs.guide.path}/`} className={LINK}>
+              {docs.guide.name}
+            </Link>
+            <span aria-hidden="true" className="text-text-tertiary">·</span>
+            <Link to={`${docs.formats.path}/`} className={LINK}>
+              {docs.formats.name}
+            </Link>
             <span aria-hidden="true" className="text-text-tertiary">·</span>
             <Link to={`${usage.path}/`} className={LINK}>
               Where it is used
